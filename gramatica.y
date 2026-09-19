@@ -64,11 +64,11 @@ declaracion_funcion:
     | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas error sentencias_ejecutables END ';' { yyerror("Declaracion de funcion: Falta la palabra reservada BEGIN");}
     | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables error ';' { yyerror("Declaracion de funcion: Falta la palabra reservada END");}
     | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END { yyerror("Declaracion de funcion: Falta el ';'");}
+    | tipo FUNCTION ID '(' error ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Error en parametros de funcion: Falta una ',' o tipo invalido"); }
     ;
 
 parametros_formales: 
     parametros_formales ',' parametro_formal
-    | parametros_formales error parametro_formal { yyerror("Parametros formales: Falta la ','");} 
     | parametro_formal
     ;
 
@@ -104,19 +104,20 @@ elemento_clase:
 
 sentencia_extends:
     EXTENDS lista_ids ';' {System.out.println("Sentencia EXTENDS");}
+    | EXTENDS error ';' { yyerror("Error en la lista de IDs de EXTENDS: Falta una ','"); }
     | EXTENDS lista_ids { yyerror("Sentencia EXTENDS: Falta el ';'");}
     | EXTENDS ';' { yyerror("Falta lista ids");}
     ;
 
 lista_ids:
-    lista_ids ',' ID
-    | lista_ids ID { yyerror("Lista ids: Falta la ','");}  
+    lista_ids ',' ID  
     | ID 
     ;
 
 declaracion_metodo: 
     tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END ';' {System.out.println("METODO");}
     | tipo ID '(' parametros_formales ')' error sentencias_ejecutables END ';' { yyerror("Declaracion de metodo: Falta el BEGIN");}
+    | tipo ID '(' error ')' BEGIN sentencias_ejecutables END ';' { yyerror("Error en parametros de metodo: Falta una ',' o tipo invalido"); }
     | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables error ';' { yyerror("Declaracion de metodo: Falta el END");}
     | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END { yyerror("Declaracion de metodo: Falta el ';'");}
     ;
@@ -178,6 +179,7 @@ termino:
     | termino '/' factor
     | termino '*' error {yyerror("Falta operando");}
     | error '*' factor {yyerror("Falta operando");}
+    | error '/' factor {yyerror("Falta operando");}
     | termino '/' error {yyerror("Falta operando");}
     | factor
     ;
@@ -194,22 +196,24 @@ factor:
 invocacion: 
     ID '(' parametros_reales ')' lista_constantes_opcional {System.out.println("Metodo|funcion con orden opcional");}
     | ID '.' ID '(' parametros_reales ')' lista_constantes_opcional {System.out.println("Objeto con orden opcional");}
+    | ID '(' error ')' lista_constantes_opcional { yyerror("Error en los parametros: Falta una ',' o hay un elemento inválido"); }
+    | ID '.' ID '(' error ')' lista_constantes_opcional { yyerror("Error en los parametros del objeto: Falta una ',' o hay un elemento inválido"); }
+
     ;
 
 lista_constantes_opcional:
-    '[' lista_constantes ']' 
+    '[' lista_constantes ']'
+    | '[' error ']' { yyerror("Error en la lista de constantes: Falta una ',' o hay un elemento inválido"); }
     | 
     ;
 
 lista_constantes:
     lista_constantes ',' CTE
-    | lista_constantes CTE { yyerror("Lista constantes: Falta la ','");}  
     | CTE
     ;
 
 parametros_reales: 
     parametros_reales ',' parametro_real
-    | parametros_reales error parametro_real { yyerror("Parametro Reales: Falta la ,");}  
     | parametro_real
     ;
 
@@ -240,7 +244,7 @@ condicion:
     ;
 
 comparador: 
-    IGUAL | DISTINTO | MAYORIGUAL | MENORIGUAL  {System.out.println("Comparador");}
+    IGUAL | DISTINTO | MAYORIGUAL | MENORIGUAL | '>' | '<'  {System.out.println("Comparador");}
     ;
 
  bloque_ejecutable:  

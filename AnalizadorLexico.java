@@ -231,8 +231,7 @@ public class AnalizadorLexico {
                 if (tablaPR.esPalabraReservada(textoAS5)) {
                         yylval = new ParserVal(textoAS5);
                         return tablaPR.obtenerId(textoAS5);
-                    }
-
+                    }     
                 System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Error Lexico: Identificador inválido con mayúsculas: " + textoAS5 );
                 return 0; 
 

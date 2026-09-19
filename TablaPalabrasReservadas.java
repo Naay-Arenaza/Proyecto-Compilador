@@ -23,7 +23,7 @@ public class TablaPalabrasReservadas {
         tablaPR.put("doublef",Parser.DOUBLEF);
         tablaPR.put("todf",Parser.TODF);
         tablaPR.put("comptime",Parser.COMPTIME);
-        tablaPR.put("REPEAT",Parser.REPEAT);
+        tablaPR.put("repeat",Parser.REPEAT);
         tablaPR.put("while",Parser.WHILE);
         tablaPR.put("extends",Parser.EXTENDS);
     }
