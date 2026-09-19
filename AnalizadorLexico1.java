@@ -1,5 +1,5 @@
-public class AnalizadorLexico {
-    public ParserVal yylval;
+/*public class AnalizadorLexico1 {
+
     private LecturaCodigo lectorCodigo;
     private TablaDeSimbolos tablaSimbolos = new TablaDeSimbolos();
     private TablaPalabrasReservadas tablaPR = new TablaPalabrasReservadas(); 
@@ -35,7 +35,7 @@ public class AnalizadorLexico {
         };
      private static int[][] matriz_acciones = { // Matriz de Acciones Semánticas 
             // l   L   d  "d"  +   -   *     /   :   =   >   <   !   (     )   ,    ;   _   $   u   s   {   }   .  BL   "   [   ]
-            {  1,  1,  1,  1,  1,  1,  16,  16,  1,  1,  1,  1,  1,  16,  16,  16,  16,  0,  0,  1,  1,  1,  0,  1,  0,  1 , 16, 16}, // Fila 0
+            {  1,  1,  1,  1,  1,  1,  16,  16,  1,  1,  1,  1,  1,  16,  16,  16,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1 , 16, 16}, // Fila 0
             {  2,  2,  2,  2,  3,  3,   3,   3,  3,  3,  3,  3,  3,   3,   3,   3,  3,  2,  3,  2,  2,  3,  3,  3,  3,  3 ,  3,  3}, // Fila 1
             {  2,  4,  2,  2,  4,  4,   4,   4,  4,  4,  4,  4,  4,   4,   4,   4,  4,  2,  4,  2,  2,  4,  4,  4,  4,  4 ,  4,  4}, // Fila 2
             {  2,  2,  5,  2,  5,  5,  5,    5,  5,  5,  5,  5,  5,   5,   5,   5,  5,  2,  5,  2,  2,  5,  5,  5,  5,  5 ,  5,  5}, // Fila 3
@@ -103,19 +103,19 @@ public class AnalizadorLexico {
             }
     }
 
-    public int yylex() {
+    public Token getToken() {
         int estadoActual = 0;
         lexema.setLength(0);
-        int parserID = 0;
+        Token token = null;
 
-        while (parserID == 0) {
+        while (token == null) {
             char caracterLeido = lectorCodigo.leerSiguienteCaracter();
             
             if (caracterLeido == LecturaCodigo.EOF) { // Fin de archivo - EOF
                 
                 if (estadoActual == 0) { // Fin de archivo
                     lectorCodigo.cerrar();
-                    return 0;
+                    return new Token(0, "EOF");
                 }
 
                 if (estadoActual == 16) { // Comentario multilinea sin cerrar y EOF
@@ -152,9 +152,9 @@ public class AnalizadorLexico {
             int accion = matriz_acciones[estadoActual][columna];
             int estadoSiguiente = matriz_estados[estadoActual][columna];
 
-            parserID = ejecutarAccionSemantica(accion, caracterLeido);
+            token = ejecutarAccionSemantica(accion, caracterLeido);
 
-            if (estadoSiguiente == F || (parserID == 0 && lexema.length() == 0)) { // Control de transición y recuperación
+            if (estadoSiguiente == F || (token == null && lexema.length() == 0)) { // Control de transición y recuperación
                 estadoActual = 0;
             } 
             else {
@@ -162,24 +162,24 @@ public class AnalizadorLexico {
             }
         }
 
-        return parserID;
+        return token;
     }
 
-    private int ejecutarAccionSemantica(int accion, char c) {
+    private Token ejecutarAccionSemantica(int accion, char c) {
         switch (accion) {
 
             case 0: // AS0 - Estructura mal formada
                 boolean errorEnEstadoCero = (lexema.length() == 0); // Si lexema está vacío, ocurrió en reposo
 
                 lexema.append(c);
-                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Error Lexico: Estructura mal formada: " + lexema);
+                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Estructura mal formada: " + lexema);
 
                 if (!errorEnEstadoCero && c != LecturaCodigo.EOF) { //Si el error ocurrió en Estado 0
                     lectorCodigo.devolverCaracter();
                 }
 
                 lexema.setLength(0);
-                return 0;   
+                return null;   
             
             case 1: // AS1: Inicializa el buffer del string y añade el primer carácter leído.
                 lexema.setLength(0); 
@@ -196,18 +196,16 @@ public class AnalizadorLexico {
                 lexema.setLength(0); 
                 
                 if (tablaPR.esPalabraReservada(textoAS3)) { 
-                    yylval = new ParserVal(textoAS3);
-                    return tablaPR.obtenerId(textoAS3);
+                    return new Token(tablaPR.obtenerId(textoAS3), textoAS3);
                 }
 
                 if (textoAS3.length() > 22) { 
                     textoAS3 = textoAS3.substring(0, 22);
-                    System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Error Lexico: Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS3);
+                    System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS3);
                 }
 
                 tablaSimbolos.agregarIdentificador(textoAS3, lectorCodigo.getLineaActual());
-                yylval = new ParserVal(textoAS3);
-                return Parser.ID;
+                return new Token(Token.ID, textoAS3);
 
             case 4: // AS4: Estado Final -> Identificador. Al tener digitos no puede ser PR
                 lectorCodigo.devolverCaracter();
@@ -216,12 +214,11 @@ public class AnalizadorLexico {
 
                 if (textoAS4.length() > 22) {
                     textoAS4 = textoAS4.substring(0, 22);
-                    System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Error Lexico: Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS4);
+                    System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS4);
                 }
 
                 tablaSimbolos.agregarIdentificador(textoAS4, lectorCodigo.getLineaActual());
-                yylval = new ParserVal(textoAS4);
-                return Parser.ID;
+                return new Token(Token.ID, textoAS4);
 
             case 5: // AS5: Palabra reservada. Al tener mayusculas no es Identificador
                 lectorCodigo.devolverCaracter(); 
@@ -229,37 +226,35 @@ public class AnalizadorLexico {
                 lexema.setLength(0); 
 
                 if (tablaPR.esPalabraReservada(textoAS5)) {
-                        yylval = new ParserVal(textoAS5);
-                        return tablaPR.obtenerId(textoAS5);
+                        return new Token(tablaPR.obtenerId(textoAS5), textoAS5);
                     }
 
-                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Error Lexico: Identificador inválido con mayúsculas: " + textoAS5 );
-                return 0; 
+                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Identificador inválido con mayúsculas: " + textoAS5 );
+                return null; 
 
             case 6: // AS6: Estado Final -> Operador simple (:, +, -, >, <, =)
                 lectorCodigo.devolverCaracter();
                 char opSimple = lexema.charAt(0); 
                 lexema.setLength(0);            
-                return (int) opSimple; 
+                return new Token((int) opSimple); 
 
             case 7: // AS7: Estado Final -> Operador Compuesto (>=, <=, ==, !=, :=)
                 lexema.append(c);                 
                 String opCompuesto = lexema.toString();            
-                yylval = new ParserVal(opCompuesto);
-                
+
                 if (opCompuesto.equals(">=")) 
-                        return Parser.MAYORIGUAL;
+                        return new Token(Token.MAYOR_IGUAL);
                 if (opCompuesto.equals("<=")) 
-                        return Parser.MENORIGUAL; 
+                        return new Token(Token.MENOR_IGUAL); 
                 if (opCompuesto.equals("==")) 
-                        return Parser.IGUAL; 
+                        return new Token(Token.IGUAL_IGUAL); 
                 if (opCompuesto.equals("!=")) 
-                        return Parser.DISTINTO;    
+                        return new Token(Token.DISTINTO);    
                 if (opCompuesto.equals(":=")) 
-                        return Parser.ASIGNACION;
+                        return new Token(Token.ASIGNACION);
                   
                 lexema.setLength(0); 
-                return 0;
+                return null;
 
             case 8: // AS8: Estado Final -> USHORTINT
                 if (c != LecturaCodigo.EOF) {
@@ -273,13 +268,12 @@ public class AnalizadorLexico {
 
                 int valorInt = Integer.parseInt(numero);
                 if (valorInt < 0 || valorInt > 255) { // se valida el rango [0, 255] 
-                    System.err.println("Línea " + lectorCodigo.getLineaActual() +  ": Error Lexico: Constante USHORTINT fuera de rango [0, 255]: " + valorInt);
-                    return 0; 
+                    System.err.println("Línea " + lectorCodigo.getLineaActual() +  ": Constante USHORTINT fuera de rango [0, 255]: " + valorInt);
+                    return null; 
                 }
                 
                 tablaSimbolos.agregarConstante(lexUs, "USHORTINT", lectorCodigo.getLineaActual());
-                yylval = new ParserVal(lexUs);
-                return Parser.CTE;
+                return new Token(Token.CTE, lexUs);
             
             case 9: // AS9: Estado Final -> DOUBLEF
                 if (c != LecturaCodigo.EOF) {
@@ -296,22 +290,21 @@ public class AnalizadorLexico {
                 boolean valido = (valor.compareTo(cero) == 0) || (valor.compareTo(minPos) > 0 && valor.compareTo(maxPos) < 0) || (valor.compareTo(minNeg) > 0 && valor.compareTo(maxNeg) < 0);
 
                 if (!valido) {
-                    System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Error Lexico: Constante DOUBLEF fuera de rango: " + lexDouble);
-                    return 0;
+                    System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Constante DOUBLEF fuera de rango: " + lexDouble);
+                    return null;
                 }
 
                 tablaSimbolos.agregarConstante(lexDouble, "DOUBLEF", lectorCodigo.getLineaActual());
-                yylval = new ParserVal(lexDouble);
-                return Parser.CTE;
+                return new Token(Token.CTE, lexDouble);
 
 
             case 11: // AS11: Estado Final -> Cadena de una línea {...} 
                 if (c == '\n' || c == '\r') { // Error: si vino un salto de línea antes de cerrar
                     if (lexema.length() > 0) {
-                                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Error Lexico: Cadena de una línea sin cerrar : " + lexema );
+                                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Cadena de una línea sin cerrar : " + lexema );
                             }
                     lexema.setLength(0);
-                    return 0; 
+                    return null; 
                 }
 
                 if (c == '}') { // Cierre de cadena de una línea
@@ -320,8 +313,7 @@ public class AnalizadorLexico {
                     lexema.setLength(0);
 
                     tablaSimbolos.agregarConstante(textoCadena, "CADENA", lectorCodigo.getLineaActual());
-                    yylval = new ParserVal(textoCadena);
-                    return Parser.CADENA;
+                    return new Token(Token.CADENA, textoCadena);
                 }
 
                 lexema.append(c);
@@ -329,43 +321,42 @@ public class AnalizadorLexico {
 
             case 12: // AS12: Estado Final -> Comentario multilínea "..."
                 lexema.setLength(0); 
-                return 0;
+                return null;
 
             case 14: // AS14: Fin del archivo | Identificador o Palabra Reservada
                 String textoAS14 = lexema.toString();
                 lexema.setLength(0);
 
                 if (tablaPR.esPalabraReservada(textoAS14)) {
-                    yylval = new ParserVal(textoAS14);
-                    return tablaPR.obtenerId(textoAS14);
+                    return new Token(tablaPR.obtenerId(textoAS14), textoAS14);
                 }
 
                 if (textoAS14.length() > 22) {
                     textoAS14 = textoAS14.substring(0, 22);
-                    System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Error Lexico: Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS14);
+                    System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS14);
                 }
                 
                 tablaSimbolos.agregarIdentificador(textoAS14, lectorCodigo.getLineaActual());
-                yylval = new ParserVal(textoAS14);
-                return Parser.ID;
+                return new Token(Token.ID, textoAS14);
             
             
             case 15: // AS15: Comentario multilinea sin cerrar y EOF
-                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Error Lexico: Comentario sin cerrar al alcanzar fin de archivo");
+                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Comentario sin cerrar al alcanzar fin de archivo");
                 
                 lexema.setLength(0); 
                 lectorCodigo.cerrar();
-                return 0;
+                return new Token(0, "EOF");
             
             case 16: // AS16: Token operador simple ('+', '-', '*', '/', '(', ')', ',', ';')
                 lexema.setLength(0);   
-                return (int) c; 
+                return new Token((int) c); 
             
             }   
-        return 0;
+        return null;
     }
 
     public TablaDeSimbolos getTablaSimbolos() {
         return tablaSimbolos;
     }
 }
+*/
