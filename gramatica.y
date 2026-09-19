@@ -166,21 +166,19 @@ indice:
 expresion: 
     expresion '+' termino
     | expresion '-' termino
-    | error ';' {yyerror("Falta operador")}
-    | expresion '+' error {yyerror("Falta operando")}
-    | error '+' termino {yyerror("Falta operando")}
-    | expresion '-' error {yyerror("Falta operando")}
-    | error '-' termino {yyerror("Falta operando")}
+    | expresion '+' error {yyerror("Falta operando");}
+    | error '+' termino {yyerror("Falta operando");}
+    | expresion '-' error {yyerror("Falta operando");}
+    | error '-' termino {yyerror("Falta operando");}
     | termino
     ;
 
 termino: 
     termino '*' factor
     | termino '/' factor
-    | termino '*' error {yyerror("Falta operando")}
-    | error '*' factor {yyerror("Falta operando")}
-    | termino '/' error {yyerror("Falta operando")}
-    | error '/' factor {yyerror("Falta operando")}
+    | termino '*' error {yyerror("Falta operando");}
+    | error '*' factor {yyerror("Falta operando");}
+    | termino '/' error {yyerror("Falta operando");}
     | factor
     ;
 
@@ -194,7 +192,7 @@ factor:
     ;
 
 invocacion: 
-    ID '(' parametros_reales ')' lista_constantes_opcional {System.out.println("Metodo con orden opcional");}
+    ID '(' parametros_reales ')' lista_constantes_opcional {System.out.println("Metodo|funcion con orden opcional");}
     | ID '.' ID '(' parametros_reales ')' lista_constantes_opcional {System.out.println("Objeto con orden opcional");}
     ;
 
@@ -211,7 +209,7 @@ lista_constantes:
 
 parametros_reales: 
     parametros_reales ',' parametro_real
-    | parametros_reales parametro_real { yyerror("Parametro Reales: Falta la ','");}  
+    | parametros_reales error parametro_real { yyerror("Parametro Reales: Falta la ,");}  
     | parametro_real
     ;
 
@@ -261,3 +259,15 @@ salida:
 retorno: 
     RET '(' expresion ')' 
     ;
+%%
+private AnalizadorLexico lexer;
+
+public Parser(AnalizadorLexico lexer){
+    this.lexer = lexer;
+}
+private int yylex(){
+    return lexer.yylex();
+}
+private void yyerror(String mensaje){
+    System.err.println("Error sintáctico: " + mensaje);
+}
