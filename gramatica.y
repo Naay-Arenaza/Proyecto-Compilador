@@ -49,18 +49,18 @@ declaracion_variables_comptime:
     ;
 
 tipo: 
-    USHORTINT | DOUBLEF 
+    USHORTINT | DOUBLEF {System.out.println("Declaracion de tipo");}
     ;
 
 lista_variables: 
-    lista_variables ',' ID
+    lista_variables ',' ID 
     | lista_variables ID { yyerror("Lista de variables: Falta la ','");}
     | ID
     ;
 
 declaracion_funcion: 
     tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';'
-    | tipo FUNCTION error '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';'{ yyerror("Declaracion de funcion: Falta de nombre de programa");}
+    | tipo FUNCTION error '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';'{ yyerror("Declaracion de funcion: Falta de nombre de funcion");}
     | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas error sentencias_ejecutables END ';' { yyerror("Declaracion de funcion: Falta la palabra reservada BEGIN");}
     | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables error ';' { yyerror("Declaracion de funcion: Falta la palabra reservada END");}
     | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END { yyerror("Declaracion de funcion: Falta el ';'");}
@@ -69,7 +69,7 @@ declaracion_funcion:
 
 parametros_formales: 
     parametros_formales ',' parametro_formal
-    | parametro_formal
+    | parametro_formal {System.out.println("Declaracion de parametro_formal");}
     ;
 
 parametro_formal: 
@@ -134,12 +134,12 @@ sentencias_ejecutables:
     ;
 
 sentencia_ejecutable: 
-    asignacion ';' {System.out.println("Asignacion");}
-    | seleccion ';'{System.out.println("Seleccion");}
-    | salida ';' {System.out.println("Salida");}
-    | retorno ';' {System.out.println("Retorno");}
-	| iterativa ';' {System.out.println("Iterativa");}
-    | asignacion { yyerror("Asignacion: Falta el ';'");}
+    asignacion ';' {System.out.println("Declaracion Asignacion");}
+    | seleccion ';'{System.out.println("Declaracion Seleccion");}
+    | salida ';' {System.out.println("Declaracion Salida");}
+    | retorno ';' {System.out.println("Declaracion Retorno");}
+	| iterativa ';' {System.out.println("Declaracion Iterativa");}
+    | asignacion { yyerror("Asignacion: Falta el ';' final de la asignacion o un operador");}
     | seleccion { yyerror("Seleccion: Falta el ';'");}
     | salida { yyerror("Salida: Falta el ';'");}
     | retorno { yyerror("Retorno: Falta el ';'");}
@@ -153,34 +153,34 @@ asignacion:
 
 lado_izquierdo: 
     ID
-    | acceso_posicional 
+    | acceso_posicional {System.out.println("Declaracion de acceso_posicional");}
     ;
 
 acceso_posicional:
-    ID '[' indice ']' 
+    ID '[' indice ']'
     ;
 
 indice:
-    ID | CTE
+    ID | CTE 
     ;
 
 expresion: 
     expresion '+' termino
     | expresion '-' termino
-    | expresion '+' error {yyerror("Falta operando");}
-    | error '+' termino {yyerror("Falta operando");}
-    | expresion '-' error {yyerror("Falta operando");}
-    | error '-' termino {yyerror("Falta operando");}
+    | expresion '+' error {yyerror("Falta operando 2");}
+    | error '+' termino {yyerror("Falta operando 1");}
+    | expresion '-' error {yyerror("Falta operando 2");}
+    | error '-' termino {yyerror("Falta operando 1");}
     | termino
     ;
 
 termino: 
     termino '*' factor
     | termino '/' factor
-    | termino '*' error {yyerror("Falta operando");}
-    | error '*' factor {yyerror("Falta operando");}
-    | error '/' factor {yyerror("Falta operando");}
-    | termino '/' error {yyerror("Falta operando");}
+    | termino '*' error {yyerror("Falta operando 2");}
+    | error '*' factor {yyerror("Falta operando 1");}
+    | error '/' factor {yyerror("Falta operando 1");}
+    | termino '/' error {yyerror("Falta operando 2");}
     | factor
     ;
 

@@ -908,7 +908,7 @@ case 20:
 break;
 case 23:
 //#line 63 "gramatica.y"
-{ yyerror("Declaracion de funcion: Falta de nombre de programa");}
+{ yyerror("Declaracion de funcion: Falta de nombre de funcion");}
 break;
 case 24:
 //#line 64 "gramatica.y"
@@ -988,27 +988,27 @@ case 57:
 break;
 case 60:
 //#line 137 "gramatica.y"
-{System.out.println("Asignacion");}
+{System.out.println("Declaracion Asignacion");}
 break;
 case 61:
 //#line 138 "gramatica.y"
-{System.out.println("Seleccion");}
+{System.out.println("Declaracion Seleccion");}
 break;
 case 62:
 //#line 139 "gramatica.y"
-{System.out.println("Salida");}
+{System.out.println("Declaracion Salida");}
 break;
 case 63:
 //#line 140 "gramatica.y"
-{System.out.println("Retorno");}
+{System.out.println("Declaracion Retorno");}
 break;
 case 64:
 //#line 141 "gramatica.y"
-{System.out.println("Iterativa");}
+{System.out.println("Declaracion Iterativa");}
 break;
 case 65:
 //#line 142 "gramatica.y"
-{ yyerror("Asignacion: Falta el ';'");}
+{ yyerror("Asignacion: Falta el ';' final de la asignacion o un operador");}
 break;
 case 66:
 //#line 143 "gramatica.y"
@@ -1032,35 +1032,35 @@ case 71:
 break;
 case 79:
 //#line 170 "gramatica.y"
-{yyerror("Falta operando");}
+{yyerror("Falta operando 2");}
 break;
 case 80:
 //#line 171 "gramatica.y"
-{yyerror("Falta operando");}
+{yyerror("Falta operando 1");}
 break;
 case 81:
 //#line 172 "gramatica.y"
-{yyerror("Falta operando");}
+{yyerror("Falta operando 2");}
 break;
 case 82:
 //#line 173 "gramatica.y"
-{yyerror("Falta operando");}
+{yyerror("Falta operando 1");}
 break;
 case 86:
 //#line 180 "gramatica.y"
-{yyerror("Falta operando");}
+{yyerror("Falta operando 2");}
 break;
 case 87:
 //#line 181 "gramatica.y"
-{yyerror("Falta operando");}
+{yyerror("Falta operando 1");}
 break;
 case 88:
 //#line 182 "gramatica.y"
-{yyerror("Falta operando");}
+{yyerror("Falta operando 1");}
 break;
 case 89:
 //#line 183 "gramatica.y"
-{yyerror("Falta operando");}
+{yyerror("Falta operando 2");}
 break;
 case 93:
 //#line 190 "gramatica.y"
