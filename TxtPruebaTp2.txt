@@ -1,0 +1,136 @@
+"1. Falta de nombre de programa"
+
+BEGIN
+END
+
+"2. Falta de delimitador de sentencias ejecutables (falta END)"
+progerr2
+BEGIN
+a := x - b;
+
+"3. Falta de ';' al final de las sentencias"
+progerr3
+BEGIN
+a := x - b
+END
+
+"4. Falta de nombre en función"
+progerr4
+USHORTINT FUNCTION (USHORTINT a)
+BEGIN
+z := 1.0;
+END;
+BEGIN
+END
+
+"5. Falta de ',' en declaración de variables"
+progerr5
+USHORTINT FUNCTION cinco(USHORTINT a USHORTINT b)
+USHORTINT z x;
+BEGIN
+    z := 1.0;
+END;
+BEGIN
+ a := x;
+END
+
+"6. Falta de nombre de parámetro formal en función"
+progerr6
+USHORTINT FUNCTION calcula(USHORTINT)
+BEGIN
+z := 1.0;
+END;
+BEGIN
+END
+
+"7. Falta de tipo de parámetro formal en función"
+progerr7
+USHORTINT FUNCTION calcula(a, USHORTINT b)
+BEGIN
+z := 1.0;
+END;
+BEGIN
+END
+
+"8. Falta de operando en expresión"
+progerr8
+BEGIN
+a := x - ;
+a := x + ;
+a := x * ;
+a := x / ;
+END
+
+"9. Falta de operador en expresión"
+progerr9
+BEGIN
+a := x b;
+END
+
+"10. Falta de argumento en sentencia POUT"
+progerr10
+BEGIN
+POUT();
+END
+
+"11. Falta de paréntesis en condición de IF"
+progerr11
+BEGIN
+IF z < 2.0 BEGIN a := x + b; END END_IF;
+IF (z < 2.0 BEGIN a := x + b; END END_IF;
+IF z < 2.0) BEGIN a := x + b; END END_IF;
+END
+
+"12. Falta de cuerpo en iteraciones"
+progerr12
+BEGIN
+REPEAT WHILE (z > 2.0);
+END
+
+"13. Falta de END_IF"
+progerr13
+BEGIN
+IF (z < 2.0) BEGIN a := x + b; END;
+END
+
+"14. Uso de asignación '=' en lugar de ':='"
+progerr14
+BEGIN
+a = b;
+END
+
+"15. Falta de tipo en declaración de variable COMPTIME"
+progerr15
+COMPTIME p;
+BEGIN
+END
+
+"16. Ausencia de nombre/lista de clases después de EXTENDS"
+progerr16
+CLASS pruebaextends
+    BEGIN
+    EXTENDS;
+    END;
+BEGIN
+END
+
+"Pruebas que funcionan"
+
+correcto
+USHORTINT a, b;
+COMPTIME DOUBLEF p;
+CLASS pruebaextends
+    BEGIN
+    EXTENDS b, n;
+    END;
+USHORTINT FUNCTION funciona(USHORTINT a, USHORTINT b)
+    BEGIN
+    z := 3.0;
+    END;
+BEGIN
+POUT(x);
+a := suma(a,b)[1$us,2$us];
+IF (z < 2.0) BEGIN a := x + b; END END_IF;
+REPEAT a := x + b; WHILE (z > 2.0);
+a := x - b;
+END

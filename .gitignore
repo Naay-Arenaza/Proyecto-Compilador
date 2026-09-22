@@ -1,4 +1,6 @@
 *.class
-Prueba111.txt
-TxtPrueba.txt
-casos_prueba_minimos_TP1.txt
+y.output
+y.tab.c
+y_tab.c
+y_tab.h
+

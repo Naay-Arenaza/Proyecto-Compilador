@@ -1,0 +1,73 @@
+// Casos minimos TP 1
+// Los comentarios indican el comportamiento esperado.
+// Usar cada bloque por separado si el analizador aun no recupera errores.
+
+// 1. DOUBLEF: formas validas requeridas
+1.0 .6 -1.2 -.6 3.0d-5 .2d34 2.5d-1 15.2 0.0 1.2d+10
+// Esperado: todos reconocidos como constantes DOUBLEF validas.
+
+// 2. DOUBLEF: limites y rango
+2.2250738585072015d-308
+1.7976931348623156d+308
+-2.2250738585072015d-308
+-1.7976931348623156d+308
+// Esperado: dentro de rango.
+
+2.2250738585072014d-308
+1.7976931348623157d+308
+-2.2250738585072014d-308
+-1.7976931348623157d+308
+2.2d-308
+1.8d+308
+-2.2d-308
+-1.8d+308
+// Esperado: fuera de rango. Los cuatro primeros son limites estrictos.
+
+// 3. DOUBLEF: errores de formato y fin de archivo
+1.
+.
+1.0d
+1.0d+
+1.0d-
+// Esperado: error lexico por constante DOUBLEF incompleta o mal formada.
+// Probar tambien 1.8d+308 como ultimo caracter real del archivo, sin espacio ni salto final.
+
+// 4. Identificadores
+abc a1 ab_2 identificador_de_22_ca
+identificador_de_22_car
+abc@def
+ABC MiVariable
+// Esperado: los tres primeros son identificadores validos; el de 23 se trunca y genera warning;
+// @ genera error; los identificadores no admiten letras mayusculas.
+
+// 5. Palabras reservadas, sin distinguir mayusculas de minusculas
+if IF else ELSE end_if END_IF begin BEGIN end END pout POUT ret RET class CLASS function FUNCTION doublef DOUBLEF
+// Esperado: todas se reconocen como palabras reservadas correctas.
+
+// 6. Operadores y otros simbolos
++ - * / := = >= <= > < == != ( ) , ;
+// Esperado: un token correcto para cada simbolo, incluyendo los operadores de dos caracteres.
+
+// 7. Comentario de una linea, si el tema 15 esta asignado
+// comentario correcto hasta fin de linea
+// Esperado: no se informa ningun token del comentario.
+
+// 8. Comentario multilinea, si el tema 16 esta asignado
+{{ comentario
+   en dos lineas }}
+{{ comentario sin cierre
+// Esperado: el primero se elimina; el segundo informa comentario sin cierre al llegar a EOF.
+
+// 9. Cadena de una linea, si el tema 9 esta asignado
+{ Hola mundo }
+{ cadena sin cierre
+{ cadena
+  en dos lineas }
+// Esperado: la primera es valida; las otras dos producen error lexico.
+
+// 10. Cadena multilinea, si el tema 10 esta asignado
+"Hola
+mundo"
+"cadena sin cierre
+// Esperado: la primera es valida y se guarda sin saltos de linea en la tabla de simbolos;
+// la segunda informa cadena sin cierre al llegar a EOF.
