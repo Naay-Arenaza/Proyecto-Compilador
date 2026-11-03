@@ -32,7 +32,7 @@ programa:
 sentencia_declarativa: 
     declaracion_variables {System.out.println("Declaracion de VAR");}
     | declaracion_variables_comptime {System.out.println("Declaracion de comptime");}
-    | declaracion_funcion {System.out.println("Declaracion de funcion");}
+    | declaracion_funcion 
     | declaracion_clase {System.out.println("Declaracion de clase");}
     | declaracion_objeto {System.out.println("Declaracion de objeto");}
     ;
@@ -59,22 +59,24 @@ lista_variables:
     ;
 
 declaracion_funcion: 
-    tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';'
-    | tipo FUNCTION error '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';'{ yyerror("Declaracion de funcion: Falta de nombre de funcion");}
-    | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas error sentencias_ejecutables END ';' { yyerror("Declaracion de funcion: Falta la palabra reservada BEGIN");}
-    | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables error ';' { yyerror("Declaracion de funcion: Falta la palabra reservada END");}
-    | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END { yyerror("Declaracion de funcion: Falta el ';'");}
+    tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' {System.out.println("Declaracion de funcion");}
+    | tipo FUNCTION ID error parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Falta parentesis de apertura en el encabezado de la función"); }
+    | tipo FUNCTION ID '(' parametros_formales error sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Falta parentesis de cierre en el encabezado de la función"); }
+    | tipo FUNCTION error ; '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';'{ yyerror("Falta de nombre de funcion");}
+    | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas error sentencias_ejecutables END ';' { yyerror("Falta la palabra reservada BEGIN de la funcion");}
+    | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables error ';' { yyerror("Falta la palabra reservada END de la funcion");}
+    | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END { yyerror("Falta el ';'");}
     | tipo FUNCTION ID '(' error ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Error en parametros de funcion: Falta una ',' o tipo invalido"); }
     ;
 
 parametros_formales: 
-    parametros_formales ',' parametro_formal
-    | parametro_formal {System.out.println("Declaracion de parametro_formal");}
+    parametros_formales ',' parametro_formal {System.out.println("Declaracion de parametro_formales");}
+    | parametro_formal {System.out.println("Declaracion de parametro_formales");}
     ;
 
 parametro_formal: 
-    tipo ID 
-    | ID { yyerror("Parametro Formal: Falta el 'tipo''");}
+    tipo ID {System.out.println("Declaracion de parametro_formal");}
+    | ID { yyerror("Parametro Formal: Falta el 'tipo'");}
     | tipo { yyerror("Parametro Formal: Falta el 'ID''");}
     ;
 
