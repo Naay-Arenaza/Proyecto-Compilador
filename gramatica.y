@@ -252,8 +252,8 @@ comparador:
  bloque_ejecutable:  
     sentencia_ejecutable {System.out.println("BloqueEJ1");}
     | BEGIN sentencias_ejecutables END {System.out.println("BloqueEJ2");}
-    | error sentencias_ejecutables END { yyerror("Declaracion de bloque ejecutable: Falta el BEGIN ");}
-    | BEGIN sentencias_ejecutables error { yyerror("Declaracion de bloque ejecutable: Falta el END ");}
+    | error sentencias_ejecutables END {yyerror("Declaracion de bloque ejecutable: Falta el BEGIN ");}
+    | BEGIN sentencias_ejecutables error {yyerror("Declaracion de bloque ejecutable: Falta el END ");}
     ;
 
 salida: 
@@ -263,7 +263,8 @@ salida:
     ;
 
 retorno: 
-    RET '(' expresion ')' 
+    RET '(' expresion ')'
+    | RET error ';' {yyerror("Retorno debe tener una expresion y parentesis");}
     ;
 %%
 private AnalizadorLexico lexer;
