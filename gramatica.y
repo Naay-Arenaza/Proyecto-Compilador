@@ -136,12 +136,16 @@ sentencias_ejecutables:
     ;
 
 sentencia_ejecutable: 
-    asignacion ';' {System.out.println("Declaracion Asignacion");}
+    asignacion ';' {
+        if (expresionInvalida != false){
+            System.out.println("Declaracion Asignacion");
+        }
+    }
     | seleccion ';'{System.out.println("Declaracion Seleccion");}
     | salida ';' {System.out.println("Declaracion Salida");}
     | retorno ';' {System.out.println("Declaracion Retorno");}
 	| iterativa ';' {System.out.println("Declaracion Iterativa");}
-    | asignacion { yyerror("Asignacion: Falta el ';' final de la asignacion o un operador");}
+    | asignacion { yyerror("Asignacion: Falta el ';', o un operador o expresion");}
     | seleccion { yyerror("Seleccion: Falta el ';'");}
     | salida { yyerror("Salida: Falta el ';'");}
     | retorno { yyerror("Retorno: Falta el ';'");}
@@ -198,9 +202,11 @@ factor:
 invocacion: 
     ID '(' parametros_reales ')' lista_constantes_opcional {System.out.println("Metodo|funcion con orden opcional");}
     | ID '.' ID '(' parametros_reales ')' lista_constantes_opcional {System.out.println("Objeto con orden opcional");}
-    | ID '(' error ')' lista_constantes_opcional { yyerror("Error en los parametros: Falta una ',' o hay un elemento inválido"); }
-    | ID '.' ID '(' error ')' lista_constantes_opcional { yyerror("Error en los parametros del objeto: Falta una ',' o hay un elemento inválido"); }
-
+    | ID '(' parametros_reales ';' lista_constantes_opcional { yyerror("Error en los parametros: Falta un ')'"); }
+    | ID '(' ')' lista_constantes_opcional { yyerror("Lista de parametros vacia."); }
+    | ID '.' ID '(' ')' lista_constantes_opcional { 
+        yyerror("Lista de parametros vacia."); expresionInvalida = true;
+     }
     ;
 
 lista_constantes_opcional:
@@ -217,6 +223,8 @@ lista_constantes:
 parametros_reales: 
     parametros_reales ',' parametro_real
     | parametro_real
+    | parametros_reales parametro_real {yyerror("Falta ',' entre argumentos");}
+    | parametros_reales ',' error parametro_real {yyerror("Elemento no valido despues de ','");}
     ;
 
 parametro_real: 
@@ -268,7 +276,7 @@ retorno:
     ;
 %%
 private AnalizadorLexico lexer;
-
+private boolean expresionInvalida = false;
 public Parser(AnalizadorLexico lexer){
     this.lexer = lexer;
 }

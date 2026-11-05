@@ -1,6 +1,7 @@
 "1. Falta de nombre de programa"
 
 BEGIN
+    a:=2$us;
 END
 
 "2. Falta de delimitador de sentencias ejecutables (falta END)"
