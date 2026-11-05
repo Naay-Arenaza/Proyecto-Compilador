@@ -33,7 +33,7 @@ sentencia_declarativa:
     declaracion_variables {System.out.println("Declaracion de VAR");}
     | declaracion_variables_comptime {System.out.println("Declaracion de comptime");}
     | declaracion_funcion 
-    | declaracion_clase {System.out.println("Declaracion de clase");}
+    | declaracion_clase 
     | declaracion_objeto {System.out.println("Declaracion de objeto");}
     ;
 
@@ -62,7 +62,7 @@ declaracion_funcion:
     tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' {System.out.println("Declaracion de funcion");}
     | tipo FUNCTION ID error parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Falta parentesis de apertura en el encabezado de la función"); }
     | tipo FUNCTION ID '(' parametros_formales error sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Falta parentesis de cierre en el encabezado de la función"); }
-    | tipo FUNCTION error ; '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';'{ yyerror("Falta de nombre de funcion");}
+    | tipo FUNCTION error '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';'{ yyerror("Falta de nombre de funcion");}
     | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas error sentencias_ejecutables END ';' { yyerror("Falta la palabra reservada BEGIN de la funcion");}
     | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables error ';' { yyerror("Falta la palabra reservada END de la funcion");}
     | tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END { yyerror("Falta el ';'");}
@@ -81,10 +81,10 @@ parametro_formal:
     ;
 
 declaracion_clase: 
-    CLASS ID BEGIN cuerpo_clase END ';'
-    | CLASS ID error cuerpo_clase END ';' { yyerror ("Declaracion de clase: Falta el BEGIN");}
-    | CLASS ID BEGIN cuerpo_clase error ';' { yyerror("Declaracion de clase: Falta el END");}
-    | CLASS ID BEGIN cuerpo_clase END { yyerror("Declaracion de clase: Falta el ';'");}
+    CLASS ID BEGIN cuerpo_clase END ';' {System.out.println("Declaracion de clase");}
+    | CLASS ID error cuerpo_clase END ';' { yyerror ("Falta el BEGIN de clase");}
+    | CLASS ID BEGIN cuerpo_clase error ';' { yyerror("Falta el END de clase");}
+    | CLASS ID BEGIN cuerpo_clase END { yyerror("Falta el ';' al final de la clase");}
     ;
 
 cuerpo_clase:
@@ -117,11 +117,11 @@ lista_ids:
     ;
 
 declaracion_metodo: 
-    tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END ';' {System.out.println("METODO");}
-    | tipo ID '(' parametros_formales ')' error sentencias_ejecutables END ';' { yyerror("Declaracion de metodo: Falta el BEGIN");}
-    | tipo ID '(' error ')' BEGIN sentencias_ejecutables END ';' { yyerror("Error en parametros de metodo: Falta una ',' o tipo invalido"); }
-    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables error ';' { yyerror("Declaracion de metodo: Falta el END");}
-    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END { yyerror("Declaracion de metodo: Falta el ';'");}
+    tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END ';' {System.out.println("Declaracion de Metodo");}
+    | tipo ID '(' parametros_formales ')' error sentencias_ejecutables END ';' { yyerror("Falta el BEGIN en la declaracion del metodo");}
+    | tipo ID '(' error ')' BEGIN sentencias_ejecutables END ';' { yyerror("Falta una ',' o tipo invalido en los parametros del metodo"); }
+    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables error ';' { yyerror("Falta el END en la declaracion del metodo");}
+    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END { yyerror("Falta el ';' en la declaracion del metodo");}
     ;
 
 declaracion_objeto: 
