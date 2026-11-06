@@ -106,7 +106,7 @@ elemento_clase:
 
 sentencia_extends:
     EXTENDS lista_ids ';' {System.out.println("Sentencia EXTENDS");}
-    | EXTENDS error ';' { yyerror("Error en la lista de IDs de EXTENDS: Falta una ','"); }
+    | EXTENDS error ';' { yyerror("Sintaxis de lista de herencia invalida"); }
     | EXTENDS lista_ids { yyerror("Sentencia EXTENDS: Falta el ';'");}
     | EXTENDS ';' { yyerror("Falta lista ids");}
     ;
@@ -114,6 +114,7 @@ sentencia_extends:
 lista_ids:
     lista_ids ',' ID  
     | ID 
+    | lista_ids ID { yyerror("Lista de IDs: Falta la ','");}
     ;
 
 declaracion_metodo: 
