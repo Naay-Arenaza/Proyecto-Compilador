@@ -19,7 +19,7 @@ import java.io.*;
 programa: 
     ID sentencias_declarativas BEGIN sentencias_ejecutables END {System.out.println("Declaracion de programa");}
     | error sentencias_declarativas BEGIN sentencias_ejecutables END { yyerror("Falta de nombre de programa");}
-    | ID sentencias_declarativas error sentencias_ejecutables END { yyerror("Falta la palabra reservada BEGIN");}
+    | ID sentencias_declarativas sentencias_ejecutables END { yyerror("Falta la palabra reservada BEGIN");}
     | ID sentencias_declarativas BEGIN sentencias_ejecutables error { yyerror("Falta la palabra reservada END");}
     ;
 
