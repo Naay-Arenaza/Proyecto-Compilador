@@ -31,7 +31,7 @@ programa:
 
 sentencia_declarativa: 
     declaracion_variables {System.out.println("Declaracion de VAR");}
-    | declaracion_variables_comptime {System.out.println("Declaracion de comptime");}
+    | declaracion_variables_comptime
     | declaracion_funcion 
     | declaracion_clase 
     | declaracion_objeto {System.out.println("Declaracion de objeto");}
@@ -43,7 +43,7 @@ declaracion_variables:
     ;
 
 declaracion_variables_comptime:
-    COMPTIME tipo lista_variables ';' 
+    COMPTIME tipo lista_variables ';' {System.out.println("Declaracion de comptime");}
     | COMPTIME tipo lista_variables error { yyerror("Declaracion de variables COMPTIME: Falta el ';'");}
     | COMPTIME lista_variables ';' { yyerror("Falta tipo en las variables en COMPTIME");}
     ;
@@ -235,7 +235,7 @@ factor_simple:
     ID
   | CTE
   | acceso_posicional
-  | TODF '(' expresion ')'
+  | to_double
   | invocacion
   | ID '=''('expresion')'{yyerror("No se permite este anidamiento, solo 1 expresion");}
 ;
