@@ -30,15 +30,15 @@ programa:
     ;
 
 sentencia_declarativa: 
-    declaracion_variables {System.out.println("Declaracion de VAR");}
+    declaracion_variables 
     | declaracion_variables_comptime
     | declaracion_funcion 
     | declaracion_clase 
-    | declaracion_objeto {System.out.println("Declaracion de objeto");}
+    | declaracion_objeto 
     ;
 
 declaracion_variables: 
-    tipo lista_variables ';'
+    tipo lista_variables ';' {System.out.println("Declaracion de VAR");}
     | tipo lista_variables %prec SIN_PUNTO_Y_COMA { yyerror("Declaracion de variables: Falta ';' " );}
     ;
 
@@ -49,7 +49,7 @@ declaracion_variables_comptime:
     ;
 
 tipo: 
-    USHORTINT | DOUBLEF {System.out.println("Declaracion de tipo");}
+    USHORTINT {System.out.println("Declaracion de tipo");} | DOUBLEF {System.out.println("Declaracion de tipo");}
     ;
 
 lista_variables: 
@@ -126,7 +126,7 @@ declaracion_metodo:
     ;
 
 declaracion_objeto: 
-    ID lista_variables ';' 
+    ID lista_variables ';' {System.out.println("Declaracion de objeto");}
     | ID lista_variables { yyerror("Declaracion Objeto: Falta el ';'");}
     ;
 
@@ -137,15 +137,11 @@ sentencias_ejecutables:
     ;
 
 sentencia_ejecutable: 
-    asignacion ';' {
-        if (expresionInvalida != true){
-            System.out.println("Declaracion Asignacion");
-        }
-    }
-    | seleccion ';'{System.out.println("Declaracion Seleccion");}
-    | salida ';' {System.out.println("Declaracion Salida");}
-    | retorno ';' {System.out.println("Declaracion Retorno");}
-	| iterativa ';' {System.out.println("Declaracion Iterativa");}
+    asignacion ';'
+    | seleccion ';'
+    | salida ';' 
+    | retorno ';' 
+	| iterativa ';' 
     | asignacion { yyerror("Asignacion: Falta el ';', o un operador o expresion");}
     | seleccion { yyerror("Seleccion: Falta el ';'");}
     | salida { yyerror("Salida: Falta el ';'");}
@@ -154,7 +150,11 @@ sentencia_ejecutable:
     ;
 
 asignacion: 
-    lado_izquierdo ASIGNACION expresion
+    lado_izquierdo ASIGNACION expresion {
+        if (expresionInvalida != true){
+            System.out.println("Declaracion Asignacion");
+        }
+    }
     | lado_izquierdo '=' expresion { yyerror("Uso de '=' en asignacion; debe utilizar ':='."); }
     ;
 
@@ -187,7 +187,7 @@ expresion:
     ;
 
 termino: 
-    termino '*' factor
+    termino '*' factor 
     | termino '/' factor
     | termino '*' error {yyerror("Falta operando 2");}
     | error '*' factor {yyerror("Falta operando 1");}
@@ -274,17 +274,18 @@ parametro_real:
     ;
 
 iterativa:
-    REPEAT bloque_ejecutable WHILE '(' condicion ')'
+    REPEAT bloque_ejecutable WHILE '(' condicion ')' {System.out.println("Declaracion Iterativa WHILE");}
     | REPEAT bloque_ejecutable error '(' condicion ')' { yyerror("Falta WHILE en condicion de iteracion");}
     | REPEAT bloque_ejecutable WHILE '(' condicion { yyerror("Falta de parentesis de cierre en condicion iterativa");}
     | REPEAT bloque_ejecutable WHILE condicion ')'{ yyerror("Falta de parentesis de apertura en condicion iterativa");}   
     | REPEAT bloque_ejecutable WHILE condicion { yyerror("Falta de parentesis en condicion iterativa");}
-    | REPEAT WHILE '(' condicion ')' { yyerror("Falta de bloque ejecutable en condicion de iteracion");}
+    | REPEAT error WHILE '(' condicion ')' { yyerror("Falta de bloque ejecutable en condicion de iteracion");}
+    | REPEAT bloque_ejecutable WHILE '(' error ')' { yyerror("error en condicion de iteracion"); }
     ;
 
 seleccion: 
-    IF '(' condicion ')' bloque_ejecutable ELSE bloque_ejecutable END_IF 
-    | IF '(' condicion ')' bloque_ejecutable END_IF
+    IF '(' condicion ')' bloque_ejecutable ELSE bloque_ejecutable END_IF {System.out.println("Declaracion Seleccion");}
+    | IF '(' condicion ')' bloque_ejecutable END_IF {System.out.println("Declaracion Seleccion Simple");}
     | IF '(' condicion bloque_ejecutable END_IF { yyerror("Falta de parentesis de cierre en seleccion"); }
     | IF condicion ')' bloque_ejecutable END_IF { yyerror("Falta de parentesis de apertura en seleccion");} 
     | IF condicion bloque_ejecutable END_IF { yyerror("Falta de parentesis en seleccion"); }
@@ -307,7 +308,7 @@ comparador:
     ;
 
 salida: 
-    POUT '(' CADENA ')' {System.out.println("POUT cadena");}
+    POUT '(' CADENA ')' {System.out.println("POUT cadena");} 
     | POUT '(' expresion ')' {System.out.println("POUT expresion");}
     | POUT'('')' {yyerror("Falta Argumento en POUT");}
     | POUT '('expresion {yyerror ("Falta parentesis de cierre");}
@@ -319,7 +320,7 @@ salida:
     ;
 
 retorno: 
-    RET '(' expresion ')'
+    RET '(' expresion ')' {System.out.println("Declaracion Retorno");}
     | RET error ';' {yyerror("Retorno debe tener una expresion y parentesis");}
     ;
 %%
