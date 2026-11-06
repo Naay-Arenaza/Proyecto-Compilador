@@ -273,6 +273,12 @@ salida:
     POUT '(' CADENA ')' {System.out.println("POUT cadena");}
     | POUT '(' expresion ')' {System.out.println("POUT expresion");}
     | POUT'('')' {yyerror("Falta Argumento en POUT");}
+    | POUT '('expresion {yyerror ("Falta parentesis de cierre");}
+    | POUT expresion ')' {yyerror ("Falta parentesis de apertura");}
+    | POUT expresion {yyerror ("Falta parentesis");}
+    | POUT '('CADENA {yyerror ("Falta parentesis de cierre");}
+    | POUT CADENA ')' {yyerror ("Falta parentesis de apertura");}
+    | POUT CADENA {yyerror ("Falta parentesis");}
     ;
 
 retorno: 
@@ -289,5 +295,5 @@ private int yylex(){
     return lexer.yylex();
 }
 private void yyerror(String mensaje){
-    System.err.println("Error sintáctico: " + mensaje);
+    System.err.println("Error sintáctico en la linea " + lexer.getLineaActual() + ": " + mensaje);
 }

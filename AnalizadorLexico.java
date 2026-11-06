@@ -61,6 +61,10 @@ public class AnalizadorLexico {
             this.lectorCodigo = lectorCodigo;
         }
 
+    public int getLineaActual(){
+        return this.lectorCodigo.getLineaActual();
+    }
+
     public int obtenerColumna(char c) {
         if (c == 'd') return 3;   
         if (c == 'u') return 19; 
