@@ -137,7 +137,7 @@ sentencias_ejecutables:
 
 sentencia_ejecutable: 
     asignacion ';' {
-        if (expresionInvalida != false){
+        if (expresionInvalida != true){
             System.out.println("Declaracion Asignacion");
         }
     }
@@ -200,9 +200,16 @@ factor:
     | CTE
     | acceso_posicional {System.out.println("Acceso posicional");}
     | ID '=' '(' expresion_simple ')' {System.out.println("Asignacion EXP");}
-    | TODF '(' expresion ')'  {System.out.println("Conversion DF");}
+    | to_double
     | invocacion
     ;
+
+to_double:
+    TODF '(' expresion ')' {System.out.println("Conversion DF");}
+    |TODF '('error')' {yyerror("Solo se pueden expresiones");}
+    |TODF '('')' {yyerror("Falta expresion");}
+    |TODF error {yyerror("Falta parentesis");}
+;
 
 expresion_simple:
     expresion_simple '+' termino_simple
