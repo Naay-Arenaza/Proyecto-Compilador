@@ -199,10 +199,39 @@ factor:
     ID
     | CTE
     | acceso_posicional {System.out.println("Acceso posicional");}
-    | ID '=' '(' expresion ')' {System.out.println("Asignacion EXP");}
+    | ID '=' '(' expresion_simple ')' {System.out.println("Asignacion EXP");}
     | TODF '(' expresion ')'  {System.out.println("Conversion DF");}
     | invocacion
     ;
+
+expresion_simple:
+    expresion_simple '+' termino_simple
+    | expresion_simple '-' termino_simple
+    | expresion_simple '+' error {yyerror("Falta operando 2");}
+    | error '+' termino_simple {yyerror("Falta operando 1");}
+    | expresion_simple '-' error {yyerror("Falta operando 2");}
+    | error '-' termino_simple {yyerror("Falta operando 1");}
+    | termino_simple
+    ;
+
+termino_simple:
+    termino_simple '*' factor_simple
+    | termino_simple '/' factor_simple
+    | termino_simple '*' error {yyerror("Falta operando 2");}
+    | error '*' factor_simple {yyerror("Falta operando 1");}
+    | error '/' factor_simple {yyerror("Falta operando 1");}
+    | termino_simple '/' error {yyerror("Falta operando 2");}
+    | factor_simple
+  ;
+
+factor_simple:
+    ID
+  | CTE
+  | acceso_posicional
+  | TODF '(' expresion ')'
+  | invocacion
+  | ID '=''('expresion')'{yyerror("No se permite este anidamiento, solo 1 expresion");}
+;
 
 invocacion: 
     ID '(' parametros_reales ')' lista_constantes_opcional {System.out.println("Metodo|funcion con orden opcional");}
