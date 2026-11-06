@@ -160,10 +160,15 @@ asignacion:
 lado_izquierdo: 
     ID
     | acceso_posicional {System.out.println("Declaracion de acceso_posicional");}
+    | ID   indice ']'            { yyerror("Acceso posicional: Falta corchete de apertura "); }
     ;
 
 acceso_posicional:
     ID '[' indice ']'
+    | ID '[' ']'                { yyerror("Acceso posicional: Índice vacío"); }
+    | ID '[' error ']'          { yyerror("Acceso posicional: Índice inválido"); }
+    | ID '[' indice  error ';'         { yyerror("Acceso posicional: Falta corchete de cierre"); }
+    | ID '[' indice  error  ']'   { yyerror("Acceso posicional: Argumento invalido"); }
     ;
 
 indice:
