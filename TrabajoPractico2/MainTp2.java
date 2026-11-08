@@ -258,113 +258,113 @@ public class MainTp2 {
             return token;
         }
 
-private String obtenerNombreToken(int token) {
+    private String obtenerNombreToken(int token) {
 
-    switch (token) {
+        switch (token) {
 
-        case Parser.ID:
-            return "IDENTIFICADOR";
+            case Parser.ID:
+                return "IDENTIFICADOR";
 
-        case Parser.CTE:
-            return "CONSTANTE";
+            case Parser.CTE:
+                return "CONSTANTE";
 
-        case Parser.CADENA:
-            return "CADENA";
+            case Parser.CADENA:
+                return "CADENA";
 
-        // Palabras reservadas
-        case Parser.DOUBLEF:
-        case Parser.USHORTINT:
-        case Parser.BEGIN:
-        case Parser.END:
-        case Parser.FUNCTION:
-        case Parser.RET:
-        case Parser.CLASS:
-        case Parser.IF:
-        case Parser.ELSE:
-        case Parser.END_IF:
-        case Parser.POUT:
-        case Parser.REPEAT:
-        case Parser.WHILE:
-        case Parser.COMPTIME:
-        case Parser.EXTENDS:
-        case Parser.TODF:
-            return "PALABRA_RESERVADA";
+            // Palabras reservadas
+            case Parser.DOUBLEF:
+            case Parser.USHORTINT:
+            case Parser.BEGIN:
+            case Parser.END:
+            case Parser.FUNCTION:
+            case Parser.RET:
+            case Parser.CLASS:
+            case Parser.IF:
+            case Parser.ELSE:
+            case Parser.END_IF:
+            case Parser.POUT:
+            case Parser.REPEAT:
+            case Parser.WHILE:
+            case Parser.COMPTIME:
+            case Parser.EXTENDS:
+            case Parser.TODF:
+                return "PALABRA_RESERVADA";
 
-        case Parser.ASIGNACION:
-            return "ASIGNACION";
+            case Parser.ASIGNACION:
+                return "ASIGNACION";
 
-        case Parser.IGUAL:
-            return "IGUAL";
+            case Parser.IGUAL:
+                return "IGUAL";
 
-        case Parser.DISTINTO:
-            return "DISTINTO";
+            case Parser.DISTINTO:
+                return "DISTINTO";
 
-        case Parser.MAYORIGUAL:
-            return "MAYORIGUAL";
+            case Parser.MAYORIGUAL:
+                return "MAYORIGUAL";
 
-        case Parser.MENORIGUAL:
-            return "MENORIGUAL";
+            case Parser.MENORIGUAL:
+                return "MENORIGUAL";
 
-        case Parser.SIN_PUNTO_Y_COMA:
-            return "SIN_PUNTO_Y_COMA";
+            case Parser.SIN_PUNTO_Y_COMA:
+                return "SIN_PUNTO_Y_COMA";
 
-        default:
-            if (token > 0 && token < 128) {
-                return "'" + (char) token + "'";
-            }
+            default:
+                if (token > 0 && token < 128) {
+                    return "'" + (char) token + "'";
+                }
 
-            return "TOKEN_" + token;
-    }
-}
-
-
-private String obtenerValorToken(int token) {
-
-    // Recuperar el lexema real de USHORTINT y DOUBLEF.
-    // Estos tokens también representan constantes numéricas.
-    if ((token == Parser.USHORTINT || token == Parser.DOUBLEF)
-            && yylval != null && yylval.sval != null) {
-        return yylval.sval;
+                return "TOKEN_" + token;
+        }
     }
 
-    switch (token) {
 
-        // Palabras reservadas
-        case Parser.BEGIN: return "BEGIN";
-        case Parser.END: return "END";
-        case Parser.FUNCTION: return "FUNCTION";
-        case Parser.RET: return "RET";
-        case Parser.CLASS: return "CLASS";
-        case Parser.IF: return "IF";
-        case Parser.ELSE: return "ELSE";
-        case Parser.END_IF: return "END_IF";
-        case Parser.POUT: return "POUT";
-        case Parser.REPEAT: return "REPEAT";
-        case Parser.WHILE: return "WHILE";
-        case Parser.COMPTIME: return "COMPTIME";
-        case Parser.EXTENDS: return "EXTENDS";
-        case Parser.TODF: return "TODF";
+    private String obtenerValorToken(int token) {
 
-        // Operadores compuestos
-        case Parser.ASIGNACION: return ":=";
-        case Parser.IGUAL: return "==";
-        case Parser.DISTINTO: return "!=";
-        case Parser.MAYORIGUAL: return ">=";
-        case Parser.MENORIGUAL: return "<=";
+        // Recuperar el lexema real de USHORTINT y DOUBLEF.
+        // Estos tokens también representan constantes numéricas.
+        if ((token == Parser.USHORTINT || token == Parser.DOUBLEF)
+                && yylval != null && yylval.sval != null) {
+            return yylval.sval;
+        }
 
-        default:
+        switch (token) {
 
-            if (token > 0 && token < 128) {
-                return String.valueOf((char) token);
-            }
+            // Palabras reservadas
+            case Parser.BEGIN: return "BEGIN";
+            case Parser.END: return "END";
+            case Parser.FUNCTION: return "FUNCTION";
+            case Parser.RET: return "RET";
+            case Parser.CLASS: return "CLASS";
+            case Parser.IF: return "IF";
+            case Parser.ELSE: return "ELSE";
+            case Parser.END_IF: return "END_IF";
+            case Parser.POUT: return "POUT";
+            case Parser.REPEAT: return "REPEAT";
+            case Parser.WHILE: return "WHILE";
+            case Parser.COMPTIME: return "COMPTIME";
+            case Parser.EXTENDS: return "EXTENDS";
+            case Parser.TODF: return "TODF";
 
-            if (yylval != null && yylval.sval != null) {
-                return yylval.sval;
-            }
+            // Operadores compuestos
+            case Parser.ASIGNACION: return ":=";
+            case Parser.IGUAL: return "==";
+            case Parser.DISTINTO: return "!=";
+            case Parser.MAYORIGUAL: return ">=";
+            case Parser.MENORIGUAL: return "<=";
 
-            return obtenerNombreToken(token);
+            default:
+
+                if (token > 0 && token < 128) {
+                    return String.valueOf((char) token);
+                }
+
+                if (yylval != null && yylval.sval != null) {
+                    return yylval.sval;
+                }
+
+                return obtenerNombreToken(token);
+        }
     }
-}
 }
 
     // =====================================================
