@@ -1,15 +1,16 @@
-public class Token {
+package TrabajoPractico2;
+public class TokenTp2 {
     public static final int EOF = 0;  
 
     private int id;
     private String atributo;
 
-    public Token(int id, String atributo) {
+    public TokenTp2(int id, String atributo) {
         this.id = id;
         this.atributo = atributo;
     }
 
-    public Token(int id) {
+    public TokenTp2(int id) {
         this(id, null);
     }
 

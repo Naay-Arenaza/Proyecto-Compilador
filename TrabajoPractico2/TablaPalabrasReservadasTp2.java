@@ -1,10 +1,11 @@
+package TrabajoPractico2;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TablaPalabrasReservadas {
+public class TablaPalabrasReservadasTp2 {
     private final Map<String, Short> tablaPR = new HashMap<>();
 
-    public TablaPalabrasReservadas() {
+    public TablaPalabrasReservadasTp2() {
         precargarPalabras();
     }
 

@@ -1,12 +1,12 @@
 import java.util.HashMap;
 import java.util.Map;
 
-public class RegistroSimbolo {
+public class RegistroSimboloTp1 {
     private String lexema;                
     private String tipoToken;              
     private Map<String, Object> atributos; 
 
-    public RegistroSimbolo(String lexema, String tipoToken) {
+    public RegistroSimboloTp1(String lexema, String tipoToken) {
         this.lexema = lexema;
         this.tipoToken = tipoToken;
         this.atributos = new HashMap<>();

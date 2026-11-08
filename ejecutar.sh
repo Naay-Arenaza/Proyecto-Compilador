@@ -13,10 +13,18 @@ ARCHIVO_PRUEBA=$1
 set -e
 
 echo "➡️ Generando parser con yacc..."
+cd ./TrabajoPractico2
 ./yacc.linux -J -v gramatica.y
 
+# --- SOLUCIÓN: INYECTAR EL PACKAGE EN LOS ARCHIVOS GENERADOS ---
+echo "➡️ Añadiendo package a los archivos de Yacc..."
+sed -i '1s/^/package TrabajoPractico2;\n/' Parser.java
+sed -i '1s/^/package TrabajoPractico2;\n/' ParserVal.java
+# ---------------------------------------------------------------
+
 echo "➡️ Compilando archivos Java..."
-javac *.java
+cd ..
+javac TrabajoPractico2/*.java
 
 echo "➡️ Ejecutando Main con el archivo: $ARCHIVO_PRUEBA"
-java Main "$ARCHIVO_PRUEBA"
+java TrabajoPractico2.MainTp2 "$ARCHIVO_PRUEBA"

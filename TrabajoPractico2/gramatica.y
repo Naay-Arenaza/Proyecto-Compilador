@@ -324,9 +324,9 @@ retorno:
     | RET error ';' {yyerror("Retorno debe tener una expresion y parentesis");}
     ;
 %%
-private AnalizadorLexico lexer;
+private AnalizadorLexicoTp2 lexer;
 private boolean expresionInvalida = false;
-public Parser(AnalizadorLexico lexer){
+public Parser(AnalizadorLexicoTp2 lexer){
     this.lexer = lexer;
 }
 private int yylex(){

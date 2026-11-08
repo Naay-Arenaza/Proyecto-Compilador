@@ -1,14 +1,15 @@
+package TrabajoPractico2;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class LecturaCodigo {
+public class LecturaCodigoTp2 {
     private BufferedReader reader; 
     public static final char EOF = (char) 65535; 
     private int lineaActual = 1; 
     private char ultimoCaracterLeido = ' ';
 
-    public LecturaCodigo(String rutaArchivo) throws IOException {
+    public LecturaCodigoTp2(String rutaArchivo) throws IOException {
         this.reader = new BufferedReader(new FileReader(rutaArchivo));
     }
 
