@@ -120,7 +120,7 @@ public class AnalizadorLexicoTp2 {
                     return 0;
                 }
 
-                if (estadoActual == 16) { // Comentario multilinea sin cerrar y EOF
+                if (estadoActual == 15) { // Comentario multilinea sin cerrar y EOF
                     return ejecutarAccionSemantica(15, LecturaCodigoTp2.EOF);
                 }
                 

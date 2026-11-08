@@ -154,8 +154,13 @@ asignacion:
         if (expresionInvalida != true){
             System.out.println("Declaracion Asignacion");
         }
+        else {
+            expresionInvalida = true;
+        }
+
     }
     | lado_izquierdo '=' expresion { yyerror("Uso de '=' en asignacion; debe utilizar ':='."); }
+    | lado_izquierdo ASIGNACION error { yyerror("Falta expresion en la asignacion");}
     ;
 
 lado_izquierdo: 
