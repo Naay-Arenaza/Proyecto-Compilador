@@ -2,23 +2,25 @@ package TrabajoPractico3;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 public class TablaDeSimbolosTp3 {
+
     private final Map<String, RegistroSimboloTp3> tabla = new HashMap<>();
+
+    private final Stack<String> pilaAmbitos = new Stack<>();
 
     public void agregarIdentificador(String lexema, int linea) {
         if (!tabla.containsKey(lexema)) {
-            RegistroSimboloTp3 nuevo = new RegistroSimboloTp3(lexema, "IDENTIFICADOR");
-            nuevo.agregarAtributo("linea", linea);
+            RegistroSimboloTp3 nuevo = new RegistroSimboloTp3(lexema, "IDENTIFICADOR", linea);
             tabla.put(lexema, nuevo);
         }
     }
 
     public void agregarConstante(String lexema, String tipoDato, int linea) {
         if (!tabla.containsKey(lexema)) {
-            RegistroSimboloTp3 nuevo = new RegistroSimboloTp3(lexema, "CONSTANTE");
-            nuevo.agregarAtributo("tipoDato", tipoDato);
-            nuevo.agregarAtributo("linea", linea);
+            RegistroSimboloTp3 nuevo = new RegistroSimboloTp3(lexema, "CONSTANTE", linea);
+            nuevo.setTipo(tipoDato);
             tabla.put(lexema, nuevo);
         }
     }
