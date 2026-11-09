@@ -9,8 +9,9 @@ import java.util.List;
 public class MainTp3 {
 
     public static void main(String[] args) throws IOException {
-
-        if (args.length == 0) {
+        System.out.println("hola");
+        
+       /*  if (args.length == 0) {
             System.out.println("Se requiere al menos un argumento para ejecutar el programa.");
             return;
         }
@@ -415,6 +416,6 @@ public class MainTp3 {
         public RegistroSalida(String mensaje, int linea) {
             this.mensaje = mensaje;
             this.linea = linea;
-        }
+        }*/
     }
 }

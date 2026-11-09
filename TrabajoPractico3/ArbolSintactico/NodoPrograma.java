@@ -1,4 +1,4 @@
-class NodoPrograma extends NodoAST {
+public class NodoPrograma extends NodoAST {
     private String nombrePrograma;
     private NodoAST bloqueEjecutable;
 

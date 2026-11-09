@@ -1,4 +1,4 @@
-class NodoAccesoArreglo extends NodoAST {
+public class NodoAccesoArreglo extends NodoAST {
     private NodoAST arreglo;
     private NodoAST indice;
 

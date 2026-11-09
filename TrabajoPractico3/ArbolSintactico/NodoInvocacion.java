@@ -1,4 +1,4 @@
-class NodoInvocacion extends NodoAST {
+public class NodoInvocacion extends NodoAST {
     private String nombreFuncion;
     private NodoAST parametros;
 

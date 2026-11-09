@@ -25,6 +25,9 @@ sed -i '1s/^/package TrabajoPractico3;\n/' ParserVal.java
 echo "➡️ Compilando archivos Java..."
 cd ..
 javac TrabajoPractico3/*.java
+cd ./TrabajoPractico3
+javac ArbolSintactico/*.java
+cd ..
 
 echo "➡️ Ejecutando Main con el archivo: $ARCHIVO_PRUEBA"
 java TrabajoPractico3.MainTp3 "$ARCHIVO_PRUEBA"

@@ -1,4 +1,4 @@
-class NodoInvocacionMetodo extends NodoAST {
+public class NodoInvocacionMetodo extends NodoAST {
     private String objeto;
     private String metodo;
     private NodoAST parametros;

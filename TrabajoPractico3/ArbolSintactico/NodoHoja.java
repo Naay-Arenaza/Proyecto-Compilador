@@ -1,5 +1,5 @@
 
-class NodoHoja extends NodoAST {
+public class NodoHoja extends NodoAST {
     private String tipoNodo; // "ID", "CTE", etc.
     private String valor;
 

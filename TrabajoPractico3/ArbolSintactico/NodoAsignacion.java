@@ -1,4 +1,4 @@
-class NodoAsignacion extends NodoAST {
+public class NodoAsignacion extends NodoAST {
     private NodoAST variable;
     private NodoAST expresion;
 
