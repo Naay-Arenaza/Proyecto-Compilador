@@ -1,4 +1,4 @@
-
+package TrabajoPractico3.ArbolSintactico;
 public class NodoHoja extends NodoAST {
     private String tipoNodo; // "ID", "CTE", etc.
     private String valor;

@@ -1,3 +1,4 @@
+package TrabajoPractico3.ArbolSintactico;
 public class NodoRepeat extends NodoAST {
     private NodoAST cuerpo;
     private NodoAST condicion;

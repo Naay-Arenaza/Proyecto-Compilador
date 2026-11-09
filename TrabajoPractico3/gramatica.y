@@ -1,8 +1,13 @@
 %{
 import java.io.*;
+import TrabajoPractico3.ArbolSintactico.*;
 %}
 
-/* Declaración de tokens */
+/* =========================================================================
+   NO USAMOS %union. Todo será manejado por ParserVal de forma nativa.
+   ========================================================================= */
+
+/* Declaración de tokens. BYACC/J asume que devuelven un ParserVal */
 %token ID CTE CADENA
 %token BEGIN END
 %token USHORTINT DOUBLEF
@@ -17,7 +22,12 @@ import java.io.*;
 //////////////////////////////////////////// Gramatica
 
 programa: 
-    ID sentencias_declarativas BEGIN sentencias_ejecutables END {System.out.println("Declaracion de programa");}
+    ID sentencias_declarativas BEGIN sentencias_ejecutables END {
+        NodoPrograma raiz = new NodoPrograma($1.sval, (NodoAST)$4.obj);
+        raizAST = raiz;
+        $$ = new ParserVal(raiz);
+        System.out.println("Declaración de programa y AST generado");
+    }
     | error sentencias_declarativas BEGIN sentencias_ejecutables END { yyerror("Falta de nombre de programa");}
     | ID sentencias_declarativas sentencias_ejecutables END { yyerror("Falta la palabra reservada BEGIN");}
     | ID sentencias_declarativas BEGIN sentencias_ejecutables error { yyerror("Falta la palabra reservada END");}
@@ -132,16 +142,33 @@ declaracion_objeto:
 
 ////////////////////////////////////////////// Sentencias ejecutables
 sentencias_ejecutables: 
-    sentencias_ejecutables sentencia_ejecutable
-    | sentencia_ejecutable
+    sentencias_ejecutables sentencia_ejecutable {
+        NodoBloque bloque = null;
+        if ($1.obj != null) {
+            bloque = (NodoBloque) $1.obj;
+        } else {
+            bloque = new NodoBloque();
+        }
+        if ($2.obj != null) {
+            bloque.agregarSentencia((NodoAST) $2.obj);
+        }
+        $$ = new ParserVal(bloque);
+    }
+    | sentencia_ejecutable {
+        NodoBloque bloque = new NodoBloque();
+        if ($1.obj != null) {
+            bloque.agregarSentencia((NodoAST) $1.obj);
+        }
+        $$ = new ParserVal(bloque);
+    }
     ;
 
 sentencia_ejecutable: 
-    asignacion ';'
-    | seleccion ';'
-    | salida ';' 
-    | retorno ';' 
-	| iterativa ';' 
+    asignacion ';' { $$ = $1; }
+    | seleccion ';' { $$ = $1; }
+    | salida ';' { $$ = $1; }
+    | retorno ';' { $$ = $1; }
+    | iterativa ';' { $$ = $1; }
     | asignacion { yyerror("Asignacion: Falta el ';', o un operador o expresion");}
     | seleccion { yyerror("Seleccion: Falta el ';'");}
     | salida { yyerror("Salida: Falta el ';'");}
@@ -151,109 +178,121 @@ sentencia_ejecutable:
 
 asignacion: 
     lado_izquierdo ASIGNACION expresion {
-        if (expresionInvalida != true){
+        if (!expresionInvalida){
+            $$ = new ParserVal(new NodoAsignacion((NodoAST)$1.obj, (NodoAST)$3.obj));
             System.out.println("Declaracion Asignacion");
-        }
-        else {
+        } else {
             expresionInvalida = true;
+            $$ = new ParserVal(null);
         }
-
     }
-    | lado_izquierdo '=' expresion { yyerror("Uso de '=' en asignacion; debe utilizar ':='."); }
-    | lado_izquierdo ASIGNACION error { yyerror("Falta expresion en la asignacion");}
+    | lado_izquierdo '=' expresion { yyerror("Uso de '=' en asignacion; debe utilizar ':='."); $$ = new ParserVal(null); }
+    | lado_izquierdo ASIGNACION error { yyerror("Falta expresion en la asignacion"); $$ = new ParserVal(null);}
     ;
 
 lado_izquierdo: 
-    ID
-    | acceso_posicional {System.out.println("Declaracion de acceso_posicional");}
-    | ID   indice ']'            { yyerror("Acceso posicional: Falta corchete de apertura "); }
+    ID { $$ = new ParserVal(new NodoHoja("ID", $1.sval)); }
+    | acceso_posicional {
+        $$ = $1; 
+        System.out.println("Declaracion de acceso_posicional");}
+    | ID   indice ']'            { yyerror("Acceso posicional: Falta corchete de apertura "); $$ = new ParserVal(null);}
     ;
 
 acceso_posicional:
-    ID '[' indice ']'
-    | ID '[' ']'                { yyerror("Acceso posicional: Índice vacío"); }
-    | ID '[' error ']'          { yyerror("Acceso posicional: Índice inválido"); }
-    | ID '[' indice  error ';'         { yyerror("Acceso posicional: Falta corchete de cierre"); }
-    | ID '[' indice  error  ']'   { yyerror("Acceso posicional: Argumento invalido"); }
+    ID '[' indice ']' { $$ = new ParserVal(new NodoAccesoArreglo(new NodoHoja("ID", $1.sval), (NodoAST)$3.obj)); }
+    | ID '[' ']'                { yyerror("Acceso posicional: Índice vacío"); $$ = new ParserVal(null);}
+    | ID '[' error ']'          { yyerror("Acceso posicional: Índice inválido"); $$ = new ParserVal(null);}
+    | ID '[' indice  error ';'  { yyerror("Acceso posicional: Falta corchete de cierre"); $$ = new ParserVal(null);}
+    | ID '[' indice  error  ']' { yyerror("Acceso posicional: Argumento invalido"); $$ = new ParserVal(null);}
     ;
 
 indice:
-    ID | CTE 
+    ID  { $$ = new ParserVal(new NodoHoja("ID", $1.sval)); }
+    | CTE { $$ = new ParserVal(new NodoHoja("CTE", $1.sval)); }
     ;
 
 expresion: 
-    expresion '+' termino
-    | expresion '-' termino
-    | expresion '+' error {yyerror("Falta operando 2");}
-    | error '+' termino {yyerror("Falta operando 1");}
-    | expresion '-' error {yyerror("Falta operando 2");}
-    | error '-' termino {yyerror("Falta operando 1");}
-    | termino
+    expresion '+' termino { $$ = new ParserVal(new NodoBinario("+", (NodoAST)$1.obj, (NodoAST)$3.obj)); }
+    | expresion '-' termino { $$ = new ParserVal(new NodoBinario("-", (NodoAST)$1.obj, (NodoAST)$3.obj)); }
+    | expresion '+' error {yyerror("Falta operando 2"); $$ = new ParserVal(null);}
+    | error '+' termino {yyerror("Falta operando 1"); $$ = new ParserVal(null);}
+    | expresion '-' error {yyerror("Falta operando 2"); $$ = new ParserVal(null);}
+    | error '-' termino {yyerror("Falta operando 1"); $$ = new ParserVal(null);}
+    | termino { $$ = $1; }
     ;
 
 termino: 
-    termino '*' factor 
-    | termino '/' factor
-    | termino '*' error {yyerror("Falta operando 2");}
-    | error '*' factor {yyerror("Falta operando 1");}
-    | error '/' factor {yyerror("Falta operando 1");}
-    | termino '/' error {yyerror("Falta operando 2");}
-    | factor
+    termino '*' factor { $$ = new ParserVal(new NodoBinario("*", (NodoAST)$1.obj, (NodoAST)$3.obj)); }
+    | termino '/' factor { $$ = new ParserVal(new NodoBinario("/", (NodoAST)$1.obj, (NodoAST)$3.obj)); }
+    | termino '*' error {yyerror("Falta operando 2"); $$ = new ParserVal(null);}
+    | error '*' factor {yyerror("Falta operando 1"); $$ = new ParserVal(null);}
+    | error '/' factor {yyerror("Falta operando 1"); $$ = new ParserVal(null);}
+    | termino '/' error {yyerror("Falta operando 2"); $$ = new ParserVal(null);}
+    | factor { $$ = $1; }
     ;
 
 factor: 
-    ID
-    | CTE
-    | acceso_posicional {System.out.println("Acceso posicional");}
-    | ID '=' '(' expresion_simple ')' {System.out.println("Asignacion EXP");}
-    | to_double
-    | invocacion
+    ID { $$ = new ParserVal(new NodoHoja("ID", $1.sval)); }
+    | CTE { $$ = new ParserVal(new NodoHoja("CTE", $1.sval)); }
+    | acceso_posicional {
+        $$ = $1;
+        System.out.println("Acceso posicional");}
+    | ID '=' '(' expresion_simple ')' {
+        $$ = new ParserVal(new NodoAsignacion(new NodoHoja("ID", $1.sval), (NodoAST)$4.obj));
+        System.out.println("Asignacion EXP");}
+    | to_double { $$ = $1; }
+    | invocacion { $$ = $1; }
     ;
 
 to_double:
-    TODF '(' expresion ')' {System.out.println("Conversion DF");}
-    |TODF '('error')' {yyerror("Solo se pueden expresiones");}
-    |TODF '('')' {yyerror("Falta expresion");}
-    |TODF error {yyerror("Falta parentesis");}
+    TODF '(' expresion ')' {
+        $$ = new ParserVal(new NodoUnario("TODF", (NodoAST)$3.obj));
+        System.out.println("Conversion DF"); 
+    }
+    |TODF '('error')'                       { yyerror("Solo se pueden expresiones"); $$ = new ParserVal(null);}
+    |TODF '('')'                            { yyerror("Falta expresion"); $$ = new ParserVal(null);}
+    |TODF error                             { yyerror("Falta parentesis"); $$ = new ParserVal(null);}
 ;
 
 expresion_simple:
-    expresion_simple '+' termino_simple
-    | expresion_simple '-' termino_simple
-    | expresion_simple '+' error {yyerror("Falta operando 2");}
-    | error '+' termino_simple {yyerror("Falta operando 1");}
-    | expresion_simple '-' error {yyerror("Falta operando 2");}
-    | error '-' termino_simple {yyerror("Falta operando 1");}
-    | termino_simple
+    expresion_simple '+' termino_simple     { $$ = new ParserVal(new NodoBinario("+", (NodoAST)$1.obj, (NodoAST)$3.obj)); }
+    | expresion_simple '-' termino_simple   { $$ = new ParserVal(new NodoBinario("-", (NodoAST)$1.obj, (NodoAST)$3.obj)); }
+    | expresion_simple '+' error            { yyerror("Falta operando 2"); $$ = new ParserVal(null);}
+    | error '+' termino_simple              { yyerror("Falta operando 1"); $$ = new ParserVal(null);}
+    | expresion_simple '-' error            { yyerror("Falta operando 2"); $$ = new ParserVal(null);}
+    | error '-' termino_simple              { yyerror("Falta operando 1"); $$ = new ParserVal(null);}
+    | termino_simple                        { $$ = $1; }
     ;
 
 termino_simple:
-    termino_simple '*' factor_simple
-    | termino_simple '/' factor_simple
-    | termino_simple '*' error {yyerror("Falta operando 2");}
-    | error '*' factor_simple {yyerror("Falta operando 1");}
-    | error '/' factor_simple {yyerror("Falta operando 1");}
-    | termino_simple '/' error {yyerror("Falta operando 2");}
-    | factor_simple
+    termino_simple '*' factor_simple        { $$ = new ParserVal(new NodoBinario("*", (NodoAST)$1.obj, (NodoAST)$3.obj)); }
+    | termino_simple '/' factor_simple      { $$ = new ParserVal(new NodoBinario("/", (NodoAST)$1.obj, (NodoAST)$3.obj)); }
+    | termino_simple '*' error              { yyerror("Falta operando 2"); $$ = new ParserVal(null);}
+    | error '*' factor_simple               { yyerror("Falta operando 1"); $$ = new ParserVal(null);}
+    | error '/' factor_simple               { yyerror("Falta operando 1"); $$ = new ParserVal(null);}
+    | termino_simple '/' error              { yyerror("Falta operando 2"); $$ = new ParserVal(null);}
+    | factor_simple                         { $$ = $1; }
   ;
 
 factor_simple:
-    ID
-  | CTE
-  | acceso_posicional
-  | to_double
-  | invocacion
-  | ID '=''('expresion')'{yyerror("No se permite este anidamiento, solo 1 expresion");}
+    ID                                      { $$ = new ParserVal(new NodoHoja("ID", $1.sval)); }
+  | CTE                                     { $$ = new ParserVal(new NodoHoja("CTE", $1.sval)); }
+  | acceso_posicional                       { $$ = $1; }
+  | to_double                               { $$ = $1; }
+  | invocacion                              { $$ = $1; }
+  | ID '=''('expresion')'                   { yyerror("No se permite este anidamiento, solo 1 expresion"); $$ = new ParserVal(null);}
 ;
 
 invocacion: 
-    ID '(' parametros_reales ')' lista_constantes_opcional {System.out.println("Metodo|funcion con orden opcional");}
-    | ID '.' ID '(' parametros_reales ')' lista_constantes_opcional {System.out.println("Objeto con orden opcional");}
-    | ID '(' parametros_reales ';' lista_constantes_opcional { yyerror("Error en los parametros: Falta un ')'"); }
-    | ID '(' ')' lista_constantes_opcional { yyerror("Lista de parametros vacia."); }
-    | ID '.' ID '(' ')' lista_constantes_opcional { 
-        yyerror("Lista de parametros vacia."); expresionInvalida = true;
-     }
+    ID '(' parametros_reales ')' lista_constantes_opcional {
+                                            $$ = new ParserVal(new NodoInvocacion($1.sval, (NodoAST)$3.obj));
+                                            System.out.println("Metodo|funcion con orden opcional"); }
+    | ID '.' ID '(' parametros_reales ')' lista_constantes_opcional {
+                                            $$ = new ParserVal(new NodoInvocacionMetodo($1.sval, $3.sval, (NodoAST)$5.obj));
+                                            System.out.println("Objeto con orden opcional"); }
+    | ID '(' parametros_reales ';' lista_constantes_opcional { yyerror("Error en los parametros: Falta un ')'"); $$ = new ParserVal(null);}
+    | ID '(' ')' lista_constantes_opcional { yyerror("Lista de parametros vacia."); $$ = new ParserVal(null);}
+    | ID '.' ID '(' ')' lista_constantes_opcional { yyerror("Lista de parametros vacia."); expresionInvalida = true; $$ = new ParserVal(null);}
     ;
 
 lista_constantes_opcional:
@@ -268,75 +307,140 @@ lista_constantes:
     ;
 
 parametros_reales: 
-    parametros_reales ',' parametro_real
-    | parametro_real
-    | parametros_reales parametro_real {yyerror("Falta ',' entre argumentos");}
-    | parametros_reales ',' error parametro_real {yyerror("Elemento no valido despues de ','");}
+    parametros_reales ',' parametro_real {
+        $$ = new ParserVal(new NodoBinario("PARAM", (NodoAST)$1.obj, (NodoAST)$3.obj));
+    }
+    | parametro_real { $$ = $1; }
+    | parametros_reales parametro_real {yyerror("Falta ',' entre argumentos"); $$ = new ParserVal(null);}
+    | parametros_reales ',' error parametro_real {yyerror("Elemento no valido despues de ','"); $$ = new ParserVal(null);}
     ;
 
 parametro_real: 
-    expresion 
+    expresion { $$ = $1; }
     ;
 
 iterativa:
-    REPEAT bloque_ejecutable WHILE '(' condicion ')' {System.out.println("Declaracion Iterativa WHILE");}
-    | REPEAT bloque_ejecutable error '(' condicion ')' { yyerror("Falta WHILE en condicion de iteracion");}
-    | REPEAT bloque_ejecutable WHILE '(' condicion { yyerror("Falta de parentesis de cierre en condicion iterativa");}
-    | REPEAT bloque_ejecutable WHILE condicion ')'{ yyerror("Falta de parentesis de apertura en condicion iterativa");}   
-    | REPEAT bloque_ejecutable WHILE condicion { yyerror("Falta de parentesis en condicion iterativa");}
-    | REPEAT error WHILE '(' condicion ')' { yyerror("Falta de bloque ejecutable en condicion de iteracion");}
-    | REPEAT bloque_ejecutable WHILE '(' error ')' { yyerror("error en condicion de iteracion"); }
+    REPEAT bloque_ejecutable WHILE '(' condicion ')' {
+        $$ = new ParserVal(new NodoRepeat((NodoAST)$2.obj, (NodoAST)$5.obj));
+        System.out.println("Declaracion Iterativa WHILE");
+    }
+    | REPEAT bloque_ejecutable error '(' condicion ')' { yyerror("Falta WHILE en condicion de iteracion"); $$ = new ParserVal(null);}
+    | REPEAT bloque_ejecutable WHILE '(' condicion { yyerror("Falta de parentesis de cierre en condicion iterativa"); $$ = new ParserVal(null);}
+    | REPEAT bloque_ejecutable WHILE condicion ')'{ yyerror("Falta de parentesis de apertura en condicion iterativa"); $$ = new ParserVal(null);}   
+    | REPEAT bloque_ejecutable WHILE condicion { yyerror("Falta de parentesis en condicion iterativa"); $$ = new ParserVal(null);}
+    | REPEAT error WHILE '(' condicion ')' { yyerror("Falta de bloque ejecutable en condicion de iteracion"); $$ = new ParserVal(null);}
+    | REPEAT bloque_ejecutable WHILE '(' error ')' { yyerror("error en condicion de iteracion"); $$ = new ParserVal(null);}
     ;
 
 seleccion: 
-    IF '(' condicion ')' bloque_ejecutable ELSE bloque_ejecutable END_IF {System.out.println("Declaracion Seleccion");}
-    | IF '(' condicion ')' bloque_ejecutable END_IF {System.out.println("Declaracion Seleccion Simple");}
-    | IF '(' condicion bloque_ejecutable END_IF { yyerror("Falta de parentesis de cierre en seleccion"); }
-    | IF condicion ')' bloque_ejecutable END_IF { yyerror("Falta de parentesis de apertura en seleccion");} 
-    | IF condicion bloque_ejecutable END_IF { yyerror("Falta de parentesis en seleccion"); }
-    | IF '('condicion ')' bloque_ejecutable error { yyerror("Falta de END_IF en seleccion");}
+    IF '(' condicion ')' bloque_ejecutable ELSE bloque_ejecutable END_IF {
+        System.out.println("Declaracion Seleccion");
+        $$ = new ParserVal(new NodoIF((NodoAST)$3.obj, (NodoAST)$5.obj, (NodoAST)$7.obj));
+    }
+    | IF '(' condicion ')' bloque_ejecutable END_IF {
+        System.out.println("Declaracion Seleccion Simple");
+        $$ = new ParserVal(new NodoIF((NodoAST)$3.obj, (NodoAST)$5.obj, null));
+    }
+    | IF '(' condicion bloque_ejecutable END_IF { yyerror("Falta de parentesis de cierre en seleccion"); $$ = new ParserVal(null);}
+    | IF condicion ')' bloque_ejecutable END_IF { yyerror("Falta de parentesis de apertura en seleccion"); $$ = new ParserVal(null);} 
+    | IF condicion bloque_ejecutable END_IF { yyerror("Falta de parentesis en seleccion"); $$ = new ParserVal(null);}
+    | IF '('condicion ')' bloque_ejecutable error { yyerror("Falta de END_IF en seleccion"); $$ = new ParserVal(null);}
     ;
 
 condicion: 
-    expresion comparador expresion {System.out.println("Condicion");}
+    expresion comparador expresion {
+        System.out.println("Condicion");
+        NodoAST comp = (NodoAST) $2.obj;
+        $$ = new ParserVal(new NodoBinario(comp.getEtiqueta(), (NodoAST)$1.obj, (NodoAST)$3.obj));
+    }
     ;
 
 comparador: 
-    IGUAL | DISTINTO | MAYORIGUAL | MENORIGUAL | '>' | '<'  {System.out.println("Comparador");}
+    IGUAL {
+        $$ = new ParserVal(new NodoHoja("==", "=="));
+        System.out.println("Comparador");
+    }
+    | DISTINTO {
+        $$ = new ParserVal(new NodoHoja("!=", "!="));
+        System.out.println("Comparador");
+    }
+    | MAYORIGUAL {
+        $$ = new ParserVal(new NodoHoja(">=", ">="));
+        System.out.println("Comparador");
+    }
+    | MENORIGUAL {
+        $$ = new ParserVal(new NodoHoja("<=", "<="));
+        System.out.println("Comparador");
+    }
+    | '>' {
+        $$ = new ParserVal(new NodoHoja(">", ">"));
+        System.out.println("Comparador");
+    }
+    | '<'  {
+        $$ = new ParserVal(new NodoHoja("<", "<"));
+        System.out.println("Comparador");
+    }
     ;
 
  bloque_ejecutable:  
-    sentencia_ejecutable {System.out.println("BloqueEJ1");}
-    | BEGIN sentencias_ejecutables END {System.out.println("BloqueEJ2");}
-    | error sentencias_ejecutables END {yyerror("Declaracion de bloque ejecutable: Falta el BEGIN ");}
-    | BEGIN sentencias_ejecutables error {yyerror("Declaracion de bloque ejecutable: Falta el END ");}
+    sentencia_ejecutable {
+        $$ = $1;
+        System.out.println("BloqueEJ1");
+    }
+    | BEGIN sentencias_ejecutables END {
+        $$ = $2;
+        System.out.println("BloqueEJ2");
+    }
+    | error sentencias_ejecutables END {yyerror("Declaracion de bloque ejecutable: Falta el BEGIN "); $$ = new ParserVal(null);}
+    | BEGIN sentencias_ejecutables error {yyerror("Declaracion de bloque ejecutable: Falta el END "); $$ = new ParserVal(null);}
     ;
 
 salida: 
-    POUT '(' CADENA ')' {System.out.println("POUT cadena");} 
-    | POUT '(' expresion ')' {System.out.println("POUT expresion");}
-    | POUT'('')' {yyerror("Falta Argumento en POUT");}
-    | POUT '('expresion {yyerror ("Falta parentesis de cierre");}
-    | POUT expresion ')' {yyerror ("Falta parentesis de apertura");}
-    | POUT expresion {yyerror ("Falta parentesis");}
-    | POUT '('CADENA {yyerror ("Falta parentesis de cierre");}
-    | POUT CADENA ')' {yyerror ("Falta parentesis de apertura");}
-    | POUT CADENA {yyerror ("Falta parentesis");}
+    POUT '(' CADENA ')' {
+        $$ = new ParserVal(new NodoPrint(new NodoHoja("CADENA", $3.sval)));
+        System.out.println("POUT cadena");
+    } 
+    | POUT '(' expresion ')' {
+        System.out.println("POUT expresion");
+        $$ = new ParserVal(new NodoPrint((NodoAST)$3.obj));
+    }
+    | POUT'('')' {yyerror("Falta Argumento en POUT"); $$ = new ParserVal(null);}
+    | POUT '('expresion {yyerror ("Falta parentesis de cierre"); $$ = new ParserVal(null);}
+    | POUT expresion ')' {yyerror ("Falta parentesis de apertura"); $$ = new ParserVal(null);}
+    | POUT expresion {yyerror ("Falta parentesis"); $$ = new ParserVal(null);}
+    | POUT '('CADENA {yyerror ("Falta parentesis de cierre"); $$ = new ParserVal(null);}
+    | POUT CADENA ')' {yyerror ("Falta parentesis de apertura"); $$ = new ParserVal(null);}
+    | POUT CADENA {yyerror ("Falta parentesis"); $$ = new ParserVal(null);}
     ;
 
 retorno: 
-    RET '(' expresion ')' {System.out.println("Declaracion Retorno");}
-    | RET error ';' {yyerror("Retorno debe tener una expresion y parentesis");}
+    RET '(' expresion ')' {
+        $$ = new ParserVal(new NodoReturn((NodoAST)$3.obj));
+        System.out.println("Declaracion Retorno");
+    }
+    | RET error ';' {yyerror("Retorno debe tener una expresion y parentesis"); $$ = new ParserVal(null);}
     ;
 %%
 private AnalizadorLexicoTp3 lexer;
 private boolean expresionInvalida = false;
+private NodoAST raizAST;
+
 public Parser(AnalizadorLexicoTp3 lexer){
     this.lexer = lexer;
 }
-private int yylex(){
-    return lexer.yylex();
+
+public NodoAST getRaizAST() {
+    return raizAST;
 }
+
+private int yylex(){
+    int token = lexer.yylex();
+    if (lexer.yylval != null) {
+        yylval = new ParserVal(lexer.yylval);
+    }
+    return token;
+}
+
 private void yyerror(String mensaje){
     System.err.println("Error sintáctico en la linea " + lexer.getLineaActual() + ": " + mensaje);
 }

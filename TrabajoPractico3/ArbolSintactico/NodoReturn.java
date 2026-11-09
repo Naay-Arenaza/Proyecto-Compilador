@@ -1,3 +1,4 @@
+package TrabajoPractico3.ArbolSintactico;
 public class NodoReturn extends NodoAST {
     private NodoAST expresionRetorno;
 

@@ -1,3 +1,4 @@
+package TrabajoPractico3.ArbolSintactico;
 public class NodoIF extends NodoAST {
     private NodoAST condicion;
     private NodoAST cuerpoThen;

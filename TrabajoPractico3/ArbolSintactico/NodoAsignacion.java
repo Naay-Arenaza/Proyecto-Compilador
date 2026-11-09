@@ -1,3 +1,4 @@
+package TrabajoPractico3.ArbolSintactico;
 public class NodoAsignacion extends NodoAST {
     private NodoAST variable;
     private NodoAST expresion;

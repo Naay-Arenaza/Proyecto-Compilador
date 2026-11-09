@@ -1,3 +1,4 @@
+package TrabajoPractico3.ArbolSintactico;
 // (Para Operaciones Binarias: +, -, *, /, asignaciones)
 public class NodoBinario extends NodoAST {
     private NodoAST izq;

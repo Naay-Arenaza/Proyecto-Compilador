@@ -1,3 +1,4 @@
+package TrabajoPractico3.ArbolSintactico;
 public class GeneradorTAC {
     private static int tempCount = 0;
     private static int labelCount = 0;

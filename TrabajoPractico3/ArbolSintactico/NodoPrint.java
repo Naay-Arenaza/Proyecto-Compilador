@@ -1,3 +1,4 @@
+package TrabajoPractico3.ArbolSintactico;
 public class NodoPrint extends NodoAST {
     private NodoAST contenido;
 

@@ -1,3 +1,4 @@
+package TrabajoPractico3.ArbolSintactico;
 public class NodoAccesoArreglo extends NodoAST {
     private NodoAST arreglo;
     private NodoAST indice;

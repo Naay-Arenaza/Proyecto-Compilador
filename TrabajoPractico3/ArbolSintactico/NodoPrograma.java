@@ -1,3 +1,4 @@
+package TrabajoPractico3.ArbolSintactico;
 public class NodoPrograma extends NodoAST {
     private String nombrePrograma;
     private NodoAST bloqueEjecutable;

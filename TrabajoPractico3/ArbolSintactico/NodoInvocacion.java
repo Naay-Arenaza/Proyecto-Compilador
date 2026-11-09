@@ -1,3 +1,4 @@
+package TrabajoPractico3.ArbolSintactico;
 public class NodoInvocacion extends NodoAST {
     private String nombreFuncion;
     private NodoAST parametros;

@@ -1,4 +1,4 @@
-// NodoAST.java (Clase Base)
+package TrabajoPractico3.ArbolSintactico;
 public abstract class NodoAST {
     private String etiqueta;
 

@@ -34,7 +34,7 @@ public class AnalizadorLexicoTp3{
                 {   F,  F,  8,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F, F, F, F}, // Estado 16
                 {   F,  F, 10,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F,  F, F, F, F} // Estado 17
         };
-     private static int[][] matriz_acciones = { // Matriz de Acciones Semánticas 
+    private static int[][] matriz_acciones = { // Matriz de Acciones Semánticas 
             // l   L   d  "d"  +   -   *     /   :   =   >   <   !   (     )   ,    ;   _   $   u   s   {   }   .  BL   "   [   ]
             {  1,  1,  1,  1,  16, 16, 16,  16,  1,  1,  1,  1,  1,  16,  16,  16,  16,  0,  0,  1,  1,  1, 0, 1,  0,  1 , 16, 16}, // Fila 0
             {  2,  2,  2,  2,  3,  3,  3,   3,   3, 3, 3, 3, 3,  3,   3,  3,    3,   2, 3,  2,  2,  3, 3, 3,  3, 3 ,  3,  3}, // Fila 1
