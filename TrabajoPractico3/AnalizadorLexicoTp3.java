@@ -217,7 +217,6 @@ public class AnalizadorLexicoTp3{
                     System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS3);
                 }
 
-                tablaSimbolos.agregarIdentificador(textoAS3, lectorCodigo.getLineaActual());
                 yylval = new ParserVal(textoAS3);
                 return Parser.ID; // Utilizabamos Token.ID
 
@@ -231,7 +230,6 @@ public class AnalizadorLexicoTp3{
                     System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS4);
                 }
 
-                tablaSimbolos.agregarIdentificador(textoAS4, lectorCodigo.getLineaActual());
                 yylval = new ParserVal(textoAS4);
                 return Parser.ID; // Utilizabamos Token.ID
 
@@ -387,7 +385,6 @@ public class AnalizadorLexicoTp3{
                     System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS14);
                 }
                 
-                tablaSimbolos.agregarIdentificador(textoAS14, lectorCodigo.getLineaActual());
                 yylval = new ParserVal(textoAS14);
                 return Parser.ID;  // Utilizabamos Token.ID
             

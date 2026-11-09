@@ -1,4 +1,6 @@
 *.class
+Parser.java
+ParserVal.java
 y.output
 y.tab.c
 y_tab.c
