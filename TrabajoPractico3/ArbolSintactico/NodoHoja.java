@@ -1,12 +1,37 @@
 package TrabajoPractico3.ArbolSintactico;
+
+import java.util.Collections;
+import java.util.List;
+
+//import TrabajoPractico3.RegistroSimboloTp3;
+
 public class NodoHoja extends NodoAST {
     private String tipoNodo; // "ID", "CTE", etc.
     private String valor;
+    //private RegistroSimboloTp3 referencia;
 
-    public NodoHoja(String tipoNodo, String valor) {
+    public NodoHoja(String tipoNodo, String valor/* , RegistroSimboloTp3 referencia*/) {
         super(valor);
         this.tipoNodo = tipoNodo;
         this.valor = valor;
+        //this.referencia = referencia;
+    }
+
+    public String getTipoNodo() {
+    return tipoNodo;
+    }
+
+    public String getValor() {
+        return valor;
+    }
+
+    /*public RegistroSimboloTp3 getReferencia() {
+        return referencia;
+    }*/
+
+        // Devuelve los hijos del nodo.
+    public List<NodoAST> getHijos() {
+        return Collections.emptyList();
     }
 
     @Override

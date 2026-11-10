@@ -9,11 +9,11 @@ import java.util.Map;
 public class RegistroSimboloTp3 { // Representa una entrada de la tabla de simbolo
     private final String lexema;
     private final String tipoToken;
-    private String tipo;
-    private String uso;
-    private String ambito;
-    private String nombreCompleto;
-    private int linea;
+    private final String tipo;
+    private final String uso;
+    private final String ambito;
+    private final String nombreCompleto;
+    private final int linea;
     private final long ordenDeclaracion;
 
     private final Map<String, Object> atributos; // Informacion semantica adicional del simbolo.
@@ -58,26 +58,6 @@ public class RegistroSimboloTp3 { // Representa una entrada de la tabla de simbo
     public Map<String, Object> getAtributos() {return Collections.unmodifiableMap(atributos);}    // Devuelve una vista de solo lectura de los atributos adicionales.
   
     public List<ParametroTp3> getParametros() {return Collections.unmodifiableList(parametros);}  // Devuelve los parametros formales en el orden de declaracion. 
-
-    public void setTipo(String tipo) { this.tipo = tipo;}
-
-    public void setUso(String uso) {this.uso = uso;}
-
-    public void setAmbito(String ambito) {
-        this.ambito = ambito;
-        this.nombreCompleto = construirNombreCompleto(lexema, ambito);
-    }
-
-    public void setNombreCompleto(String nombreCompleto) {
-        if (nombreCompleto == null || nombreCompleto.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre completo no puede ser vacio.");
-        }
-        this.nombreCompleto = nombreCompleto;
-    }
-
-    public void setLinea(int linea) {
-        this.linea = linea;
-    }
 
     public void agregarAtributo(String nombre, Object valor) {    // ATRIBUTOS ADICIONALES
         if (nombre == null || nombre.trim().isEmpty()) {

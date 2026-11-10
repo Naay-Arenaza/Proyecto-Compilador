@@ -9,9 +9,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLong; // Generar números de orden únicos para los registros.
 
 public class TablaDeSimbolosTp3 {
+    public static final String AMBITO_GLOBAL = "main";
+    
+    // Identificadores que utilizamos para determinar qué representa cada registro.
     public static final String USO_PROGRAMA = "PROGRAMA";
     public static final String USO_VARIABLE = "VARIABLE";
     public static final String USO_COMPTIME = "VARIABLE_COMPTIME";
@@ -23,15 +26,17 @@ public class TablaDeSimbolosTp3 {
     public static final String USO_METODO = "METODO";
     public static final String USO_CONSTANTE = "CONSTANTE";
 
+    // Estos identificadores representan atributos adicionales que podemos guardar dentro de cada registro.
     private static final String ATR_EXTENDS = "CLASES_PADRE";
     private static final String ATR_CLASE = "CLASE";
     private static final String ATR_COMPTIME = "COMPTIME";
-    private final Map<String, RegistroSimboloTp3> tabla = new LinkedHashMap<>(); // Unico almacenamiento de simbolos y constantes.
-    private final AtomicLong secuencia = new AtomicLong(0);
-   
-    private String ambitoActual = "main"; // Ambito informado por GestionAmbitoTp3.
 
-    public void setAmbitoActual(String ambitoActual) {
+    private final Map<String, RegistroSimboloTp3> tabla = new LinkedHashMap<>(); 
+    private final AtomicLong secuencia = new AtomicLong(0); // Se utiliza para asignar un número consecutivo a cada nuevo registro.
+   
+    private String ambitoActual = AMBITO_GLOBAL; // Guarda el ámbito en el que estamos trabajando actualmente. Por defecto es la raiz "main".
+
+    public void setAmbitoActual(String ambitoActual) { // Este método permite actualizar el ámbito actual.
         validarTexto(ambitoActual, "ambito actual");
         this.ambitoActual = ambitoActual;
     }
@@ -44,23 +49,24 @@ public class TablaDeSimbolosTp3 {
     public RegistroSimboloTp3 agregarConstante(String lexema, String tipoDato, int linea) {
         validarTexto(lexema, "lexema de constante");
         validarTexto(tipoDato, "tipo de constante");
-        String clave = construirClaveConstante(tipoDato, lexema);
-        RegistroSimboloTp3 existente = tabla.get(clave);
-
+        String clave = construirClaveConstante(tipoDato, lexema); // Ejemplo de clave: "CONST|USHORTINT|10$us"
+        RegistroSimboloTp3 existente = tabla.get(clave); // Buscamos en el mapa si ya tenemos esa misma constante.
         if (existente != null) {
             return existente;
         }
+        // Creamos un objeto con toda la información de la constante.
         RegistroSimboloTp3 nueva = new RegistroSimboloTp3(lexema,"CONSTANTE",tipoDato,USO_CONSTANTE,"<constantes>",linea,secuencia.incrementAndGet());
-        nueva.agregarAtributo("VALOR", lexema);
-        tabla.put(clave, nueva);
+        nueva.agregarAtributo("VALOR", lexema); // Agregamos un atributo adicional con su valor original.
+        tabla.put(clave, nueva); // Lo agregamos a la tabla
         return nueva;
     }
 
-    //Declara un simbolo en un ambito especifico.Retorna null si ya existe una declaracion con ese nombre en ese ambito.
+    // Declara un simbolo en un ambito especifico.Retorna null si ya existe una declaracion con ese nombre en ese ambito.
+    // este método solamente comprueba redeclaraciones locales. No impide utilizar el mismo nombre en otro ámbito.
     public RegistroSimboloTp3 declarar(String nombre,String tipo,String uso,String ambito,int linea) {
         validarTexto(nombre, "nombre");
         validarTexto(uso, "uso");
-        validarTexto(ambito, "ambito");
+        validarTexto(ambito, "ambito"); 
         String clave = construirClaveDeclaracion(nombre, ambito);
         if (tabla.containsKey(clave)) {
             return null;
@@ -75,12 +81,12 @@ public class TablaDeSimbolosTp3 {
     }
 
     public RegistroSimboloTp3 declararPrograma(String nombre, int linea) {  // Registra el nombre del programa en el ambito global main.
-        return declarar(nombre, "PROGRAMA", USO_PROGRAMA, "main", linea);
+        return declarar(nombre, "PROGRAMA", USO_PROGRAMA, AMBITO_GLOBAL, linea);
     }
 
     // DECLARACIONES ESPECIFICAS
-    public RegistroSimboloTp3 declararVariable(String nombre, String tipo, int linea, boolean comptime) {
-        String uso = comptime ? USO_COMPTIME : USO_VARIABLE;
+    public RegistroSimboloTp3 declararVariable(String nombre, String tipo, int linea, boolean comptime) { // Este método permite declarar variables normales y variables comptime
+        String uso = comptime ? USO_COMPTIME : USO_VARIABLE; // Si recibe false, tenemos una variable normal. Si recibe true, tenemos una variable de tiempo de compilación.
         RegistroSimboloTp3 registro = declararEnAmbitoActual( nombre, tipo, uso, linea);
         if (registro != null && comptime) {
             registro.agregarAtributo(ATR_COMPTIME, Boolean.TRUE);
@@ -88,33 +94,31 @@ public class TablaDeSimbolosTp3 {
         return registro;
     }
 
-    public RegistroSimboloTp3 declararFuncion(String nombre, String tipoRetorno, int linea) {
-        return declararEnAmbitoActual(nombre, tipoRetorno, USO_FUNCION, linea);
+    public RegistroSimboloTp3 declararFuncion(String nombre, String tipoRetorno, int linea) { // Registra una función.
+        return declararEnAmbitoActual(nombre, tipoRetorno, USO_FUNCION, linea); 
     }
 
-    public RegistroSimboloTp3 declararClase(String nombre, int linea) {
-        RegistroSimboloTp3 clase = declararEnAmbitoActual(
-            nombre, "CLASS", USO_CLASE, linea
-        );
+    public RegistroSimboloTp3 declararClase(String nombre, int linea) { // Registra una clase.
+        RegistroSimboloTp3 clase = declararEnAmbitoActual( nombre, "CLASS", USO_CLASE, linea);
         if (clase != null) {
-            clase.agregarAtributo(ATR_EXTENDS, new ArrayList<String>());
+            clase.agregarAtributo(ATR_EXTENDS, new ArrayList<String>()); // Creamos una lista vacía para almacenar las clases de las que hereda.
         }
         return clase;
     }
 
-    public RegistroSimboloTp3 declararParametro(String nombre, String tipo, int linea) {
+    public RegistroSimboloTp3 declararParametro(String nombre, String tipo, int linea) { // Registra los parámetros formales de una función o método.
         return declararEnAmbitoActual(nombre, tipo, USO_PARAMETRO, linea);
     }
 
-    public RegistroSimboloTp3 declararAtributoClase(String nombre, String tipo, int linea) {
+    public RegistroSimboloTp3 declararAtributoClase(String nombre, String tipo, int linea) { // Esto nos permite distinguir un atributo de una variable local.
         return declararEnAmbitoActual(nombre, tipo, USO_ATRIBUTO, linea);
     }
 
-    public RegistroSimboloTp3 declararMetodoClase(String nombre, String tipoRetorno, int linea) {
+    public RegistroSimboloTp3 declararMetodoClase(String nombre, String tipoRetorno, int linea) { // Registra un método dentro de una clase.
         return declararEnAmbitoActual(nombre, tipoRetorno, USO_METODO, linea);
     }
 
-    public RegistroSimboloTp3 declararObjeto(String nombre, String nombreClase, int linea) { //Declara una variable cuyo tipo es una clase visible.
+    public RegistroSimboloTp3 declararObjeto(String nombre, String nombreClase, int linea) { //Declara una variable cuyo tipo es una clase visible. 
         RegistroSimboloTp3 clase = buscarClaseVisible(nombreClase, ambitoActual);
         if (clase == null) {
             return null;
@@ -127,7 +131,7 @@ public class TablaDeSimbolosTp3 {
     }
 
     // FIRMA DE FUNCIONES Y METODOS: TEMA 20
-    //Agrega un parametro formal a la firma de una funcion/metodo.
+    // Agrega un parametro formal a la firma de una funcion/metodo.
     public boolean agregarParametroFormal(String nombreFuncion,String nombreParametro,String tipoParametro,int lineaParametro, String ambitoDeclaracion) {
         RegistroSimboloTp3 funcion = buscarLocal(nombreFuncion, ambitoDeclaracion);
         if (funcion == null || !(USO_FUNCION.equals(funcion.getUso()) || USO_METODO.equals(funcion.getUso()))) {
@@ -142,8 +146,8 @@ public class TablaDeSimbolosTp3 {
     }
 
     // BUSQUEDA Y VISIBILIDAD
-    public boolean estaDeclaradoLocalmente(String nombre, String ambito) {
-        return buscarLocal(nombre, ambito) != null;
+    public boolean estaDeclaradoLocalmente(String nombre, String ambito) { // Comprueba si existe una declaración exactamente en ese ámbito.
+        return buscarLocal(nombre, ambito) != null;  // No busca en los ámbitos padres.
     }
 
     public RegistroSimboloTp3 buscar(String nombre, String ambito) { // Busca desde el ambito dado hacia todos sus ambitos contenedores.
@@ -167,10 +171,10 @@ public class TablaDeSimbolosTp3 {
         return null;
     }
 
-    public RegistroSimboloTp3 buscar(String nombre) {return buscar(nombre, ambitoActual); }
+    public RegistroSimboloTp3 buscar(String nombre) {return buscar(nombre, ambitoActual); } // En lugar de pasar el ámbito manualmente, utiliza el ámbito que tiene configurado la tabla.
 
 
-    public RegistroSimboloTp3 buscarLocal(String nombre, String ambito) {    // Busca exclusivamente dentro del ambito indicado.
+    public RegistroSimboloTp3 buscarLocal(String nombre, String ambito) {// Busca exclusivamente dentro del ambito indicado.
         if (nombre == null || ambito == null) {
             return null;
         }
@@ -178,14 +182,14 @@ public class TablaDeSimbolosTp3 {
     }
 
 
-    public RegistroSimboloTp3 obtenerPorNombreCompleto(String nombreCompleto) {    // Busca una declaracion por su nombre completo, por ejemplo x:main:f. 
+    public RegistroSimboloTp3 obtenerPorNombreCompleto(String nombreCompleto) {// Busca una declaracion por su nombre completo, por ejemplo x:main:f. 
         if (nombreCompleto == null) {
             return null;
         }
         return tabla.get("ID|" + nombreCompleto);
     }
 
-    public RegistroSimboloTp3 obtener(String nombre) {    // Busca primero declaraciones visibles y luego constantes. 
+    public RegistroSimboloTp3 obtener(String nombre) {// Busca primero declaraciones visibles y luego constantes. 
         RegistroSimboloTp3 simbolo = buscar(nombre);
         if (simbolo != null) {
             return simbolo;
@@ -446,7 +450,11 @@ public class TablaDeSimbolosTp3 {
         String ambitoClase = clase.getAmbito() + ":" + clase.getLexema();
         RegistroSimboloTp3 miembroPropio = buscarLocal(nombreMiembro, ambitoClase);
 
-        if (miembroPropio != null && (USO_ATRIBUTO.equals(miembroPropio.getUso()) || USO_METODO.equals(miembroPropio.getUso()))) {
+        if (miembroPropio != null &&
+            (USO_ATRIBUTO.equals(miembroPropio.getUso()) ||
+            USO_OBJETO.equals(miembroPropio.getUso()) ||
+            USO_METODO.equals(miembroPropio.getUso()))) {
+
             return miembroPropio;
         }
 
@@ -493,27 +501,17 @@ public class TablaDeSimbolosTp3 {
     }
 
     // Tema 29: devuelve el atributo por posicion, comenzando desde indice 0. se consideran primero los atributos propios y luego los heredados, Respetando el orden de EXTENDS.
-    public RegistroSimboloTp3 obtenerAtributoPosicional(
-            String nombreClase, int indice) {
+    public RegistroSimboloTp3 obtenerAtributoPosicional(String nombreClase, int indice) {
 
-        if (indice < 0) {
-            return null;
-        }
+        if (indice < 0) {return null;}
 
         RegistroSimboloTp3 clase = buscarClaseVisible(nombreClase, ambitoActual);
 
-        if (clase == null) {
-            return null;
-        }
+        if (clase == null) {return null;}
 
-        List<RegistroSimboloTp3> atributos = obtenerAtributosEfectivos(
-            clase,
-            new LinkedHashSet<String>()
-        );
+        List<RegistroSimboloTp3> atributos = obtenerAtributosEfectivos(clase,new LinkedHashSet<String>());
 
-        if (indice >= atributos.size()) {
-            return null;
-        }
+        if (indice >= atributos.size()) {return null;}
 
         return atributos.get(indice);
     }
@@ -527,9 +525,11 @@ public class TablaDeSimbolosTp3 {
         }
 
         String ambitoClase = clase.getAmbito() + ":" + clase.getLexema();
-
         for (RegistroSimboloTp3 miembro : obtenerSimbolosEnAmbito(ambitoClase)) {
-            if (USO_ATRIBUTO.equals(miembro.getUso())) {
+
+            if (USO_ATRIBUTO.equals(miembro.getUso()) ||
+                USO_OBJETO.equals(miembro.getUso())) {
+
                 resultado.add(miembro);
             }
         }
@@ -538,9 +538,7 @@ public class TablaDeSimbolosTp3 {
 
         if (basesObjeto instanceof List<?>) {
             for (Object referenciaBase : (List<?>) basesObjeto) {
-                RegistroSimboloTp3 base = buscarClasePorReferencia(
-                    String.valueOf(referenciaBase)
-                );
+                RegistroSimboloTp3 base = buscarClasePorReferencia(String.valueOf(referenciaBase));
                 resultado.addAll(obtenerAtributosEfectivos(base, visitadas));
             }
         }
@@ -581,18 +579,14 @@ public class TablaDeSimbolosTp3 {
         if (equalsIgnorandoMayusculas(tipoDestino, tipoOrigen)) {
             return buscarClaseVisible(tipoDestino, ambitoActual) != null;
         }
-
         return estructurasCompatibles(tipoDestino, tipoOrigen);
     }
 
     // TEMA 20: ORDEN OPCIONAL DE PARAMETROS
     // Valida que el orden recibido sea una permutacion de 1..n. 
     public boolean validarOrdenParametros(List<Integer> orden, int cantidadParametros) {
-
         if (cantidadParametros < 0) {return false;}
-
-        // Sin lista explicita, se utiliza el orden natural.
-        if (orden == null) {return true;}
+        if (orden == null) {return true;}        // Sin lista explicita, se utiliza el orden natural.
         if (orden.size() != cantidadParametros) {return false;  }
 
         boolean[] posicionesVistas = new boolean[cantidadParametros + 1];
@@ -623,23 +617,38 @@ public class TablaDeSimbolosTp3 {
                 resultado.add(posicion - 1);
             }
         }
-
         return resultado;
     }
 
     //Devuelve los parametros formales en el orden de copia solicitado.Retorna null si no existe la funcion/metodo o si el orden es invalido.
-    public List<RegistroSimboloTp3.ParametroTp3> obtenerParametrosEnOrden(String nombreFuncion, String ambitoDeclaracion, List<Integer> orden) {
+    public List<RegistroSimboloTp3.ParametroTp3> obtenerParametrosEnOrden(String nombreFuncion,String ambitoDeclaracion, List<Integer> orden) {
+
         RegistroSimboloTp3 funcion = buscarLocal(nombreFuncion, ambitoDeclaracion);
-        if (funcion == null || !(USO_FUNCION.equals(funcion.getUso()) || USO_METODO.equals(funcion.getUso()))) {
+
+        if (funcion == null) {
             return null;
         }
+
+        if (!USO_FUNCION.equals(funcion.getUso()) && !USO_METODO.equals(funcion.getUso())) {
+            return null;
+        }
+
         List<RegistroSimboloTp3.ParametroTp3> parametros = funcion.getParametros();
+
+        // Comprobar que el orden sea válido antes de procesarlo.
+        if (!validarOrdenParametros(orden, parametros.size())) {
+            return null;
+        }
+
+        // Obtener las posiciones en orden de copia.
         List<Integer> posiciones = obtenerOrdenDeCopia(orden, parametros.size());
+
         List<RegistroSimboloTp3.ParametroTp3> resultado = new ArrayList<>();
 
         for (Integer posicion : posiciones) {
             resultado.add(parametros.get(posicion));
         }
+
         return Collections.unmodifiableList(resultado);
     }
 
@@ -649,15 +658,12 @@ public class TablaDeSimbolosTp3 {
             return false;
         }
         String normalizado = normalizarTipo(tipo);
-        return "SHORTINT".equals(normalizado) || "USHORTINT".equals(normalizado)| "INTEGER".equals(normalizado)|| "UINTEGER".equals(normalizado)
-            || "LONGINT".equals(normalizado)|| "ULONGINT".equals(normalizado);
+        return "SHORTINT".equals(normalizado) || "USHORTINT".equals(normalizado)|| "INTEGER".equals(normalizado)|| "UINTEGER".equals(normalizado)
+        || "LONGINT".equals(normalizado)|| "ULONGINT".equals(normalizado);
     }
 
-    /** Tipos de punto flotante contemplados por la especificacion. */
-    public boolean esFlotante(String tipo) {
-        if (tipo == null) {
-            return false;
-        }
+    public boolean esFlotante(String tipo) {    //Tipos de punto flotante contemplados por la especificacion.
+        if (tipo == null) {return false;}
         String normalizado = normalizarTipo(tipo);
         return "SINGLEF".equals(normalizado) || "DOUBLEF".equals(normalizado);
     }
@@ -673,9 +679,7 @@ public class TablaDeSimbolosTp3 {
     //Comprueba tipos para una operacion.Si los tipos son distintos, conversionExplicitaTodf solo debe ser true cuando el parser ya verifico que el operando entero esta envuelto en todf.
     public boolean tiposCompatiblesParaOperacion(String tipoIzquierdo,String tipoDerecho,boolean conversionExplicitaTodf) {
         if (equalsIgnorandoMayusculas(tipoIzquierdo, tipoDerecho)) {return true;}
-
         if (!conversionExplicitaTodf) { return false;}
-
         return (esEntero(tipoIzquierdo) && esFlotante(tipoDerecho))|| (esFlotante(tipoIzquierdo) && esEntero(tipoDerecho));
     }
 
@@ -697,9 +701,7 @@ public class TablaDeSimbolosTp3 {
 
     private static void validarTexto(String texto, String campo) {
         if (texto == null || texto.trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                "El campo " + campo + " no puede ser vacio."
-            );
+            throw new IllegalArgumentException("El campo " + campo + " no puede ser vacio.");
         }
     }
 

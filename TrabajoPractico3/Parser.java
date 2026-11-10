@@ -19,7 +19,8 @@ package TrabajoPractico3;
 
 //#line 2 "gramatica.y"
 import java.io.*;
-//#line 19 "Parser.java"
+import TrabajoPractico3.ArbolSintactico.*;
+//#line 20 "Parser.java"
 
 
 
@@ -841,19 +842,31 @@ final static String yyrule[] = {
 "retorno : RET error ';'",
 };
 
-//#line 332 "gramatica.y"
+//#line 424 "gramatica.y"
 private AnalizadorLexicoTp3 lexer;
 private boolean expresionInvalida = false;
+private NodoAST raizAST;
+
 public Parser(AnalizadorLexicoTp3 lexer){
     this.lexer = lexer;
 }
-private int yylex(){
-    return lexer.yylex();
+
+public NodoAST getRaizAST() {
+    return raizAST;
 }
+
+private int yylex(){
+    int token = lexer.yylex();
+    if (lexer.yylval != null) {
+        yylval = new ParserVal(lexer.yylval);
+    }
+    return token;
+}
+
 private void yyerror(String mensaje){
     System.err.println("Error sintáctico en la linea " + lexer.getLineaActual() + ": " + mensaje);
 }
-//#line 784 "Parser.java"
+//#line 797 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -1008,480 +1021,721 @@ boolean doaction;
       {
 //########## USER-SUPPLIED ACTIONS ##########
 case 1:
-//#line 20 "gramatica.y"
-{System.out.println("Declaracion de programa");}
+//#line 25 "gramatica.y"
+{
+        NodoPrograma raiz = new NodoPrograma(val_peek(4).sval, (NodoAST)val_peek(1).obj);
+        raizAST = raiz;
+        yyval = new ParserVal(raiz);
+        System.out.println("Declaración de programa y AST generado");
+    }
 break;
 case 2:
-//#line 21 "gramatica.y"
+//#line 31 "gramatica.y"
 { yyerror("Falta de nombre de programa");}
 break;
 case 3:
-//#line 22 "gramatica.y"
+//#line 32 "gramatica.y"
 { yyerror("Falta la palabra reservada BEGIN");}
 break;
 case 4:
-//#line 23 "gramatica.y"
+//#line 33 "gramatica.y"
 { yyerror("Falta la palabra reservada END");}
 break;
 case 12:
-//#line 41 "gramatica.y"
+//#line 51 "gramatica.y"
 {System.out.println("Declaracion de VAR");}
 break;
 case 13:
-//#line 42 "gramatica.y"
+//#line 52 "gramatica.y"
 { yyerror("Declaracion de variables: Falta ';' " );}
 break;
 case 14:
-//#line 46 "gramatica.y"
+//#line 56 "gramatica.y"
 {System.out.println("Declaracion de comptime");}
 break;
 case 15:
-//#line 47 "gramatica.y"
+//#line 57 "gramatica.y"
 { yyerror("Declaracion de variables COMPTIME: Falta el ';'");}
 break;
 case 16:
-//#line 48 "gramatica.y"
+//#line 58 "gramatica.y"
 { yyerror("Falta tipo en las variables en COMPTIME");}
 break;
 case 17:
-//#line 52 "gramatica.y"
+//#line 62 "gramatica.y"
 {System.out.println("Declaracion de tipo");}
 break;
 case 18:
-//#line 52 "gramatica.y"
+//#line 62 "gramatica.y"
 {System.out.println("Declaracion de tipo");}
 break;
 case 20:
-//#line 57 "gramatica.y"
+//#line 67 "gramatica.y"
 { yyerror("Lista de variables: Falta la ','");}
 break;
 case 22:
-//#line 62 "gramatica.y"
+//#line 72 "gramatica.y"
 {System.out.println("Declaracion de funcion");}
 break;
 case 23:
-//#line 63 "gramatica.y"
+//#line 73 "gramatica.y"
 { yyerror("Falta parentesis de apertura en el encabezado de la función"); }
 break;
 case 24:
-//#line 64 "gramatica.y"
+//#line 74 "gramatica.y"
 { yyerror("Falta parentesis de cierre en el encabezado de la función"); }
 break;
 case 25:
-//#line 65 "gramatica.y"
+//#line 75 "gramatica.y"
 { yyerror("Falta de nombre de funcion");}
 break;
 case 26:
-//#line 66 "gramatica.y"
+//#line 76 "gramatica.y"
 { yyerror("Falta la palabra reservada BEGIN de la funcion");}
 break;
 case 27:
-//#line 67 "gramatica.y"
+//#line 77 "gramatica.y"
 { yyerror("Falta la palabra reservada END de la funcion");}
 break;
 case 28:
-//#line 68 "gramatica.y"
+//#line 78 "gramatica.y"
 { yyerror("Falta el ';'");}
 break;
 case 29:
-//#line 69 "gramatica.y"
+//#line 79 "gramatica.y"
 { yyerror("Error en parametros de funcion: Falta una ',' o tipo invalido"); }
 break;
 case 30:
-//#line 73 "gramatica.y"
+//#line 83 "gramatica.y"
 {System.out.println("Declaracion de parametro_formales");}
 break;
 case 31:
-//#line 74 "gramatica.y"
+//#line 84 "gramatica.y"
 {System.out.println("Declaracion de parametro_formales");}
 break;
 case 32:
-//#line 78 "gramatica.y"
+//#line 88 "gramatica.y"
 {System.out.println("Declaracion de parametro_formal");}
 break;
 case 33:
-//#line 79 "gramatica.y"
+//#line 89 "gramatica.y"
 { yyerror("Parametro Formal: Falta el 'tipo'");}
 break;
 case 34:
-//#line 80 "gramatica.y"
+//#line 90 "gramatica.y"
 { yyerror("Parametro Formal: Falta el 'ID''");}
 break;
 case 35:
-//#line 84 "gramatica.y"
+//#line 94 "gramatica.y"
 {System.out.println("Declaracion de clase");}
 break;
 case 36:
-//#line 85 "gramatica.y"
+//#line 95 "gramatica.y"
 { yyerror ("Falta el BEGIN de clase");}
 break;
 case 37:
-//#line 86 "gramatica.y"
+//#line 96 "gramatica.y"
 { yyerror("Falta el END de clase");}
 break;
 case 38:
-//#line 87 "gramatica.y"
+//#line 97 "gramatica.y"
 { yyerror("Falta el ';' al final de la clase");}
 break;
 case 47:
-//#line 108 "gramatica.y"
+//#line 118 "gramatica.y"
 {System.out.println("Sentencia EXTENDS");}
 break;
 case 48:
-//#line 109 "gramatica.y"
+//#line 119 "gramatica.y"
 { yyerror("Sintaxis de lista de herencia invalida"); }
 break;
 case 49:
-//#line 110 "gramatica.y"
+//#line 120 "gramatica.y"
 { yyerror("Sentencia EXTENDS: Falta el ';'");}
 break;
 case 50:
-//#line 111 "gramatica.y"
+//#line 121 "gramatica.y"
 { yyerror("Falta lista ids");}
 break;
 case 53:
-//#line 117 "gramatica.y"
+//#line 127 "gramatica.y"
 { yyerror("Lista de IDs: Falta la ','");}
 break;
 case 54:
-//#line 121 "gramatica.y"
+//#line 131 "gramatica.y"
 {System.out.println("Declaracion de Metodo");}
 break;
 case 55:
-//#line 122 "gramatica.y"
+//#line 132 "gramatica.y"
 { yyerror("Falta el BEGIN en la declaracion del metodo");}
 break;
 case 56:
-//#line 123 "gramatica.y"
+//#line 133 "gramatica.y"
 { yyerror("Falta una ',' o tipo invalido en los parametros del metodo"); }
 break;
 case 57:
-//#line 124 "gramatica.y"
+//#line 134 "gramatica.y"
 { yyerror("Falta el END en la declaracion del metodo");}
 break;
 case 58:
-//#line 125 "gramatica.y"
+//#line 135 "gramatica.y"
 { yyerror("Falta el ';' en la declaracion del metodo");}
 break;
 case 59:
-//#line 129 "gramatica.y"
+//#line 139 "gramatica.y"
 {System.out.println("Declaracion de objeto");}
 break;
 case 60:
-//#line 130 "gramatica.y"
+//#line 140 "gramatica.y"
 { yyerror("Declaracion Objeto: Falta el ';'");}
 break;
-case 68:
+case 61:
 //#line 145 "gramatica.y"
+{
+        NodoBloque bloque = null;
+        if (val_peek(1).obj != null) {
+            bloque = (NodoBloque) val_peek(1).obj;
+        } else {
+            bloque = new NodoBloque();
+        }
+        if (val_peek(0).obj != null) {
+            bloque.agregarSentencia((NodoAST) val_peek(0).obj);
+        }
+        yyval = new ParserVal(bloque);
+    }
+break;
+case 62:
+//#line 157 "gramatica.y"
+{
+        NodoBloque bloque = new NodoBloque();
+        if (val_peek(0).obj != null) {
+            bloque.agregarSentencia((NodoAST) val_peek(0).obj);
+        }
+        yyval = new ParserVal(bloque);
+    }
+break;
+case 63:
+//#line 167 "gramatica.y"
+{ yyval = val_peek(1); }
+break;
+case 64:
+//#line 168 "gramatica.y"
+{ yyval = val_peek(1); }
+break;
+case 65:
+//#line 169 "gramatica.y"
+{ yyval = val_peek(1); }
+break;
+case 66:
+//#line 170 "gramatica.y"
+{ yyval = val_peek(1); }
+break;
+case 67:
+//#line 171 "gramatica.y"
+{ yyval = val_peek(1); }
+break;
+case 68:
+//#line 172 "gramatica.y"
 { yyerror("Asignacion: Falta el ';', o un operador o expresion");}
 break;
 case 69:
-//#line 146 "gramatica.y"
+//#line 173 "gramatica.y"
 { yyerror("Seleccion: Falta el ';'");}
 break;
 case 70:
-//#line 147 "gramatica.y"
+//#line 174 "gramatica.y"
 { yyerror("Salida: Falta el ';'");}
 break;
 case 71:
-//#line 148 "gramatica.y"
+//#line 175 "gramatica.y"
 { yyerror("Retorno: Falta el ';'");}
 break;
 case 72:
-//#line 149 "gramatica.y"
+//#line 176 "gramatica.y"
 { yyerror("Iterativa: Falta el ';'");}
 break;
 case 73:
-//#line 153 "gramatica.y"
+//#line 180 "gramatica.y"
 {
-        if (expresionInvalida != true){
+        if (!expresionInvalida){
+            yyval = new ParserVal(new NodoAsignacion((NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj));
             System.out.println("Declaracion Asignacion");
-        }
-        else {
+        } else {
             expresionInvalida = true;
+            yyval = new ParserVal(null);
         }
-
     }
 break;
 case 74:
-//#line 162 "gramatica.y"
-{ yyerror("Uso de '=' en asignacion; debe utilizar ':='."); }
+//#line 189 "gramatica.y"
+{ yyerror("Uso de '=' en asignacion; debe utilizar ':='."); yyval = new ParserVal(null); }
 break;
 case 75:
-//#line 163 "gramatica.y"
-{ yyerror("Falta expresion en la asignacion");}
+//#line 190 "gramatica.y"
+{ yyerror("Falta expresion en la asignacion"); yyval = new ParserVal(null);}
+break;
+case 76:
+//#line 194 "gramatica.y"
+{ yyval = new ParserVal(new NodoHoja("ID", val_peek(0).sval)); }
 break;
 case 77:
-//#line 168 "gramatica.y"
-{System.out.println("Declaracion de acceso_posicional");}
+//#line 195 "gramatica.y"
+{
+        yyval = val_peek(0); 
+        System.out.println("Declaracion de acceso_posicional");}
 break;
 case 78:
-//#line 169 "gramatica.y"
-{ yyerror("Acceso posicional: Falta corchete de apertura "); }
+//#line 198 "gramatica.y"
+{ yyerror("Acceso posicional: Falta corchete de apertura "); yyval = new ParserVal(null);}
+break;
+case 79:
+//#line 202 "gramatica.y"
+{ yyval = new ParserVal(new NodoAccesoArreglo(new NodoHoja("ID", val_peek(3).sval), (NodoAST)val_peek(1).obj)); }
 break;
 case 80:
-//#line 174 "gramatica.y"
-{ yyerror("Acceso posicional: Índice vacío"); }
+//#line 203 "gramatica.y"
+{ yyerror("Acceso posicional: Índice vacío"); yyval = new ParserVal(null);}
 break;
 case 81:
-//#line 175 "gramatica.y"
-{ yyerror("Acceso posicional: Índice inválido"); }
+//#line 204 "gramatica.y"
+{ yyerror("Acceso posicional: Índice inválido"); yyval = new ParserVal(null);}
 break;
 case 82:
-//#line 176 "gramatica.y"
-{ yyerror("Acceso posicional: Falta corchete de cierre"); }
+//#line 205 "gramatica.y"
+{ yyerror("Acceso posicional: Falta corchete de cierre"); yyval = new ParserVal(null);}
 break;
 case 83:
-//#line 177 "gramatica.y"
-{ yyerror("Acceso posicional: Argumento invalido"); }
+//#line 206 "gramatica.y"
+{ yyerror("Acceso posicional: Argumento invalido"); yyval = new ParserVal(null);}
+break;
+case 84:
+//#line 210 "gramatica.y"
+{ yyval = new ParserVal(new NodoHoja("ID", val_peek(0).sval)); }
+break;
+case 85:
+//#line 211 "gramatica.y"
+{ yyval = new ParserVal(new NodoHoja("CTE", val_peek(0).sval)); }
+break;
+case 86:
+//#line 215 "gramatica.y"
+{ yyval = new ParserVal(new NodoBinario("+", (NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj)); }
+break;
+case 87:
+//#line 216 "gramatica.y"
+{ yyval = new ParserVal(new NodoBinario("-", (NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj)); }
 break;
 case 88:
-//#line 187 "gramatica.y"
-{yyerror("Falta operando 2");}
+//#line 217 "gramatica.y"
+{yyerror("Falta operando 2"); yyval = new ParserVal(null);}
 break;
 case 89:
-//#line 188 "gramatica.y"
-{yyerror("Falta operando 1");}
+//#line 218 "gramatica.y"
+{yyerror("Falta operando 1"); yyval = new ParserVal(null);}
 break;
 case 90:
-//#line 189 "gramatica.y"
-{yyerror("Falta operando 2");}
+//#line 219 "gramatica.y"
+{yyerror("Falta operando 2"); yyval = new ParserVal(null);}
 break;
 case 91:
-//#line 190 "gramatica.y"
-{yyerror("Falta operando 1");}
+//#line 220 "gramatica.y"
+{yyerror("Falta operando 1"); yyval = new ParserVal(null);}
+break;
+case 92:
+//#line 221 "gramatica.y"
+{ yyval = val_peek(0); }
+break;
+case 93:
+//#line 225 "gramatica.y"
+{ yyval = new ParserVal(new NodoBinario("*", (NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj)); }
+break;
+case 94:
+//#line 226 "gramatica.y"
+{ yyval = new ParserVal(new NodoBinario("/", (NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj)); }
 break;
 case 95:
-//#line 197 "gramatica.y"
-{yyerror("Falta operando 2");}
+//#line 227 "gramatica.y"
+{yyerror("Falta operando 2"); yyval = new ParserVal(null);}
 break;
 case 96:
-//#line 198 "gramatica.y"
-{yyerror("Falta operando 1");}
+//#line 228 "gramatica.y"
+{yyerror("Falta operando 1"); yyval = new ParserVal(null);}
 break;
 case 97:
-//#line 199 "gramatica.y"
-{yyerror("Falta operando 1");}
+//#line 229 "gramatica.y"
+{yyerror("Falta operando 1"); yyval = new ParserVal(null);}
 break;
 case 98:
-//#line 200 "gramatica.y"
-{yyerror("Falta operando 2");}
+//#line 230 "gramatica.y"
+{yyerror("Falta operando 2"); yyval = new ParserVal(null);}
+break;
+case 99:
+//#line 231 "gramatica.y"
+{ yyval = val_peek(0); }
+break;
+case 100:
+//#line 235 "gramatica.y"
+{ yyval = new ParserVal(new NodoHoja("ID", val_peek(0).sval)); }
+break;
+case 101:
+//#line 236 "gramatica.y"
+{ yyval = new ParserVal(new NodoHoja("CTE", val_peek(0).sval)); }
 break;
 case 102:
-//#line 207 "gramatica.y"
-{System.out.println("Acceso posicional");}
+//#line 237 "gramatica.y"
+{
+        yyval = val_peek(0);
+        System.out.println("Acceso posicional");}
 break;
 case 103:
-//#line 208 "gramatica.y"
-{System.out.println("Asignacion EXP");}
+//#line 240 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoAsignacion(new NodoHoja("ID", val_peek(4).sval), (NodoAST)val_peek(1).obj));
+        System.out.println("Asignacion EXP");}
+break;
+case 104:
+//#line 243 "gramatica.y"
+{ yyval = val_peek(0); }
+break;
+case 105:
+//#line 244 "gramatica.y"
+{ yyval = val_peek(0); }
 break;
 case 106:
-//#line 214 "gramatica.y"
-{System.out.println("Conversion DF");}
+//#line 248 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoUnario("TODF", (NodoAST)val_peek(1).obj));
+        System.out.println("Conversion DF"); 
+    }
 break;
 case 107:
-//#line 215 "gramatica.y"
-{yyerror("Solo se pueden expresiones");}
+//#line 252 "gramatica.y"
+{ yyerror("Solo se pueden expresiones"); yyval = new ParserVal(null);}
 break;
 case 108:
-//#line 216 "gramatica.y"
-{yyerror("Falta expresion");}
+//#line 253 "gramatica.y"
+{ yyerror("Falta expresion"); yyval = new ParserVal(null);}
 break;
 case 109:
-//#line 217 "gramatica.y"
-{yyerror("Falta parentesis");}
+//#line 254 "gramatica.y"
+{ yyerror("Falta parentesis"); yyval = new ParserVal(null);}
+break;
+case 110:
+//#line 258 "gramatica.y"
+{ yyval = new ParserVal(new NodoBinario("+", (NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj)); }
+break;
+case 111:
+//#line 259 "gramatica.y"
+{ yyval = new ParserVal(new NodoBinario("-", (NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj)); }
 break;
 case 112:
-//#line 223 "gramatica.y"
-{yyerror("Falta operando 2");}
+//#line 260 "gramatica.y"
+{ yyerror("Falta operando 2"); yyval = new ParserVal(null);}
 break;
 case 113:
-//#line 224 "gramatica.y"
-{yyerror("Falta operando 1");}
+//#line 261 "gramatica.y"
+{ yyerror("Falta operando 1"); yyval = new ParserVal(null);}
 break;
 case 114:
-//#line 225 "gramatica.y"
-{yyerror("Falta operando 2");}
+//#line 262 "gramatica.y"
+{ yyerror("Falta operando 2"); yyval = new ParserVal(null);}
 break;
 case 115:
-//#line 226 "gramatica.y"
-{yyerror("Falta operando 1");}
+//#line 263 "gramatica.y"
+{ yyerror("Falta operando 1"); yyval = new ParserVal(null);}
+break;
+case 116:
+//#line 264 "gramatica.y"
+{ yyval = val_peek(0); }
+break;
+case 117:
+//#line 268 "gramatica.y"
+{ yyval = new ParserVal(new NodoBinario("*", (NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj)); }
+break;
+case 118:
+//#line 269 "gramatica.y"
+{ yyval = new ParserVal(new NodoBinario("/", (NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj)); }
 break;
 case 119:
-//#line 233 "gramatica.y"
-{yyerror("Falta operando 2");}
+//#line 270 "gramatica.y"
+{ yyerror("Falta operando 2"); yyval = new ParserVal(null);}
 break;
 case 120:
-//#line 234 "gramatica.y"
-{yyerror("Falta operando 1");}
+//#line 271 "gramatica.y"
+{ yyerror("Falta operando 1"); yyval = new ParserVal(null);}
 break;
 case 121:
-//#line 235 "gramatica.y"
-{yyerror("Falta operando 1");}
+//#line 272 "gramatica.y"
+{ yyerror("Falta operando 1"); yyval = new ParserVal(null);}
 break;
 case 122:
-//#line 236 "gramatica.y"
-{yyerror("Falta operando 2");}
+//#line 273 "gramatica.y"
+{ yyerror("Falta operando 2"); yyval = new ParserVal(null);}
+break;
+case 123:
+//#line 274 "gramatica.y"
+{ yyval = val_peek(0); }
+break;
+case 124:
+//#line 278 "gramatica.y"
+{ yyval = new ParserVal(new NodoHoja("ID", val_peek(0).sval)); }
+break;
+case 125:
+//#line 279 "gramatica.y"
+{ yyval = new ParserVal(new NodoHoja("CTE", val_peek(0).sval)); }
+break;
+case 126:
+//#line 280 "gramatica.y"
+{ yyval = val_peek(0); }
+break;
+case 127:
+//#line 281 "gramatica.y"
+{ yyval = val_peek(0); }
+break;
+case 128:
+//#line 282 "gramatica.y"
+{ yyval = val_peek(0); }
 break;
 case 129:
-//#line 246 "gramatica.y"
-{yyerror("No se permite este anidamiento, solo 1 expresion");}
+//#line 283 "gramatica.y"
+{ yyerror("No se permite este anidamiento, solo 1 expresion"); yyval = new ParserVal(null);}
 break;
 case 130:
-//#line 250 "gramatica.y"
-{System.out.println("Metodo|funcion con orden opcional");}
+//#line 287 "gramatica.y"
+{
+                                            yyval = new ParserVal(new NodoInvocacion(val_peek(4).sval, (NodoAST)val_peek(2).obj));
+                                            System.out.println("Metodo|funcion con orden opcional"); }
 break;
 case 131:
-//#line 251 "gramatica.y"
-{System.out.println("Objeto con orden opcional");}
+//#line 290 "gramatica.y"
+{
+                                            yyval = new ParserVal(new NodoInvocacionMetodo(val_peek(6).sval, val_peek(4).sval, (NodoAST)val_peek(2).obj));
+                                            System.out.println("Objeto con orden opcional"); }
 break;
 case 132:
-//#line 252 "gramatica.y"
-{ yyerror("Error en los parametros: Falta un ')'"); }
+//#line 293 "gramatica.y"
+{ yyerror("Error en los parametros: Falta un ')'"); yyval = new ParserVal(null);}
 break;
 case 133:
-//#line 253 "gramatica.y"
-{ yyerror("Lista de parametros vacia."); }
+//#line 294 "gramatica.y"
+{ yyerror("Lista de parametros vacia."); yyval = new ParserVal(null);}
 break;
 case 134:
-//#line 254 "gramatica.y"
-{ 
-        yyerror("Lista de parametros vacia."); expresionInvalida = true;
-     }
+//#line 295 "gramatica.y"
+{ yyerror("Lista de parametros vacia."); expresionInvalida = true; yyval = new ParserVal(null);}
 break;
 case 136:
-//#line 261 "gramatica.y"
+//#line 300 "gramatica.y"
 { yyerror("Error en la lista de constantes: Falta una ',' o hay un elemento inválido"); }
 break;
+case 140:
+//#line 310 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoBinario("PARAM", (NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj));
+    }
+break;
+case 141:
+//#line 313 "gramatica.y"
+{ yyval = val_peek(0); }
+break;
 case 142:
-//#line 273 "gramatica.y"
-{yyerror("Falta ',' entre argumentos");}
+//#line 314 "gramatica.y"
+{yyerror("Falta ',' entre argumentos"); yyval = new ParserVal(null);}
 break;
 case 143:
-//#line 274 "gramatica.y"
-{yyerror("Elemento no valido despues de ','");}
+//#line 315 "gramatica.y"
+{yyerror("Elemento no valido despues de ','"); yyval = new ParserVal(null);}
+break;
+case 144:
+//#line 319 "gramatica.y"
+{ yyval = val_peek(0); }
 break;
 case 145:
-//#line 282 "gramatica.y"
-{System.out.println("Declaracion Iterativa WHILE");}
+//#line 323 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoRepeat((NodoAST)val_peek(4).obj, (NodoAST)val_peek(1).obj));
+        System.out.println("Declaracion Iterativa WHILE");
+    }
 break;
 case 146:
-//#line 283 "gramatica.y"
-{ yyerror("Falta WHILE en condicion de iteracion");}
+//#line 327 "gramatica.y"
+{ yyerror("Falta WHILE en condicion de iteracion"); yyval = new ParserVal(null);}
 break;
 case 147:
-//#line 284 "gramatica.y"
-{ yyerror("Falta de parentesis de cierre en condicion iterativa");}
+//#line 328 "gramatica.y"
+{ yyerror("Falta de parentesis de cierre en condicion iterativa"); yyval = new ParserVal(null);}
 break;
 case 148:
-//#line 285 "gramatica.y"
-{ yyerror("Falta de parentesis de apertura en condicion iterativa");}
+//#line 329 "gramatica.y"
+{ yyerror("Falta de parentesis de apertura en condicion iterativa"); yyval = new ParserVal(null);}
 break;
 case 149:
-//#line 286 "gramatica.y"
-{ yyerror("Falta de parentesis en condicion iterativa");}
+//#line 330 "gramatica.y"
+{ yyerror("Falta de parentesis en condicion iterativa"); yyval = new ParserVal(null);}
 break;
 case 150:
-//#line 287 "gramatica.y"
-{ yyerror("Falta de bloque ejecutable en condicion de iteracion");}
+//#line 331 "gramatica.y"
+{ yyerror("Falta de bloque ejecutable en condicion de iteracion"); yyval = new ParserVal(null);}
 break;
 case 151:
-//#line 288 "gramatica.y"
-{ yyerror("error en condicion de iteracion"); }
+//#line 332 "gramatica.y"
+{ yyerror("error en condicion de iteracion"); yyval = new ParserVal(null);}
 break;
 case 152:
-//#line 292 "gramatica.y"
-{System.out.println("Declaracion Seleccion");}
+//#line 336 "gramatica.y"
+{
+        System.out.println("Declaracion Seleccion");
+        yyval = new ParserVal(new NodoIF((NodoAST)val_peek(5).obj, (NodoAST)val_peek(3).obj, (NodoAST)val_peek(1).obj));
+    }
 break;
 case 153:
-//#line 293 "gramatica.y"
-{System.out.println("Declaracion Seleccion Simple");}
+//#line 340 "gramatica.y"
+{
+        System.out.println("Declaracion Seleccion Simple");
+        yyval = new ParserVal(new NodoIF((NodoAST)val_peek(3).obj, (NodoAST)val_peek(1).obj, null));
+    }
 break;
 case 154:
-//#line 294 "gramatica.y"
-{ yyerror("Falta de parentesis de cierre en seleccion"); }
+//#line 344 "gramatica.y"
+{ yyerror("Falta de parentesis de cierre en seleccion"); yyval = new ParserVal(null);}
 break;
 case 155:
-//#line 295 "gramatica.y"
-{ yyerror("Falta de parentesis de apertura en seleccion");}
+//#line 345 "gramatica.y"
+{ yyerror("Falta de parentesis de apertura en seleccion"); yyval = new ParserVal(null);}
 break;
 case 156:
-//#line 296 "gramatica.y"
-{ yyerror("Falta de parentesis en seleccion"); }
+//#line 346 "gramatica.y"
+{ yyerror("Falta de parentesis en seleccion"); yyval = new ParserVal(null);}
 break;
 case 157:
-//#line 297 "gramatica.y"
-{ yyerror("Falta de END_IF en seleccion");}
+//#line 347 "gramatica.y"
+{ yyerror("Falta de END_IF en seleccion"); yyval = new ParserVal(null);}
 break;
 case 158:
-//#line 301 "gramatica.y"
-{System.out.println("Condicion");}
+//#line 351 "gramatica.y"
+{
+        System.out.println("Condicion");
+        NodoAST comp = (NodoAST) val_peek(1).obj;
+        yyval = new ParserVal(new NodoBinario(comp.getEtiqueta(), (NodoAST)val_peek(2).obj, (NodoAST)val_peek(0).obj));
+    }
+break;
+case 159:
+//#line 359 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoHoja("==", "=="));
+        System.out.println("Comparador");
+    }
+break;
+case 160:
+//#line 363 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoHoja("!=", "!="));
+        System.out.println("Comparador");
+    }
+break;
+case 161:
+//#line 367 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoHoja(">=", ">="));
+        System.out.println("Comparador");
+    }
+break;
+case 162:
+//#line 371 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoHoja("<=", "<="));
+        System.out.println("Comparador");
+    }
+break;
+case 163:
+//#line 375 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoHoja(">", ">"));
+        System.out.println("Comparador");
+    }
 break;
 case 164:
-//#line 305 "gramatica.y"
-{System.out.println("Comparador");}
+//#line 379 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoHoja("<", "<"));
+        System.out.println("Comparador");
+    }
 break;
 case 165:
-//#line 309 "gramatica.y"
-{System.out.println("BloqueEJ1");}
+//#line 386 "gramatica.y"
+{
+        yyval = val_peek(0);
+        System.out.println("BloqueEJ1");
+    }
 break;
 case 166:
-//#line 310 "gramatica.y"
-{System.out.println("BloqueEJ2");}
+//#line 390 "gramatica.y"
+{
+        yyval = val_peek(1);
+        System.out.println("BloqueEJ2");
+    }
 break;
 case 167:
-//#line 311 "gramatica.y"
-{yyerror("Declaracion de bloque ejecutable: Falta el BEGIN ");}
+//#line 394 "gramatica.y"
+{yyerror("Declaracion de bloque ejecutable: Falta el BEGIN "); yyval = new ParserVal(null);}
 break;
 case 168:
-//#line 312 "gramatica.y"
-{yyerror("Declaracion de bloque ejecutable: Falta el END ");}
+//#line 395 "gramatica.y"
+{yyerror("Declaracion de bloque ejecutable: Falta el END "); yyval = new ParserVal(null);}
 break;
 case 169:
-//#line 316 "gramatica.y"
-{System.out.println("POUT cadena");}
+//#line 399 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoPrint(new NodoHoja("CADENA", val_peek(1).sval)));
+        System.out.println("POUT cadena");
+    }
 break;
 case 170:
-//#line 317 "gramatica.y"
-{System.out.println("POUT expresion");}
+//#line 403 "gramatica.y"
+{
+        System.out.println("POUT expresion");
+        yyval = new ParserVal(new NodoPrint((NodoAST)val_peek(1).obj));
+    }
 break;
 case 171:
-//#line 318 "gramatica.y"
-{yyerror("Falta Argumento en POUT");}
+//#line 407 "gramatica.y"
+{yyerror("Falta Argumento en POUT"); yyval = new ParserVal(null);}
 break;
 case 172:
-//#line 319 "gramatica.y"
-{yyerror ("Falta parentesis de cierre");}
+//#line 408 "gramatica.y"
+{yyerror ("Falta parentesis de cierre"); yyval = new ParserVal(null);}
 break;
 case 173:
-//#line 320 "gramatica.y"
-{yyerror ("Falta parentesis de apertura");}
+//#line 409 "gramatica.y"
+{yyerror ("Falta parentesis de apertura"); yyval = new ParserVal(null);}
 break;
 case 174:
-//#line 321 "gramatica.y"
-{yyerror ("Falta parentesis");}
+//#line 410 "gramatica.y"
+{yyerror ("Falta parentesis"); yyval = new ParserVal(null);}
 break;
 case 175:
-//#line 322 "gramatica.y"
-{yyerror ("Falta parentesis de cierre");}
+//#line 411 "gramatica.y"
+{yyerror ("Falta parentesis de cierre"); yyval = new ParserVal(null);}
 break;
 case 176:
-//#line 323 "gramatica.y"
-{yyerror ("Falta parentesis de apertura");}
+//#line 412 "gramatica.y"
+{yyerror ("Falta parentesis de apertura"); yyval = new ParserVal(null);}
 break;
 case 177:
-//#line 324 "gramatica.y"
-{yyerror ("Falta parentesis");}
+//#line 413 "gramatica.y"
+{yyerror ("Falta parentesis"); yyval = new ParserVal(null);}
 break;
 case 178:
-//#line 328 "gramatica.y"
-{System.out.println("Declaracion Retorno");}
+//#line 417 "gramatica.y"
+{
+        yyval = new ParserVal(new NodoReturn((NodoAST)val_peek(1).obj));
+        System.out.println("Declaracion Retorno");
+    }
 break;
 case 179:
-//#line 329 "gramatica.y"
-{yyerror("Retorno debe tener una expresion y parentesis");}
+//#line 421 "gramatica.y"
+{yyerror("Retorno debe tener una expresion y parentesis"); yyval = new ParserVal(null);}
 break;
-//#line 1407 "Parser.java"
+//#line 1661 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

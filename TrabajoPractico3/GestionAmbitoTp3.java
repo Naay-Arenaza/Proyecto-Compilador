@@ -23,13 +23,13 @@ public final class GestionAmbitoTp3 {
     public final void iniciarPrograma() {// Inicializa el ámbito global del programa.
         pilaAmbitos.clear();
         pilaTipos.clear();
-        pilaAmbitos.push("main");
+        pilaAmbitos.push(TablaDeSimbolosTp3.AMBITO_GLOBAL);
         pilaTipos.push(TipoAmbito.GLOBAL);
         sincronizarTabla();
     }
 
     public RegistroSimboloTp3 declararPrograma(String nombre, int linea) {// Registra el nombre del programa en el ámbito global.
-        return tabla.declarar(nombre,"PROGRAMA","PROGRAMA","main",linea );
+        return tabla.declararPrograma(nombre, linea);
     }
 
     public String entrarAmbitoClase(String nombreClase) {// Ingresa al ámbito de una clase.
@@ -65,7 +65,7 @@ public final class GestionAmbitoTp3 {
     // CONSULTA DE ÁMBITOS
     public String getAmbitoActual() {  // Devuelve el nombre completo del ámbito actual.
         if (pilaAmbitos.isEmpty()) {
-            return "main";
+            return TablaDeSimbolosTp3.AMBITO_GLOBAL;
         }
         return pilaAmbitos.peek();
     }
@@ -103,8 +103,9 @@ public final class GestionAmbitoTp3 {
         return tabla.declararVariable(nombre, tipo,linea,comptime );// En los demás ámbitos declaramos una variable.
     }
 
-    public RegistroSimboloTp3 declararFuncion(String nombre,String tipoRetorno,int linea) {// Registra una función.
-        return tabla.declararFuncion(nombre,tipoRetorno,linea);
+    // Registra una función o un método, dependiendo del ámbito actual.
+    public RegistroSimboloTp3 declararFuncion( String nombre, String tipoRetorno, int linea) {
+        return tabla.declararFuncion( nombre, tipoRetorno, linea);
     }
 
     public RegistroSimboloTp3 declararClase( String nombre,int linea) {// Registra una clase.
