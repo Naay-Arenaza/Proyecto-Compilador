@@ -1,6 +1,7 @@
 %{
 import java.io.*;
 import TrabajoPractico3.ArbolSintactico.*;
+import java.util.*;
 %}
 
 /* =========================================================================
@@ -48,24 +49,44 @@ sentencia_declarativa:
     ;
 
 declaracion_variables: 
-    tipo lista_variables ';' {System.out.println("Declaracion de VAR");}
+    tipo lista_variables ';' {
+        System.out.println("Declaracion de VAR");
+        declararListaVariables((List<String>) $2.obj, $1.sval, false);
+    }
     | tipo lista_variables %prec SIN_PUNTO_Y_COMA { yyerror("Declaracion de variables: Falta ';' " );}
     ;
 
 declaracion_variables_comptime:
-    COMPTIME tipo lista_variables ';' {System.out.println("Declaracion de comptime");}
+    COMPTIME tipo lista_variables ';' {
+        System.out.println("Declaracion de comptime");
+        declararListaVariables((List<String>) $3.obj, $2.sval, true);
+    }
     | COMPTIME tipo lista_variables error { yyerror("Declaracion de variables COMPTIME: Falta el ';'");}
     | COMPTIME lista_variables ';' { yyerror("Falta tipo en las variables en COMPTIME");}
     ;
 
 tipo: 
-    USHORTINT {System.out.println("Declaracion de tipo");} | DOUBLEF {System.out.println("Declaracion de tipo");}
+    USHORTINT { System.out.println("Declaracion de tipo");
+                $$ = new ParserVal("USHORTINT");
+    } 
+    | DOUBLEF { System.out.println("Declaracion de tipo");
+                $$ = new ParserVal("DOUBLEF");
+    }
     ;
 
 lista_variables: 
-    lista_variables ',' ID 
-    | lista_variables ID { yyerror("Lista de variables: Falta la ','");}
-    | ID
+    lista_variables ',' ID {
+        List<String> lista = (List<String>) $1.obj;
+        lista.add($3.sval);
+        $$ = $1;
+    }
+    | ID {
+        List<String> lista = new ArrayList<>();
+        lista.add($1.sval);
+        $$ = new ParserVal(lista);
+    }
+    | lista_variables ID { 
+        yyerror("Lista de variables: Falta la ','");}
     ;
 
 declaracion_funcion: 
@@ -85,7 +106,7 @@ parametros_formales:
     ;
 
 parametro_formal: 
-    tipo ID {System.out.println("Declaracion de parametro_formal");}
+    tipo ID { System.out.println("Declaracion de parametro_formal"); }
     | ID { yyerror("Parametro Formal: Falta el 'tipo'");}
     | tipo { yyerror("Parametro Formal: Falta el 'ID''");}
     ;
@@ -112,6 +133,7 @@ elementos_clase:
 elemento_clase: 
     declaracion_variables
     | declaracion_metodo
+    | declaracion_objeto
     ;
 
 sentencia_extends:
@@ -128,7 +150,15 @@ lista_ids:
     ;
 
 declaracion_metodo: 
-    tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END ';' {System.out.println("Declaracion de Metodo");}
+    tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END ';' {
+        System.out.println("Declaracion de Metodo");
+        RegistroSimboloTp3 metReg = gestorAmbitos.declararMetodo(
+        $2.sval, $1.sval, lexer.getLineaActual()
+    );
+    if (metReg == null) {
+        yyerror("Método ya declarado en el ámbito actual: " + $2.sval);
+    }
+}
     | tipo ID '(' parametros_formales ')' error sentencias_ejecutables END ';' { yyerror("Falta el BEGIN en la declaracion del metodo");}
     | tipo ID '(' error ')' BEGIN sentencias_ejecutables END ';' { yyerror("Falta una ',' o tipo invalido en los parametros del metodo"); }
     | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables error ';' { yyerror("Falta el END en la declaracion del metodo");}
@@ -136,7 +166,18 @@ declaracion_metodo:
     ;
 
 declaracion_objeto: 
-    ID lista_variables ';' {System.out.println("Declaracion de objeto");}
+    ID lista_variables ';' {
+        System.out.println("Declaracion de objeto");
+        List<String> nombres = (List<String>) $2.obj;
+        String tipoClase = $1.sval;
+
+        for (String nombre : nombres) {
+            RegistroSimboloTp3 obj = gestorAmbitos.declararObjeto(nombre, tipoClase, lexer.getLineaActual());
+            if (obj == null) {
+                yyerror("No se pudo declarar el objeto '" + nombre + "': clase no visible o identificador duplicado");
+            }
+        }
+    }
     | ID lista_variables { yyerror("Declaracion Objeto: Falta el ';'");}
     ;
 
@@ -179,10 +220,15 @@ sentencia_ejecutable:
 asignacion: 
     lado_izquierdo ASIGNACION expresion {
         if (!expresionInvalida){
-            $$ = new ParserVal(new NodoAsignacion((NodoAST)$1.obj, (NodoAST)$3.obj));
+            NodoAST izquierdo = (NodoAST) $1.obj;
+            NodoAST derecho = (NodoAST) $3.obj;
+
+            actualizarComptimeSiCorresponde(izquierdo, derecho);
+
+            $$ = new ParserVal(new NodoAsignacion(izquierdo, derecho));
             System.out.println("Declaracion Asignacion");
         } else {
-            expresionInvalida = true;
+            expresionInvalida = false;
             $$ = new ParserVal(null);
         }
     }
@@ -422,11 +468,15 @@ retorno:
     ;
 %%
 private AnalizadorLexicoTp3 lexer;
+private TablaDeSimbolosTp3 tablaSimbolos;
+private GestionAmbitoTp3 gestorAmbitos;
 private boolean expresionInvalida = false;
 private NodoAST raizAST;
 
 public Parser(AnalizadorLexicoTp3 lexer){
     this.lexer = lexer;
+    this.tablaSimbolos = lexer.getTablaSimbolos();
+    this.gestorAmbitos = new GestionAmbitoTp3(this.tablaSimbolos);
 }
 
 public NodoAST getRaizAST() {
@@ -436,11 +486,49 @@ public NodoAST getRaizAST() {
 private int yylex(){
     int token = lexer.yylex();
     if (lexer.yylval != null) {
-        yylval = new ParserVal(lexer.yylval);
+        yylval = lexer.yylval;
     }
     return token;
 }
 
+private void declararListaVariables(List<String> nombres, String tipo, boolean comptime) {
+    for (String nombre : nombres) {
+        RegistroSimboloTp3 reg = gestorAmbitos.declararVariable(nombre, tipo, lexer.getLineaActual(), comptime);
+        if (reg == null) {
+            errorSemantico("Ya declarado en el ámbito actual. Identificador: " + nombre);
+        }
+    }
+}
+
+private void errorSemantico(String mensaje) {
+    System.err.println("Error semántico en la linea " + lexer.getLineaActual() + ": " + mensaje);
+}
+
 private void yyerror(String mensaje){
     System.err.println("Error sintáctico en la linea " + lexer.getLineaActual() + ": " + mensaje);
+}
+
+private void actualizarComptimeSiCorresponde(NodoAST izquierdo, NodoAST derecho) {
+    if (!(izquierdo instanceof NodoHoja) || !(derecho instanceof NodoHoja)) {
+        return;
+    }
+
+    NodoHoja hojaIzq = (NodoHoja) izquierdo;
+    NodoHoja hojaDer = (NodoHoja) derecho;
+
+    // Solo actualizamos asignaciones simples del tipo: ID := CTE
+    if (!"ID".equals(hojaIzq.getTipoNodo())
+            || !"CTE".equals(hojaDer.getTipoNodo())) {
+        return;
+    }
+
+    RegistroSimboloTp3 reg = tablaSimbolos.buscar(hojaIzq.getValor());
+
+    if (reg != null && reg.esComptime()) {
+        tablaSimbolos.actualizarValorComptime(
+            hojaIzq.getValor(),
+            hojaDer.getValor(),
+            lexer.getLineaActual()
+        );
+    }
 }
