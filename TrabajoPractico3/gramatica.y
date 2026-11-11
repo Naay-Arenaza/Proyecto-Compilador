@@ -151,6 +151,9 @@ parametro_formal:
 declaracion_clase: 
     encabezado_clase BEGIN cuerpo_clase END ';' {
         System.out.println("Declaracion de clase");
+        if (!pilaClases.isEmpty()) {
+            pilaClases.pop();
+        }
         gestorAmbitos.salirAmbito();
         NodoClase nodoClase = new NodoClase($2.sval, getAmbitoActual(), (NodoAST)$5.obj);
         $$ = new ParserVal(nodoClase);
@@ -171,7 +174,7 @@ encabezado_clase:
                 "Clase ya declarada en el ámbito actual: " + $2.sval
             );
         }
-
+        pilaClases.push($2.sval);
         gestorAmbitos.entrarAmbitoClase($2.sval);
     }
     ;
@@ -195,15 +198,26 @@ elemento_clase:
     ;
 
 sentencia_extends:
-    EXTENDS lista_ids ';' {System.out.println("Sentencia EXTENDS");}
+    EXTENDS lista_ids ';' {
+        System.out.println("Sentencia EXTENDS");
+        registrarClasesBase((List<String>) $2.obj);
+    }
     | EXTENDS error ';' { yyerror("Sintaxis de lista de herencia invalida"); }
     | EXTENDS lista_ids { yyerror("Sentencia EXTENDS: Falta el ';'");}
     | EXTENDS ';' { yyerror("Falta lista ids");}
     ;
 
 lista_ids:
-    lista_ids ',' ID  
-    | ID 
+    lista_ids ',' ID  {
+        List<String> lista = (List<String>) $1.obj;
+        lista.add($3.sval);
+        $$ = $1;
+    }
+    | ID {
+        List<String> lista = new ArrayList<>();
+        lista.add($1.sval);
+        $$ = new ParserVal(lista);
+    }
     | lista_ids ID { yyerror("Lista de IDs: Falta la ','");}
     ;
 
@@ -530,6 +544,7 @@ private TablaDeSimbolosTp3 tablaSimbolos;
 private GestionAmbitoTp3 gestorAmbitos;
 private boolean expresionInvalida = false;
 private NodoAST raizAST;
+private final Deque<String> pilaClases = new ArrayDeque<>();
 private RecolectorErroresTp3 recolectorErrores;
 
 public Parser(AnalizadorLexicoTp3 lexer){
@@ -556,6 +571,20 @@ private void declararListaVariables(List<String> nombres, String tipo, boolean c
         RegistroSimboloTp3 reg = gestorAmbitos.declararVariable(nombre, tipo, lexer.getLineaActual(), comptime);
         if (reg == null) {
             errorSemantico("Ya declarado en el ámbito actual. Identificador: " + nombre);
+        }
+    }
+}
+
+private void registrarClasesBase(List<String> clasesBase) {
+    if (clasesBase == null || pilaClases.isEmpty()) {
+        return;
+    }
+
+    String clase = pilaClases.peek();
+
+    for (String base : clasesBase) {
+        if (!gestorAmbitos.agregarClaseBase(clase, base)) {
+            errorSemantico("Clase base no existe: " + base);
         }
     }
 }
