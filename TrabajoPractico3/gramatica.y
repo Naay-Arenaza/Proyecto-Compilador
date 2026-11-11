@@ -17,8 +17,8 @@ import java.util.*;
 %token IGUAL DISTINTO MAYORIGUAL MENORIGUAL
 %token COMPTIME EXTENDS TODF
 %nonassoc SIN_PUNTO_Y_COMA
+%nonassoc BEGIN '('
 %nonassoc ID ';'
-
 %%
 //////////////////////////////////////////// Gramatica
 
@@ -90,7 +90,10 @@ lista_variables:
     ;
 
 declaracion_funcion: 
-    tipo FUNCTION ID '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' {System.out.println("Declaracion de funcion");}
+    encabezado_funcion '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' {
+        System.out.println("Declaracion de funcion");
+        gestorAmbitos.salirAmbito();
+    }
     | tipo FUNCTION ID error parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Falta parentesis de apertura en el encabezado de la función"); }
     | tipo FUNCTION ID '(' parametros_formales error sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Falta parentesis de cierre en el encabezado de la función"); }
     | tipo FUNCTION error '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';'{ yyerror("Falta de nombre de funcion");}
@@ -105,6 +108,22 @@ parametros_formales:
     | parametro_formal {System.out.println("Declaracion de parametro_formales");}
     ;
 
+encabezado_funcion:
+    tipo FUNCTION ID %prec ID {
+        RegistroSimboloTp3 funcion = gestorAmbitos.declararFuncion(
+            $3.sval, $1.sval, lexer.getLineaActual()
+        );
+
+        if (funcion == null) {
+            errorSemantico(
+                "Función ya declarada en el ámbito actual: " + $3.sval
+            );
+        }
+
+        gestorAmbitos.entrarAmbitoFuncion($3.sval);
+    }
+    ;
+
 parametro_formal: 
     tipo ID { System.out.println("Declaracion de parametro_formal"); }
     | ID { yyerror("Parametro Formal: Falta el 'tipo'");}
@@ -112,10 +131,29 @@ parametro_formal:
     ;
 
 declaracion_clase: 
-    CLASS ID BEGIN cuerpo_clase END ';' {System.out.println("Declaracion de clase");}
+    encabezado_clase BEGIN cuerpo_clase END ';' {
+        System.out.println("Declaracion de clase");
+        gestorAmbitos.salirAmbito();
+    }
     | CLASS ID error cuerpo_clase END ';' { yyerror ("Falta el BEGIN de clase");}
     | CLASS ID BEGIN cuerpo_clase error ';' { yyerror("Falta el END de clase");}
     | CLASS ID BEGIN cuerpo_clase END { yyerror("Falta el ';' al final de la clase");}
+    ;
+
+encabezado_clase:
+    CLASS ID %prec ID {
+        RegistroSimboloTp3 clase = gestorAmbitos.declararClase(
+            $2.sval, lexer.getLineaActual()
+        );
+
+        if (clase == null) {
+            errorSemantico(
+                "Clase ya declarada en el ámbito actual: " + $2.sval
+            );
+        }
+
+        gestorAmbitos.entrarAmbitoClase($2.sval);
+    }
     ;
 
 cuerpo_clase:
