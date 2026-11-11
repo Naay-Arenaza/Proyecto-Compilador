@@ -6,10 +6,34 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import TrabajoPractico3.ArbolSintactico.NodoAST;
+
 public class MainTp3 {
 
     public static void main(String[] args) throws IOException {
         System.out.println("hola");
+        if (args.length != 1) {
+            System.out.println("Uso: java TrabajoPractico3.PruebaTp3 <archivo.txt>");
+            return;
+        }
+
+        LecturaCodigoTp3 lector = new LecturaCodigoTp3(args[0]);
+        AnalizadorLexicoTp3 lexer = new AnalizadorLexicoTp3(lector);
+        Parser parser = new Parser(lexer);
+
+        int resultado = parser.yyparse();
+
+        NodoAST raiz = parser.getRaizAST();
+
+        NodoAST.setTablaSimbolos(lexer.getTablaSimbolos());
+
+        System.out.println();
+        System.out.println("Resultado de yyparse: " + resultado);
+        System.out.println("Errores del parser: " + parser.yynerrs);
+
+        lexer.getTablaSimbolos().imprimirTabla();
+        raiz.generarCodigo();
+
         
        /*  if (args.length == 0) {
             System.out.println("Se requiere al menos un argumento para ejecutar el programa.");

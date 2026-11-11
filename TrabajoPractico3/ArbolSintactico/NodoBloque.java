@@ -25,14 +25,12 @@ public class NodoBloque extends NodoAST {
     }
 
     @Override
-    public String generarCodigo(/*TablaSimbolosTP3 tabla*/) {
-        //tabla.abrirScope(); // Abre un ambito nuevo en la tabla de simbolos para este bloque local
+    public String generarCodigo() {
         for (NodoAST s : sentencias) {
             if (s != null) {
-                //s.generarCodigo(tabla);
+                s.generarCodigo();
             }
         }
-        //tabla.cerrarScope(); // Salida del bloque local (Esta bueno)
         return null;
     }
 }

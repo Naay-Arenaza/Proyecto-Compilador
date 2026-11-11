@@ -2,44 +2,56 @@ package TrabajoPractico3.ArbolSintactico;
 
 import java.util.Collections;
 import java.util.List;
-
-//import TrabajoPractico3.RegistroSimboloTp3;
+import TrabajoPractico3.RegistroSimboloTp3;
 
 public class NodoHoja extends NodoAST {
-    private String tipoNodo; // "ID", "CTE", etc.
+    private String tipoNodo;
     private String valor;
-    //private RegistroSimboloTp3 referencia;
 
-    public NodoHoja(String tipoNodo, String valor/* , RegistroSimboloTp3 referencia*/) {
+    public NodoHoja(String tipoNodo, String valor) {
         super(valor);
         this.tipoNodo = tipoNodo;
         this.valor = valor;
-        //this.referencia = referencia;
     }
 
     public String getTipoNodo() {
-    return tipoNodo;
+        return tipoNodo;
     }
 
     public String getValor() {
         return valor;
     }
 
-    /*public RegistroSimboloTp3 getReferencia() {
-        return referencia;
-    }*/
-
-        // Devuelve los hijos del nodo.
     public List<NodoAST> getHijos() {
         return Collections.emptyList();
     }
 
     @Override
-    public String generarCodigo(/*TablaSimbolosScope tabla*/) {
-        if (tipoNodo.equals("ID")) {
-            // Devuelve el nombre único asignado a este scope (ej: "x_0" o "x_1")
-            //return tablaSimbolos.buscarVariable(valor);
+    public String generarCodigo() {
+        System.err.println(
+                "HOLAAAAAAAAAAA"
+            );
+        if (!"ID".equals(tipoNodo)) {
+            return valor;
         }
-        return valor; // Si es una constante CTE, devuelve el valor directo
+
+
+        if (super.getTablaSimbolos() == null) {
+            System.err.println(
+                "Error interno: no se configuró la tabla de símbolos para generar código"
+            );
+            return valor;
+        }
+
+        RegistroSimboloTp3 reg = super.getTablaSimbolos().resolverVariable(valor);
+
+        if (reg == null) {
+            System.err.println(
+                "Error semántico: identificador no declarado o no utilizable como variable: " + valor
+            );
+            return valor;
+        }
+
+        return reg.getNombreCompleto().replace(':', '_');
     }
 }
