@@ -8,13 +8,22 @@ public class LecturaCodigoTp3 {
     public static final char EOF = (char) 65535; 
     private int lineaActual = 1; 
     private char ultimoCaracterLeido = ' ';
+    private final RecolectorErroresTp3 recolectorErrores;
+    private boolean errorLecturaRegistrado = false;
 
     public LecturaCodigoTp3(String rutaArchivo) throws IOException {
+        this(rutaArchivo, new RecolectorErroresTp3());
+    }
+
+    public LecturaCodigoTp3(String rutaArchivo, RecolectorErroresTp3 recolectorErrores) throws IOException {
+        if (recolectorErrores == null) {
+            throw new IllegalArgumentException("El recolector de errores no puede ser null.");
+        }
+        this.recolectorErrores = recolectorErrores;
         this.reader = new BufferedReader(new FileReader(rutaArchivo));
     }
 
-    //Lee un solo carácter guardando la marca previa para retroceder
-    public char leerSiguienteCaracter() {
+    public char leerSiguienteCaracter() { //Lee un solo carácter guardando la marca previa para retroceder
         try {
             reader.mark(1); 
             int valor = reader.read(); 
@@ -28,6 +37,7 @@ public class LecturaCodigoTp3 {
             }
             return c; 
         } catch (IOException e) {
+            registrarErrorLectura("No se pudo leer el archivo: " + e.getMessage());
             return EOF;
         }
     }
@@ -39,7 +49,7 @@ public class LecturaCodigoTp3 {
             }
             reader.reset(); 
         } catch (IOException e) {
-            System.err.println("Error al retroceder puntero: " + e.getMessage());
+            registrarErrorLectura("Error al retroceder puntero: " + e.getMessage());
         }
     }
 
@@ -50,6 +60,19 @@ public class LecturaCodigoTp3 {
     public void cerrar() { 
         try {
             if (reader != null) reader.close();
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+                registrarErrorLectura("No se pudo cerrar el archivo: " + e.getMessage());
+        }
+    }
+
+    public RecolectorErroresTp3 getRecolectorErrores() {
+        return recolectorErrores;
+    }
+
+    private void registrarErrorLectura(String descripcion) {
+        if (!errorLecturaRegistrado) {
+            recolectorErrores.agregarError("Lectura",lineaActual,descripcion);
+            errorLecturaRegistrado = true;
+        }
     }
 }

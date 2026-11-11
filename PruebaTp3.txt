@@ -1,7 +1,37 @@
 prog
-USHORTINT b;
-COMPTIME DOUBLEF c, d;
+USHORTINT a;
+
+CLASS c1
+BEGIN
+    USHORTINT x;
+    DOUBLEF y;
+    USHORTINT m(USHORTINT z) 
+    BEGIN 
+        RET(z); 
+
+    END;
+    EXTENDS c2;
+END;
+
+c1 obj, obj2;
+
+USHORTINT FUNCTION f(USHORTINT p)
+    USHORTINT loc;
+    COMPTIME DOUBLEF loc;
+    COMPTIME DOUBLEF c;
+    BEGIN
+        loc := p;
+    END;
+
+USHORTINT FUNCTION f(USHORTINT p)
+    USHORTINT loc;
+    COMPTIME DOUBLEF loc;
+    COMPTIME DOUBLEF c;
+    BEGIN
+        loc := p;
+    END;
+
 BEGIN
     a := 1$us;
-    c := 1$us;
+    a := f(a);
 END

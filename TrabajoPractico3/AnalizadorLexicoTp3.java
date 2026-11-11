@@ -2,6 +2,7 @@ package TrabajoPractico3;
 
 public class AnalizadorLexicoTp3{
 
+    private final RecolectorErroresTp3 recolectorErrores;
     public ParserVal yylval;// Valor semántico del token actual
     private LecturaCodigoTp3 lectorCodigo;
     private TablaDeSimbolosTp3 tablaSimbolos = new TablaDeSimbolosTp3();
@@ -58,7 +59,17 @@ public class AnalizadorLexicoTp3{
 
     public AnalizadorLexicoTp3 (LecturaCodigoTp3 lectorCodigo) { 
             this.lectorCodigo = lectorCodigo;
+            this.recolectorErrores = lectorCodigo.getRecolectorErrores();
         }
+    
+    public AnalizadorLexicoTp3(LecturaCodigoTp3 lectorCodigo, RecolectorErroresTp3 recolectorErrores) {
+        if (lectorCodigo == null || recolectorErrores == null) {
+            throw new IllegalArgumentException("El lector y el recolector son obligatorios.");
+        }
+
+        this.lectorCodigo = lectorCodigo;
+        this.recolectorErrores = recolectorErrores;
+    }
 
     public int obtenerColumna(char c) {
         if (c == 'd') return 3;   
@@ -115,7 +126,7 @@ public class AnalizadorLexicoTp3{
             if (caracterLeido == LecturaCodigoTp3.EOF) { // Fin de archivo - EOF
                 
                 if (estadoActual == 0) { // Fin de archivo
-                    System.err.println("Final archivo - Linea " + lectorCodigo.getLineaActual());
+                    System.out.println("Final archivo - Linea " + lectorCodigo.getLineaActual());
                     lectorCodigo.cerrar();
                     return 0;
                 }
@@ -146,11 +157,11 @@ public class AnalizadorLexicoTp3{
                     continue; 
                 }
                 else {
-                    System.err.println("Linea " + lectorCodigo.getLineaActual() + ": Caracter invalido:" + caracterLeido );
+                    registrarError("Linea " + lectorCodigo.getLineaActual() + ": Caracter invalido:" + caracterLeido );
                     while (!(columna == 24)){
                         caracterLeido = lectorCodigo.leerSiguienteCaracter();
                         if (caracterLeido == LecturaCodigoTp3.EOF) {
-                            System.err.println("Final archivo - Linea " + lectorCodigo.getLineaActual());
+                            System.out.println("Final archivo - Linea " + lectorCodigo.getLineaActual());
                             break;
                         }
                         columna = obtenerColumna(caracterLeido);
@@ -184,7 +195,7 @@ public class AnalizadorLexicoTp3{
                boolean errorEnEstadoCero = (lexema.length() == 0); // Si lexema está vacío, ocurrió en reposo
 
                 lexema.append(c);
-                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Estructura mal formada: " + lexema);
+                registrarError("Línea " + lectorCodigo.getLineaActual() + ": Estructura mal formada: " + lexema);
 
                 if (!errorEnEstadoCero && c != LecturaCodigoTp3.EOF) { //Si el error no ocurrió en Estado 0
                     lectorCodigo.devolverCaracter();
@@ -214,7 +225,7 @@ public class AnalizadorLexicoTp3{
 
                 if (textoAS3.length() > 22) { 
                     textoAS3 = textoAS3.substring(0, 22);
-                    System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS3);
+                    System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS3);
                 }
 
                 yylval = new ParserVal(textoAS3);
@@ -227,7 +238,8 @@ public class AnalizadorLexicoTp3{
 
                 if (textoAS4.length() > 22) {
                     textoAS4 = textoAS4.substring(0, 22);
-                    System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS4);
+                    System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS4);
+                    // Esto es una advertencia.
                 }
 
                 yylval = new ParserVal(textoAS4);
@@ -243,7 +255,7 @@ public class AnalizadorLexicoTp3{
                         return tablaPR.obtenerId(textoAS5);
                     }
 
-                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Identificador inválido con mayúsculas: " + textoAS5 );
+                registrarError("Línea " + lectorCodigo.getLineaActual() + ": Identificador inválido con mayúsculas: " + textoAS5 );
                 return 0; 
 
             case 6: // AS6: Estado Final -> Operador simple (+, -, >, <, =) y punto 
@@ -282,14 +294,14 @@ public class AnalizadorLexicoTp3{
                 
                 // Validación previa por longitud para evitar desbordamientos y excepciones
                 if (numero.length() > 10) { 
-                    System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Constante USHORTINT excesivamente larga o fuera de rango: " + lexUs);
+                    registrarError("Línea " + lectorCodigo.getLineaActual() + ": Constante USHORTINT excesivamente larga o fuera de rango: " + lexUs);
                     return 0; 
                 }
 
                 long valorLargo = Long.parseLong(numero);
                 
                 if (valorLargo < 0 || valorLargo > 255) { 
-                    System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Constante USHORTINT fuera de rango [0, 255]: " + valorLargo);
+                    registrarError("Línea " + lectorCodigo.getLineaActual() + ": Constante USHORTINT fuera de rango [0, 255]: " + valorLargo);
                     return 0; 
                 }
                 
@@ -317,7 +329,7 @@ public class AnalizadorLexicoTp3{
                     }
 
                     if (expLimpio.length() > 5) { // Un exponente mayor a 5 dígitos (ej. e999999) desborda cualquier tipo estándar
-                        System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Constante o exponente excesivamente largo para DOUBLEF: " + lexDouble);
+                        registrarError("Línea " + lectorCodigo.getLineaActual() + ": Constante o exponente excesivamente largo para DOUBLEF: " + lexDouble);
                         return 0; // Error controlado, continúa el análisis
                     }
                 }
@@ -332,7 +344,7 @@ public class AnalizadorLexicoTp3{
                                     (valor.compareTo(minNeg) > 0 && valor.compareTo(maxNeg) < 0);
 
                     if (!valido) {
-                        System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Constante DOUBLEF fuera de rango: " + lexDouble);
+                        registrarError("Línea " + lectorCodigo.getLineaActual() + ": Constante DOUBLEF fuera de rango: " + lexDouble);
                         return 0;
                     }
 
@@ -341,15 +353,15 @@ public class AnalizadorLexicoTp3{
                     return Parser.CTE; // Utilizabamos Token.DOUBLEF
 
                 } catch (NumberFormatException e) {
-                    System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Constante DOUBLEF mal formada o fuera de rango: " + lexDouble);
+                    registrarError("Línea " + lectorCodigo.getLineaActual() + ": Constante DOUBLEF mal formada o fuera de rango: " + lexDouble);
                     return 0;
                 }
 
             case 11: // AS11: Estado Final -> Cadena de una línea {...} 
                 if (c == '\n' || c == '\r') { // Error: si vino un salto de línea antes de cerrar
                     if (lexema.length() > 0) {
-                                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Cadena de una línea sin cerrar : " + lexema );
-                            }
+                        registrarError("Línea " + lectorCodigo.getLineaActual() + ": Cadena de una línea sin cerrar : " + lexema );
+                    }
                     lexema.setLength(0);
                     return 0; 
                 }
@@ -358,7 +370,6 @@ public class AnalizadorLexicoTp3{
                     lexema.append(c);
                     String textoCadena = lexema.toString();
                     lexema.setLength(0);
-
                     tablaSimbolos.agregarConstante(textoCadena, "CADENA", lectorCodigo.getLineaActual());
                     yylval = new ParserVal(textoCadena);
                     return Parser.CADENA;  // Utilizabamos Token.CADENA 
@@ -382,7 +393,7 @@ public class AnalizadorLexicoTp3{
 
                 if (textoAS14.length() > 22) {
                     textoAS14 = textoAS14.substring(0, 22);
-                    System.out.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS14);
+                    System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Warning - Identificador supera el límite permitido; se trunca a 22 caracteres: " + textoAS14);
                 }
                 
                 yylval = new ParserVal(textoAS14);
@@ -390,7 +401,7 @@ public class AnalizadorLexicoTp3{
             
             
             case 15: // AS15: Comentario multilinea sin cerrar y EOF
-                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Comentario sin cerrar al alcanzar fin de archivo");
+                registrarError("Línea " + lectorCodigo.getLineaActual() + ": Comentario sin cerrar al alcanzar fin de archivo");
                 
                 lexema.setLength(0); 
                 lectorCodigo.cerrar();
@@ -405,7 +416,7 @@ public class AnalizadorLexicoTp3{
                 if (c != LecturaCodigoTp3.EOF) {
                     lectorCodigo.devolverCaracter();
                 }
-                System.err.println("Línea " + lectorCodigo.getLineaActual() + ": Símbolo no permitido: " + caracterError);
+                registrarError("Línea " + lectorCodigo.getLineaActual() + ": Símbolo no permitido: " + caracterError);
                 lexema.setLength(0);   
                 return 0;
             } 
@@ -419,5 +430,13 @@ public class AnalizadorLexicoTp3{
 
     public int getLineaActual() {
         return lectorCodigo.getLineaActual();
+    }
+
+    private void registrarError(String descripcion) {
+        recolectorErrores.agregarError("Léxico",lectorCodigo.getLineaActual(),descripcion);
+    }
+
+    public RecolectorErroresTp3 getRecolectorErroresTp3 (){
+        return this.recolectorErrores;
     }
 }

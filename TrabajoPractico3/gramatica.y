@@ -24,20 +24,27 @@ import java.util.*;
 
 programa: 
     ID sentencias_declarativas BEGIN sentencias_ejecutables END {
-        NodoPrograma raiz = new NodoPrograma($1.sval, (NodoAST)$4.obj);
+        NodoPrograma raiz = new NodoPrograma($1.sval,(NodoAST) $2.obj,(NodoAST) $4.obj);
         raizAST = raiz;
         $$ = new ParserVal(raiz);
         System.out.println("Declaración de programa y AST generado");
     }
-    | error sentencias_declarativas BEGIN sentencias_ejecutables END { yyerror("Falta de nombre de programa");}
-    | ID sentencias_declarativas sentencias_ejecutables END { yyerror("Falta la palabra reservada BEGIN");}
-    | ID sentencias_declarativas BEGIN sentencias_ejecutables error { yyerror("Falta la palabra reservada END");}
+    | error sentencias_declarativas BEGIN sentencias_ejecutables END { yyerror("Falta de nombre de programa");  $$ = new ParserVal(null);}
+    | ID sentencias_declarativas sentencias_ejecutables END { yyerror("Falta la palabra reservada BEGIN"); $$ = new ParserVal(null);}
+    | ID sentencias_declarativas BEGIN sentencias_ejecutables error { yyerror("Falta la palabra reservada END"); $$ = new ParserVal(null);}
     ;
 
 //////////////////////////////////////////// SENTENCIAS DECLARATIVAS
  sentencias_declarativas: 
-    sentencias_declarativas sentencia_declarativa
-    | 
+    sentencias_declarativas sentencia_declarativa{
+        NodoBloque bloque = (NodoBloque) $1.obj;
+
+        if ($2.obj != null) {
+            bloque.agregarSentencia((NodoAST) $2.obj);
+        }
+        $$ = new ParserVal(bloque);}
+    |
+    {$$ = new ParserVal(new NodoBloque());}
     ;
 
 sentencia_declarativa: 
@@ -91,8 +98,24 @@ lista_variables:
 
 declaracion_funcion: 
     encabezado_funcion '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' {
-        System.out.println("Declaracion de funcion");
+        String nombreFuncion = $1.sval;
+
+        // Guardamos el ámbito antes de salir.
+        String ambitoFuncion = getAmbitoActual();
+
+        NodoFuncion nodoFn = new NodoFuncion(
+            nombreFuncion,
+            ambitoFuncion,
+            (NodoAST) $3.obj,
+            (NodoAST) $5.obj,
+            (NodoAST) $7.obj
+        );
+        
         gestorAmbitos.salirAmbito();
+
+        $$ = new ParserVal(nodoFn);
+
+        System.out.println("Declaración de función");
     }
     | tipo FUNCTION ID error parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Falta parentesis de apertura en el encabezado de la función"); }
     | tipo FUNCTION ID '(' parametros_formales error sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Falta parentesis de cierre en el encabezado de la función"); }
@@ -110,18 +133,13 @@ parametros_formales:
 
 encabezado_funcion:
     tipo FUNCTION ID %prec ID {
-        RegistroSimboloTp3 funcion = gestorAmbitos.declararFuncion(
-            $3.sval, $1.sval, lexer.getLineaActual()
-        );
-
+        RegistroSimboloTp3 funcion = gestorAmbitos.declararFuncion($3.sval, $1.sval, lexer.getLineaActual() );
         if (funcion == null) {
-            errorSemantico(
-                "Función ya declarada en el ámbito actual: " + $3.sval
-            );
+            errorSemantico("Función ya declarada en el ámbito actual: " + $3.sval);
         }
-
         gestorAmbitos.entrarAmbitoFuncion($3.sval);
-    }
+        $$ = new ParserVal($3.sval);
+        }
     ;
 
 parametro_formal: 
@@ -134,6 +152,8 @@ declaracion_clase:
     encabezado_clase BEGIN cuerpo_clase END ';' {
         System.out.println("Declaracion de clase");
         gestorAmbitos.salirAmbito();
+        NodoClase nodoClase = new NodoClase($2.sval, getAmbitoActual(), (NodoAST)$5.obj);
+        $$ = new ParserVal(nodoClase);
     }
     | CLASS ID error cuerpo_clase END ';' { yyerror ("Falta el BEGIN de clase");}
     | CLASS ID BEGIN cuerpo_clase error ';' { yyerror("Falta el END de clase");}
@@ -190,13 +210,13 @@ lista_ids:
 declaracion_metodo: 
     tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END ';' {
         System.out.println("Declaracion de Metodo");
-        RegistroSimboloTp3 metReg = gestorAmbitos.declararMetodo(
-        $2.sval, $1.sval, lexer.getLineaActual()
-    );
+        RegistroSimboloTp3 metReg = gestorAmbitos.declararMetodo($2.sval, $1.sval, lexer.getLineaActual());
     if (metReg == null) {
-        yyerror("Método ya declarado en el ámbito actual: " + $2.sval);
+        errorSemantico("Método ya declarado en el ámbito actual: " + $2.sval);
+        }
+    NodoMetodo nodoMetodo = new NodoMetodo($2.sval, getAmbitoActual(), (NodoAST)$4.obj, (NodoAST)$8.obj);
+    $$ = new ParserVal(nodoMetodo);
     }
-}
     | tipo ID '(' parametros_formales ')' error sentencias_ejecutables END ';' { yyerror("Falta el BEGIN en la declaracion del metodo");}
     | tipo ID '(' error ')' BEGIN sentencias_ejecutables END ';' { yyerror("Falta una ',' o tipo invalido en los parametros del metodo"); }
     | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables error ';' { yyerror("Falta el END en la declaracion del metodo");}
@@ -212,7 +232,7 @@ declaracion_objeto:
         for (String nombre : nombres) {
             RegistroSimboloTp3 obj = gestorAmbitos.declararObjeto(nombre, tipoClase, lexer.getLineaActual());
             if (obj == null) {
-                yyerror("No se pudo declarar el objeto '" + nombre + "': clase no visible o identificador duplicado");
+                errorSemantico("No se pudo declarar el objeto '" + nombre + "': clase no visible o identificador duplicado");
             }
         }
     }
@@ -275,7 +295,7 @@ asignacion:
     ;
 
 lado_izquierdo: 
-    ID { $$ = new ParserVal(new NodoHoja("ID", $1.sval)); }
+    ID { $$ = new ParserVal(new NodoHoja("ID", $1.sval, getLineaActual())); }
     | acceso_posicional {
         $$ = $1; 
         System.out.println("Declaracion de acceso_posicional");}
@@ -283,7 +303,7 @@ lado_izquierdo:
     ;
 
 acceso_posicional:
-    ID '[' indice ']' { $$ = new ParserVal(new NodoAccesoArreglo(new NodoHoja("ID", $1.sval), (NodoAST)$3.obj)); }
+    ID '[' indice ']' { $$ = new ParserVal(new NodoAccesoArreglo(new NodoHoja("ID", $1.sval, getLineaActual()), (NodoAST)$3.obj)); }
     | ID '[' ']'                { yyerror("Acceso posicional: Índice vacío"); $$ = new ParserVal(null);}
     | ID '[' error ']'          { yyerror("Acceso posicional: Índice inválido"); $$ = new ParserVal(null);}
     | ID '[' indice  error ';'  { yyerror("Acceso posicional: Falta corchete de cierre"); $$ = new ParserVal(null);}
@@ -291,8 +311,8 @@ acceso_posicional:
     ;
 
 indice:
-    ID  { $$ = new ParserVal(new NodoHoja("ID", $1.sval)); }
-    | CTE { $$ = new ParserVal(new NodoHoja("CTE", $1.sval)); }
+    ID  { $$ = new ParserVal(new NodoHoja("ID", $1.sval, getLineaActual())); }
+    | CTE { $$ = new ParserVal(new NodoHoja("CTE", $1.sval, getLineaActual())); }
     ;
 
 expresion: 
@@ -316,13 +336,13 @@ termino:
     ;
 
 factor: 
-    ID { $$ = new ParserVal(new NodoHoja("ID", $1.sval)); }
-    | CTE { $$ = new ParserVal(new NodoHoja("CTE", $1.sval)); }
+    ID { $$ = new ParserVal(new NodoHoja("ID", $1.sval, getLineaActual())); }
+    | CTE { $$ = new ParserVal(new NodoHoja("CTE", $1.sval, getLineaActual())); }
     | acceso_posicional {
         $$ = $1;
         System.out.println("Acceso posicional");}
     | ID '=' '(' expresion_simple ')' {
-        $$ = new ParserVal(new NodoAsignacion(new NodoHoja("ID", $1.sval), (NodoAST)$4.obj));
+        $$ = new ParserVal(new NodoAsignacion(new NodoHoja("ID", $1.sval, getLineaActual()), (NodoAST)$4.obj));
         System.out.println("Asignacion EXP");}
     | to_double { $$ = $1; }
     | invocacion { $$ = $1; }
@@ -359,8 +379,8 @@ termino_simple:
   ;
 
 factor_simple:
-    ID                                      { $$ = new ParserVal(new NodoHoja("ID", $1.sval)); }
-  | CTE                                     { $$ = new ParserVal(new NodoHoja("CTE", $1.sval)); }
+    ID                                      { $$ = new ParserVal(new NodoHoja("ID", $1.sval, getLineaActual())); }
+  | CTE                                     { $$ = new ParserVal(new NodoHoja("CTE", $1.sval, getLineaActual())); }
   | acceso_posicional                       { $$ = $1; }
   | to_double                               { $$ = $1; }
   | invocacion                              { $$ = $1; }
@@ -441,27 +461,27 @@ condicion:
 
 comparador: 
     IGUAL {
-        $$ = new ParserVal(new NodoHoja("==", "=="));
+        $$ = new ParserVal(new NodoHoja("==", "==", getLineaActual()));
         System.out.println("Comparador");
     }
     | DISTINTO {
-        $$ = new ParserVal(new NodoHoja("!=", "!="));
+        $$ = new ParserVal(new NodoHoja("!=", "!=", getLineaActual()));
         System.out.println("Comparador");
     }
     | MAYORIGUAL {
-        $$ = new ParserVal(new NodoHoja(">=", ">="));
+        $$ = new ParserVal(new NodoHoja(">=", ">=", getLineaActual()));
         System.out.println("Comparador");
     }
     | MENORIGUAL {
-        $$ = new ParserVal(new NodoHoja("<=", "<="));
+        $$ = new ParserVal(new NodoHoja("<=", "<=", getLineaActual()));
         System.out.println("Comparador");
     }
     | '>' {
-        $$ = new ParserVal(new NodoHoja(">", ">"));
+        $$ = new ParserVal(new NodoHoja(">", ">", getLineaActual()));
         System.out.println("Comparador");
     }
     | '<'  {
-        $$ = new ParserVal(new NodoHoja("<", "<"));
+        $$ = new ParserVal(new NodoHoja("<", "<", getLineaActual()));
         System.out.println("Comparador");
     }
     ;
@@ -481,7 +501,7 @@ comparador:
 
 salida: 
     POUT '(' CADENA ')' {
-        $$ = new ParserVal(new NodoPrint(new NodoHoja("CADENA", $3.sval)));
+        $$ = new ParserVal(new NodoPrint(new NodoHoja("CADENA", $3.sval, getLineaActual())));
         System.out.println("POUT cadena");
     } 
     | POUT '(' expresion ')' {
@@ -510,11 +530,13 @@ private TablaDeSimbolosTp3 tablaSimbolos;
 private GestionAmbitoTp3 gestorAmbitos;
 private boolean expresionInvalida = false;
 private NodoAST raizAST;
+private RecolectorErroresTp3 recolectorErrores;
 
 public Parser(AnalizadorLexicoTp3 lexer){
     this.lexer = lexer;
     this.tablaSimbolos = lexer.getTablaSimbolos();
     this.gestorAmbitos = new GestionAmbitoTp3(this.tablaSimbolos);
+    this.recolectorErrores = lexer.getRecolectorErroresTp3();
 }
 
 public NodoAST getRaizAST() {
@@ -539,11 +561,11 @@ private void declararListaVariables(List<String> nombres, String tipo, boolean c
 }
 
 private void errorSemantico(String mensaje) {
-    System.err.println("Error semántico en la linea " + lexer.getLineaActual() + ": " + mensaje);
+    recolectorErrores.agregarError("Semantico",lexer.getLineaActual(),mensaje);
 }
 
 private void yyerror(String mensaje){
-    System.err.println("Error sintáctico en la linea " + lexer.getLineaActual() + ": " + mensaje);
+    recolectorErrores.agregarError("Sintactico",lexer.getLineaActual(),mensaje);
 }
 
 private void actualizarComptimeSiCorresponde(NodoAST izquierdo, NodoAST derecho) {
@@ -555,18 +577,21 @@ private void actualizarComptimeSiCorresponde(NodoAST izquierdo, NodoAST derecho)
     NodoHoja hojaDer = (NodoHoja) derecho;
 
     // Solo actualizamos asignaciones simples del tipo: ID := CTE
-    if (!"ID".equals(hojaIzq.getTipoNodo())
-            || !"CTE".equals(hojaDer.getTipoNodo())) {
+    if (!"ID".equals(hojaIzq.getTipoNodo()) || !"CTE".equals(hojaDer.getTipoNodo())) {
         return;
     }
 
     RegistroSimboloTp3 reg = tablaSimbolos.buscar(hojaIzq.getValor());
 
     if (reg != null && reg.esComptime()) {
-        tablaSimbolos.actualizarValorComptime(
-            hojaIzq.getValor(),
-            hojaDer.getValor(),
-            lexer.getLineaActual()
-        );
+        tablaSimbolos.actualizarValorComptime(hojaIzq.getValor(),hojaDer.getValor(),lexer.getLineaActual());
     }
+}
+
+private int getLineaActual() {
+    return lexer.getLineaActual();
+}
+
+private String getAmbitoActual() {
+    return tablaSimbolos.getAmbitoActual();
 }

@@ -1,19 +1,20 @@
+
 package TrabajoPractico3;
 
-public class ErrorTp3 {
+public class ErrorTp3 { // Representa un error detectado durante el análisis del programa.
 
-    private final String etapa;
+    private final String tipo;
     private final int linea;
     private final String descripcion;
 
-    public ErrorTp3(String etapa,int linea,String descripcion) {
-        this.etapa = etapa;
+    public ErrorTp3(String tipo, int linea, String descripcion) {
+        this.tipo = tipo;
         this.linea = linea;
         this.descripcion = descripcion;
     }
 
-    public String getEtapa() {
-        return etapa;
+    public String getTipo() {
+        return tipo;
     }
 
     public int getLinea() {
@@ -23,4 +24,14 @@ public class ErrorTp3 {
     public String getDescripcion() {
         return descripcion;
     }
+
+    @Override
+    public String toString() {
+        String ubicacion = linea > 0
+                ? "Línea " + linea + ": "
+                : "";
+
+        return "[Error " + tipo + "] " + ubicacion + descripcion;
+    }
 }
+

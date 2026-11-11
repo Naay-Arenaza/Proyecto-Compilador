@@ -1,445 +1,119 @@
+
 package TrabajoPractico3;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 import TrabajoPractico3.ArbolSintactico.NodoAST;
+import TrabajoPractico3.ArbolSintactico.ImpresorArbol;
+
 
 public class MainTp3 {
 
-    public static void main(String[] args) throws IOException {
-        System.out.println("hola");
+    public static void main(String[] args) {
+
         if (args.length != 1) {
-            System.out.println("Uso: java TrabajoPractico3.PruebaTp3 <archivo.txt>");
-            return;
-        }
-
-        LecturaCodigoTp3 lector = new LecturaCodigoTp3(args[0]);
-        AnalizadorLexicoTp3 lexer = new AnalizadorLexicoTp3(lector);
-        Parser parser = new Parser(lexer);
-
-        int resultado = parser.yyparse();
-
-        NodoAST raiz = parser.getRaizAST();
-
-        NodoAST.setTablaSimbolos(lexer.getTablaSimbolos());
-
-        System.out.println();
-        System.out.println("Resultado de yyparse: " + resultado);
-        System.out.println("Errores del parser: " + parser.yynerrs);
-
-        lexer.getTablaSimbolos().imprimirTabla();
-        raiz.generarCodigo();
-
-        
-       /*  if (args.length == 0) {
-            System.out.println("Se requiere al menos un argumento para ejecutar el programa.");
+            System.out.println("Uso: ./ejecutarTp3.sh <archivo.txt>");
             return;
         }
 
         String rutaArchivo = args[0];
 
-        // Listas donde se guardan los resultados del análisis.
-        List<String> tokensReconocidos = new ArrayList<>();
-        List<RegistroSalida> estructurasReconocidas = new ArrayList<>();
-        List<RegistroSalida> avisos = new ArrayList<>();
-        List<String> erroresLexicos = new ArrayList<>();
-        List<String> erroresSintacticos = new ArrayList<>();
+        // Un único recolector para todo el análisis.
+        RecolectorErroresTp3 recolector = new RecolectorErroresTp3();
+
+        LecturaCodigoTp3 lector = null;
+        AnalizadorLexicoTp3 lexer = null;
+        Parser parser = null;
+
+        int resultado = -1;
 
         System.out.println("========================================");
-        System.out.println("          RESULTADO DEL ANÁLISIS");
+        System.out.println("          ANÁLISIS DEL TP3");
         System.out.println("========================================");
-
-        // Se crea un único lector y un único analizador léxico.
-        LecturaCodigoTp3 lector = new LecturaCodigoTp3(rutaArchivo);
-        LexerConRegistro lexer = new LexerConRegistro(lector, tokensReconocidos);
-
-        Parser parser = new Parser(lexer);
-
-        // Se guardan las salidas originales para restaurarlas después.
-        PrintStream salidaOriginal = System.out;
-        PrintStream errorOriginal = System.err;
-
-        ByteArrayOutputStream erroresCapturados = new ByteArrayOutputStream();
-
-        // Durante el análisis se capturan las salidas de la gramática.
-        CapturadorSalida salidaCapturada =
-                new CapturadorSalida(lexer);
-
-        PrintStream erroresCapturadosStream =
-                new PrintStream(erroresCapturados);
-
-        int resultado;
 
         try {
-            System.setOut(salidaCapturada);
-            System.setErr(erroresCapturadosStream);
-
-            // IMPORTANTE: el parser se ejecuta una sola vez.
-            resultado = parser.yyparse();
-
+            // Compartimos el mismo recolector.
+            lector = new LecturaCodigoTp3(rutaArchivo, recolector );
+            lexer = new AnalizadorLexicoTp3(lector, recolector);
+            parser = new Parser(lexer);
+            resultado = parser.yyparse();// Ejecutamos el análisis sintáctico.
+        } catch (IOException e) {
+            recolector.agregarError( "Lectura",1,"No se pudo abrir el archivo '" +rutaArchivo + "': " + e.getMessage());
         } finally {
-            System.setOut(salidaOriginal);
-            System.setErr(errorOriginal);
-
-            salidaCapturada.flush();
-            erroresCapturadosStream.flush();
-        }
-
-        // Se clasifican los mensajes que imprimió la gramática.
-        for (RegistroSalida registro : salidaCapturada.getMensajes()) {
-
-            String mensaje = registro.mensaje.trim();
-
-            if (mensaje.isEmpty()) {
-                continue;
-            }
-
-            if (mensaje.toLowerCase().contains("warning")) {
-                avisos.add(registro);
-            } else {
-                estructurasReconocidas.add(registro);
+            if (lector != null) {
+                lector.cerrar();
             }
         }
 
-        // Se separan los errores léxicos de los sintácticos.
-        String[] lineasError =
-                erroresCapturados.toString().split("\\R");
-
-        for (String error : lineasError) {
-
-            error = error.trim();
-
-            if (error.isEmpty()
-                    || error.contains("Final archivo")) {
-                continue;
-            }
-
-            if (error.contains("Error sintáctico")
-                    || error.contains("Error sintactico")
-                    || error.contains("syntax error")) {
-
-                erroresSintacticos.add(error);
-
-            } else {
-                erroresLexicos.add(error);
-            }
+        // Mostrar tabla de símbolos.
+        if (lexer != null) {
+            System.out.println();
+            System.out.println("--- TABLA DE SÍMBOLOS ---");
+            lexer.getTablaSimbolos().imprimirTabla();
         }
 
-        // ========================================
-        // TOKENS RECONOCIDOS
-        // ========================================
+        // Mostrar información del parser y generar código si corresponde.
+        if (parser != null) {
+            System.out.println();
+            System.out.println("Resultado de yyparse: " + resultado);
+            NodoAST raiz = parser.getRaizAST();
 
-        salidaOriginal.println();
-        salidaOriginal.println("--- TOKENS RECONOCIDOS ---");
+            if (raiz != null) {
 
-        if (tokensReconocidos.isEmpty()) {
-            salidaOriginal.println("No se reconocieron tokens.");
-        } else {
-            for (String token : tokensReconocidos) {
-                salidaOriginal.println(token);
-            }
-        }
+                // Mostrar el árbol sintáctico.
+                ImpresorArbol.imprimir(raiz);
 
-        // ========================================
-        // ESTRUCTURAS RECONOCIDAS
-        // ========================================
+                NodoAST.setTablaSimbolos(lexer.getTablaSimbolos());
+                NodoAST.setRecolectorErrores(recolector);
+                // No generar código si el análisis tiene errores.
+                
+                // Ejecutamos la generación para validar los identificadores
+                // del AST, pero guardamos temporalmente el código generado.
+                ByteArrayOutputStream bufferCodigo = new ByteArrayOutputStream();
 
-        salidaOriginal.println();
-        salidaOriginal.println("--- ESTRUCTURAS RECONOCIDAS ---");
+                PrintStream salidaOriginal = System.out;
 
-        if (estructurasReconocidas.isEmpty()) {
-            salidaOriginal.println("No se reconocieron estructuras.");
-        } else {
-            for (RegistroSalida estructura : estructurasReconocidas) {
-                salidaOriginal.println(
-                        "Línea (posición del lexer): "
-                        + estructura.linea
-                        + " | "
-                        + estructura.mensaje
-                );
-            }
-        }
+                try (PrintStream salidaTemporal = new PrintStream(
+                        bufferCodigo, true, StandardCharsets.UTF_8)) {
 
-        // ========================================
-        // AVISOS
-        // ========================================
+                    System.setOut(salidaTemporal);
 
-        salidaOriginal.println();
-        salidaOriginal.println("--- AVISOS ---");
+                    raiz.generarCodigo();
 
-        if (avisos.isEmpty()) {
-            salidaOriginal.println("No hay avisos.");
-        } else {
-            for (RegistroSalida aviso : avisos) {
-                salidaOriginal.println(
-                        "Línea " + aviso.linea + ": " + aviso.mensaje
-                );
-            }
-        }
-
-        // ========================================
-        // ERRORES LÉXICOS
-        // ========================================
-
-        salidaOriginal.println();
-        salidaOriginal.println("--- ERRORES LÉXICOS ---");
-
-        if (erroresLexicos.isEmpty()) {
-            salidaOriginal.println("No se encontraron errores léxicos.");
-        } else {
-            for (String error : erroresLexicos) {
-                salidaOriginal.println(error);
-            }
-        }
-
-        // ========================================
-        // ERRORES SINTÁCTICOS
-        // ========================================
-
-        salidaOriginal.println();
-        salidaOriginal.println("--- ERRORES SINTÁCTICOS ---");
-
-        if (erroresSintacticos.isEmpty()
-                && parser.yynerrs == 0) {
-
-            salidaOriginal.println("No se encontraron errores sintácticos.");
-
-        } else {
-            for (String error : erroresSintacticos) {
-                salidaOriginal.println(error);
-            }
-        }
-
-        // ========================================
-        // TABLA DE SÍMBOLOS
-        // ========================================
-
-        salidaOriginal.println();
-        salidaOriginal.println("--- TABLA DE SÍMBOLOS ---");
-        salidaOriginal.println();
-
-        lexer.getTablaSimbolos().imprimirTabla();
-
-        // ========================================
-        // RESULTADO FINAL
-        // ========================================
-
-        boolean hayErrores =
-                !erroresLexicos.isEmpty()
-                || !erroresSintacticos.isEmpty()
-                || parser.yynerrs > 0
-                || resultado != 0;
-
-        salidaOriginal.println();
-        salidaOriginal.println("========================================");
-
-        if (hayErrores) {
-            salidaOriginal.println("ANÁLISIS COMPLETO CON ERRORES");
-        } else {
-            salidaOriginal.println("ANÁLISIS COMPLETO CORRECTO");
-        }
-
-        salidaOriginal.println("========================================");
-    }
-
-    // =====================================================
-    // REGISTRO DE CADA TOKEN
-    // =====================================================
-
-    private static class LexerConRegistro extends AnalizadorLexicoTp3 {
-
-        private final List<String> tokens;
-
-        public LexerConRegistro(
-                LecturaCodigoTp3 lector,
-                List<String> tokens) {
-
-            super(lector);
-            this.tokens = tokens;
-        }
-
-        @Override
-        public int yylex() {
-
-            int token = super.yylex();
-
-            if (token != 0) {
-
-                String nombre = obtenerNombreToken(token);
-                String valor = obtenerValorToken(token);
-
-                tokens.add(
-                        "Línea " + getLineaActual()
-                        + " | Número de token: " + token
-                        + " | Tipo: " + nombre
-                        + " | Valor: " + valor
-                );
-            }
-
-            return token;
-        }
-
-    private String obtenerNombreToken(int token) {
-
-        switch (token) {
-
-            case Parser.ID:
-                return "IDENTIFICADOR";
-
-            case Parser.CTE:
-                return "CONSTANTE";
-
-            case Parser.CADENA:
-                return "CADENA";
-
-            // Palabras reservadas
-            case Parser.DOUBLEF:
-            case Parser.USHORTINT:
-            case Parser.BEGIN:
-            case Parser.END:
-            case Parser.FUNCTION:
-            case Parser.RET:
-            case Parser.CLASS:
-            case Parser.IF:
-            case Parser.ELSE:
-            case Parser.END_IF:
-            case Parser.POUT:
-            case Parser.REPEAT:
-            case Parser.WHILE:
-            case Parser.COMPTIME:
-            case Parser.EXTENDS:
-            case Parser.TODF:
-                return "PALABRA_RESERVADA";
-
-            case Parser.ASIGNACION:
-                return "ASIGNACION";
-
-            case Parser.IGUAL:
-                return "IGUAL";
-
-            case Parser.DISTINTO:
-                return "DISTINTO";
-
-            case Parser.MAYORIGUAL:
-                return "MAYORIGUAL";
-
-            case Parser.MENORIGUAL:
-                return "MENORIGUAL";
-
-            case Parser.SIN_PUNTO_Y_COMA:
-                return "SIN_PUNTO_Y_COMA";
-
-            default:
-                if (token > 0 && token < 128) {
-                    return "'" + (char) token + "'";
+                } finally {
+                    System.setOut(salidaOriginal);
                 }
 
-                return "TOKEN_" + token;
-        }
-    }
+                // Solamente mostramos el código si no hay errores.
+                if (!recolector.hayErrores() && resultado == 0) {
 
+                    System.out.println();
+                    System.out.println("--- CÓDIGO GENERADO ---");
 
-    private String obtenerValorToken(int token) {
+                    System.out.print(
+                        bufferCodigo.toString(StandardCharsets.UTF_8)
+                    );
 
-        // Recuperar el lexema real de USHORTINT y DOUBLEF.
-        // Estos tokens también representan constantes numéricas.
-        if ((token == Parser.USHORTINT || token == Parser.DOUBLEF)
-                && yylval != null && yylval.sval != null) {
-            return yylval.sval;
-        }
+                } else {
 
-        switch (token) {
-
-            // Palabras reservadas
-            case Parser.BEGIN: return "BEGIN";
-            case Parser.END: return "END";
-            case Parser.FUNCTION: return "FUNCTION";
-            case Parser.RET: return "RET";
-            case Parser.CLASS: return "CLASS";
-            case Parser.IF: return "IF";
-            case Parser.ELSE: return "ELSE";
-            case Parser.END_IF: return "END_IF";
-            case Parser.POUT: return "POUT";
-            case Parser.REPEAT: return "REPEAT";
-            case Parser.WHILE: return "WHILE";
-            case Parser.COMPTIME: return "COMPTIME";
-            case Parser.EXTENDS: return "EXTENDS";
-            case Parser.TODF: return "TODF";
-
-            // Operadores compuestos
-            case Parser.ASIGNACION: return ":=";
-            case Parser.IGUAL: return "==";
-            case Parser.DISTINTO: return "!=";
-            case Parser.MAYORIGUAL: return ">=";
-            case Parser.MENORIGUAL: return "<=";
-
-            default:
-
-                if (token > 0 && token < 128) {
-                    return String.valueOf((char) token);
+                    System.out.println(
+                        "No se genera código porque el análisis contiene errores."
+                    );
                 }
 
-                if (yylval != null && yylval.sval != null) {
-                    return yylval.sval;
-                }
-
-                return obtenerNombreToken(token);
+            }
         }
-    }
-}
-
-    // =====================================================
-    // CAPTURA DE LOS MENSAJES DE LA GRAMÁTICA
-    // =====================================================
-
-    private static class CapturadorSalida extends PrintStream {
-
-        private final AnalizadorLexicoTp3 lexer;
-        private final List<RegistroSalida> mensajes =
-                new ArrayList<>();
-
-        public CapturadorSalida(AnalizadorLexicoTp3 lexer) {
-            super(new ByteArrayOutputStream());
-            this.lexer = lexer;
+        // Mostrar todos los errores juntos al final.
+        recolector.imprimirErrores(System.out);
+        System.out.println("Cantidad de errores registrados: "+ recolector.cantidadErrores());
+        System.out.println();
+        if (recolector.hayErrores() || resultado != 0) {
+            System.out.println("ANÁLISIS FINALIZADO CON ERRORES.");
+        } else {
+            System.out.println("ANÁLISIS FINALIZADO CORRECTAMENTE.");
         }
-
-        @Override
-        public void println(String mensaje) {
-
-            mensajes.add(
-                    new RegistroSalida(
-                            mensaje,
-                            lexer.getLineaActual()
-                    )
-            );
-        }
-
-        @Override
-        public void println(Object mensaje) {
-            println(String.valueOf(mensaje));
-        }
-
-        public List<RegistroSalida> getMensajes() {
-            return mensajes;
-        }
-    }
-
-    // =====================================================
-    // CLASE AUXILIAR PARA GUARDAR MENSAJES Y LÍNEAS
-    // =====================================================
-
-    private static class RegistroSalida {
-
-        String mensaje;
-        int linea;
-
-        public RegistroSalida(String mensaje, int linea) {
-            this.mensaje = mensaje;
-            this.linea = linea;
-        }*/
     }
 }
