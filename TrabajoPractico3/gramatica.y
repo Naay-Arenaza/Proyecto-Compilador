@@ -103,20 +103,17 @@ declaracion_funcion:
         // Guardamos el ámbito antes de salir.
         String ambitoFuncion = getAmbitoActual();
 
-        NodoFuncion nodoFn = new NodoFuncion(
-            nombreFuncion,
-            ambitoFuncion,
-            (NodoAST) $3.obj,
-            (NodoAST) $5.obj,
-            (NodoAST) $7.obj
-        );
-        
-        gestorAmbitos.salirAmbito();
+        boolean valida = ($1.obj instanceof RegistroSimboloTp3);;
 
-        $$ = new ParserVal(nodoFn);
+        gestorAmbitos.salirAmbito();      // restaura también la supresión
 
-        System.out.println("Declaración de función");
+        if (!valida) {
+            gestorAmbitos.finalizarSupresion();   // <-- acá baja
+        }
+
+        $$ = valida ? new ParserVal(new NodoFuncion($1.sval, ambitoFuncion, (NodoAST) $3.obj, (NodoAST) $5.obj, (NodoAST) $7.obj)) : new ParserVal(null);
     }
+
     | tipo FUNCTION ID error parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Falta parentesis de apertura en el encabezado de la función"); }
     | tipo FUNCTION ID '(' parametros_formales error sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Falta parentesis de cierre en el encabezado de la función"); }
     | tipo FUNCTION error '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';'{ yyerror("Falta de nombre de funcion");}
@@ -133,13 +130,18 @@ parametros_formales:
 
 encabezado_funcion:
     tipo FUNCTION ID %prec ID {
-        RegistroSimboloTp3 funcion = gestorAmbitos.declararFuncion($3.sval, $1.sval, lexer.getLineaActual() );
+        RegistroSimboloTp3 funcion = gestorAmbitos.declararFuncion($3.sval, $1.sval, lexer.getLineaActual());
         if (funcion == null) {
             errorSemantico("Función ya declarada en el ámbito actual: " + $3.sval);
+            gestorAmbitos.iniciarSupresion();
         }
+
         gestorAmbitos.entrarAmbitoFuncion($3.sval);
-        $$ = new ParserVal($3.sval);
-        }
+
+        ParserVal valor = new ParserVal($3.sval);
+        valor.obj = funcion;      // null => inválida
+        $$ = valor;
+    }
     ;
 
 parametro_formal: 
@@ -151,12 +153,20 @@ parametro_formal:
 declaracion_clase: 
     encabezado_clase BEGIN cuerpo_clase END ';' {
         System.out.println("Declaracion de clase");
+        boolean valida = ($1.obj instanceof RegistroSimboloTp3);
+        String ambitoClase = getAmbitoActual();  
         if (!pilaClases.isEmpty()) {
             pilaClases.pop();
         }
+
         gestorAmbitos.salirAmbito();
-        NodoClase nodoClase = new NodoClase($2.sval, getAmbitoActual(), (NodoAST)$5.obj);
-        $$ = new ParserVal(nodoClase);
+
+        if (!valida) {
+            gestorAmbitos.finalizarSupresion();   // <-- acá baja
+        }
+
+
+        $$ = valida ? new ParserVal(new NodoClase($1.sval, ambitoClase, (NodoAST) $3.obj)) : new ParserVal(null);
     }
     | CLASS ID error cuerpo_clase END ';' { yyerror ("Falta el BEGIN de clase");}
     | CLASS ID BEGIN cuerpo_clase error ';' { yyerror("Falta el END de clase");}
@@ -165,17 +175,17 @@ declaracion_clase:
 
 encabezado_clase:
     CLASS ID %prec ID {
-        RegistroSimboloTp3 clase = gestorAmbitos.declararClase(
-            $2.sval, lexer.getLineaActual()
-        );
+        RegistroSimboloTp3 clase = gestorAmbitos.declararClase($2.sval, lexer.getLineaActual());
 
         if (clase == null) {
-            errorSemantico(
-                "Clase ya declarada en el ámbito actual: " + $2.sval
-            );
+            errorSemantico("Clase ya declarada en el ámbito actual: " + $2.sval);
+            gestorAmbitos.iniciarSupresion();
         }
         pilaClases.push($2.sval);
         gestorAmbitos.entrarAmbitoClase($2.sval);
+        ParserVal valor = new ParserVal($2.sval);
+        valor.obj = clase;
+        $$ = valor;
     }
     ;
 
@@ -590,6 +600,9 @@ private void registrarClasesBase(List<String> clasesBase) {
 }
 
 private void errorSemantico(String mensaje) {
+    if (gestorAmbitos.estaSuprimido()) {
+        return;   // el cuerpo ya está invalidado -> no generamos cascada de errores internos
+    }
     recolectorErrores.agregarError("Semantico",lexer.getLineaActual(),mensaje);
 }
 
@@ -598,6 +611,10 @@ private void yyerror(String mensaje){
 }
 
 private void actualizarComptimeSiCorresponde(NodoAST izquierdo, NodoAST derecho) {
+    if (gestorAmbitos.estaSuprimido()) {
+        return;
+    }
+    
     if (!(izquierdo instanceof NodoHoja) || !(derecho instanceof NodoHoja)) {
         return;
     }

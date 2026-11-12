@@ -11,6 +11,7 @@ public final class GestionAmbitoTp3 {
     private final TablaDeSimbolosTp3 tabla; //Tabla única de símbolos compartida por el compilador.
     private final Deque<String> pilaAmbitos = new ArrayDeque<>(); // Pila de nombres completos de los ámbitos.
     private final Deque<TipoAmbito> pilaTipos = new ArrayDeque<>(); // Pila que indica el tipo de cada ámbito.
+    private int nivelesSupresion = 0;
 
     public GestionAmbitoTp3(TablaDeSimbolosTp3 tabla) {
         if (tabla == null) {
@@ -20,11 +21,26 @@ public final class GestionAmbitoTp3 {
         iniciarPrograma();
     }
 
+    public void iniciarSupresion() {
+        this.nivelesSupresion++;
+    }
+
+    public void finalizarSupresion() {
+        if (this.nivelesSupresion > 0) {
+            this.nivelesSupresion--;
+        }
+    }
+
+    public boolean estaSuprimido() {
+        return this.nivelesSupresion > 0;
+    }
+
     public final void iniciarPrograma() {// Inicializa el ámbito global del programa.
         pilaAmbitos.clear();
         pilaTipos.clear();
         pilaAmbitos.push(TablaDeSimbolosTp3.AMBITO_GLOBAL);
         pilaTipos.push(TipoAmbito.GLOBAL);
+        this.nivelesSupresion = 0; //??
         sincronizarTabla();
     }
 
@@ -93,6 +109,11 @@ public final class GestionAmbitoTp3 {
 
     // DECLARACIÓN DE SÍMBOLOS
     public RegistroSimboloTp3 declararVariable(String nombre,String tipo,int linea,boolean comptime) {   // Declara una variable o un atributo de clase.
+        if (estaSuprimido()) {
+            String uso = estaEnAmbitoClase() ? TablaDeSimbolosTp3.USO_ATRIBUTO : (comptime ? TablaDeSimbolosTp3.USO_COMPTIME : TablaDeSimbolosTp3.USO_VARIABLE);
+        return registroFicticio(nombre, tipo, uso);
+        }
+
         if (estaEnAmbitoClase()) {  // Si estamos dentro de una clase, declaramos un atributo.
             RegistroSimboloTp3 atributo = tabla.declararAtributoClase(nombre,tipo,linea);
             if (atributo != null && comptime) {  // Conserva la marca comptime si corresponde.
@@ -105,31 +126,52 @@ public final class GestionAmbitoTp3 {
 
     // Registra una función o un método, dependiendo del ámbito actual.
     public RegistroSimboloTp3 declararFuncion( String nombre, String tipoRetorno, int linea) {
+        if (estaSuprimido()) {
+            return registroFicticio(nombre, tipoRetorno, TablaDeSimbolosTp3.USO_FUNCION);
+        }
         return tabla.declararFuncion( nombre, tipoRetorno, linea);
     }
 
     public RegistroSimboloTp3 declararClase( String nombre,int linea) {// Registra una clase.
+        if (estaSuprimido()) {
+            return registroFicticio(nombre, "CLASS", TablaDeSimbolosTp3.USO_CLASE);
+        }
         return tabla.declararClase( nombre, linea);
     }
 
     public RegistroSimboloTp3 declararMetodo( String nombre,String tipoRetorno, int linea) {// Registra un método dentro de una clase.
+    if (estaSuprimido()) {
+        return registroFicticio(nombre, tipoRetorno, TablaDeSimbolosTp3.USO_METODO);
+    }
         return tabla.declararMetodoClase(nombre,tipoRetorno,linea);
     }
 
     public RegistroSimboloTp3 declararParametro(String nombre,String tipo,int linea) {// Registra un parámetro formal.
+    if (estaSuprimido()) {
+        return registroFicticio(nombre, tipo, TablaDeSimbolosTp3.USO_PARAMETRO);
+    }
         return tabla.declararParametro(nombre, tipo,linea);
     }
 
     public RegistroSimboloTp3 declararObjeto(String nombre,String nombreClase, int linea) {// Registra una instancia de una clase.
+        if (estaSuprimido()) {
+            return registroFicticio(nombre, nombreClase, TablaDeSimbolosTp3.USO_OBJETO);
+        }
         return tabla.declararObjeto(nombre,nombreClase,linea);
     }
 
     public boolean agregarParametroFormal(String nombreFuncion,String nombreParametro,String tipoParametro,int lineaParametro, String ambitoDeclaracion) {
-                                                    // Agrega un parámetro a la firma de una función o método.
+        if (estaSuprimido()) {
+            return true;          // no toca la firma de la función existente
+        }    
+        // Agrega un parámetro a la firma de una función o método.
         return tabla.agregarParametroFormal(nombreFuncion,nombreParametro,tipoParametro,lineaParametro,ambitoDeclaracion);
     }
 
     public boolean agregarClaseBase(String clase,String claseBase) {// Registra una relación de herencia entre clases.
+        if (estaSuprimido()) {
+            return true;          // no agrega herencia a la clase existente
+        }
         return tabla.agregarClaseBase(clase, claseBase);
     }
 
@@ -150,4 +192,11 @@ public final class GestionAmbitoTp3 {
     private void sincronizarTabla() {// Actualiza el ámbito actual de la tabla de símbolos.
         tabla.setAmbitoActual(getAmbitoActual());
     }
+
+    private RegistroSimboloTp3 registroFicticio(String nombre, String tipo, String uso) {
+        return new RegistroSimboloTp3(
+            nombre, "IDENTIFICADOR", tipo, uso, getAmbitoActual(), -1, -1L
+        );
+    }
+
 }
