@@ -9,15 +9,8 @@ public class NodoFuncion extends NodoAST {
     private NodoAST cuerpoDeclarativo;
     private NodoAST cuerpoEjecutable;
 
-    public NodoFuncion(
-            String nombre,
-            String ambitoCompleto,
-            NodoAST parametros,
-            NodoAST declaraciones,
-            NodoAST ejecutables) {
-
+    public NodoFuncion(String nombre,String ambitoCompleto,NodoAST parametros,NodoAST declaraciones,NodoAST ejecutables) {
         super("DECLARACION_FUNCION");
-
         this.nombre = nombre;
         this.ambitoCompleto = ambitoCompleto;
         this.parametros = parametros;
@@ -45,24 +38,24 @@ public class NodoFuncion extends NodoAST {
         return cuerpoEjecutable;
     }
 
+
     @Override
     public String generarCodigo() {
+        System.out.println("; --- INICIO FUNCION " + nombre + " ---");// Encabezado de la función
+        String etiquetaInicio = "FUNC_" + ambitoCompleto.replace(':', '_') + ":";// Etiqueta de inicio
+        System.out.println(etiquetaInicio);
 
-        String etiquetaInicio =
-            "FUNC_" + ambitoCompleto.replace(':', '_') + ":\n";
+        if (cuerpoDeclarativo != null) {// Generar declaraciones locales
+            cuerpoDeclarativo.generarCodigo();
+        }
 
-        String decls = (cuerpoDeclarativo != null)
-            ? cuerpoDeclarativo.generarCodigo()
-            : "";
+        if (cuerpoEjecutable != null) {// Generar instrucciones de la función
+            cuerpoEjecutable.generarCodigo();
+        }
 
-        String ejecs = (cuerpoEjecutable != null)
-            ? cuerpoEjecutable.generarCodigo()
-            : "";
+        System.out.println("RET");// Retorno de finalización de la función
 
-        return "; --- INICIO FUNCION " + nombre + " ---\n"
-                + etiquetaInicio
-                + decls
-                + ejecs
-                + "RET\n";
+        return null;
     }
+
 }

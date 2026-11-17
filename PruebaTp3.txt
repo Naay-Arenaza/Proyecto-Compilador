@@ -1,37 +1,12 @@
 prog
-USHORTINT a;
 
-CLASS c1
+DOUBLEF FUNCTION calcular(USHORTINT a)
 BEGIN
-    USHORTINT x;
-    DOUBLEF y;
-    USHORTINT m(USHORTINT z) 
-    BEGIN 
-        RET(z); 
-
-    END;
-    EXTENDS c2;
+    RET(TODF(a));
 END;
 
-c1 obj, obj2;
-
-USHORTINT FUNCTION f(USHORTINT p)
-    USHORTINT loc;
-    COMPTIME DOUBLEF loc;
-    COMPTIME DOUBLEF c;
-    BEGIN
-        loc := p;
-    END;
-
-USHORTINT FUNCTION f(USHORTINT p)
-    USHORTINT loc;
-    COMPTIME DOUBLEF loc;
-    COMPTIME DOUBLEF c;
-    BEGIN
-        loc := p;
-    END;
+DOUBLEF x;
 
 BEGIN
-    a := 1$us;
-    a := f(a);
+    x := calcular(10$us);
 END

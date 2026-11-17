@@ -1,4 +1,5 @@
 
+
 package TrabajoPractico3.ArbolSintactico;
 
 import java.util.ArrayList;
@@ -52,7 +53,6 @@ public class ImpresorArbol {
 
         if (nodo instanceof NodoHoja) {
             NodoHoja hoja = (NodoHoja) nodo;
-
             return hoja.getTipoNodo() + ": " + hoja.getValor();
         }
 
@@ -64,17 +64,35 @@ public class ImpresorArbol {
         if (nodo instanceof NodoInvocacion) {
             NodoInvocacion invocacion = (NodoInvocacion) nodo;
 
-            return "INVOCACION: " + invocacion.getNombreFuncion();
+            String orden = invocacion.getOrdenParametros() == null
+                ? "natural"
+                : invocacion.getOrdenParametros().toString();
+
+            return "INVOCACION: "
+                + invocacion.getNombreFuncion()
+                + " [orden: " + orden + "]";
         }
 
         if (nodo instanceof NodoInvocacionMetodo) {
             NodoInvocacionMetodo invocacion =
                 (NodoInvocacionMetodo) nodo;
 
+            String orden = invocacion.getOrdenParametros() == null
+                ? "natural"
+                : invocacion.getOrdenParametros().toString();
+
             return "INVOCACION MÉTODO: "
-                + invocacion.getObjeto()
+                + invocacion.getObjeto().getValor()
                 + "."
-                + invocacion.getMetodo();
+                + invocacion.getMetodo()
+                + " [orden: " + orden + "]";
+        }
+
+        if (nodo instanceof NodoListaParametros) {
+            NodoListaParametros lista = (NodoListaParametros) nodo;
+
+            return "LISTA_PARAMETROS (" +
+                lista.getParametros().size() + " argumentos)";
         }
 
         if (nodo instanceof NodoFuncion) {
@@ -102,11 +120,13 @@ public class ImpresorArbol {
 
         } else if (nodo instanceof NodoAsignacion) {
             NodoAsignacion n = (NodoAsignacion) nodo;
+
             hijos.add(n.getVariable());
             hijos.add(n.getExpresion());
 
         } else if (nodo instanceof NodoBinario) {
             NodoBinario n = (NodoBinario) nodo;
+
             hijos.add(n.getIzq());
             hijos.add(n.getDer());
 
@@ -115,17 +135,20 @@ public class ImpresorArbol {
 
         } else if (nodo instanceof NodoAccesoArreglo) {
             NodoAccesoArreglo n = (NodoAccesoArreglo) nodo;
+
             hijos.add(n.getArreglo());
             hijos.add(n.getIndice());
 
         } else if (nodo instanceof NodoIF) {
             NodoIF n = (NodoIF) nodo;
+
             hijos.add(n.getCondicion());
             hijos.add(n.getCuerpoThen());
             hijos.add(n.getCuerpoElse());
 
         } else if (nodo instanceof NodoRepeat) {
             NodoRepeat n = (NodoRepeat) nodo;
+
             hijos.add(n.getCuerpo());
             hijos.add(n.getCondicion());
 
@@ -139,9 +162,17 @@ public class ImpresorArbol {
             hijos.add(((NodoInvocacion) nodo).getParametros());
 
         } else if (nodo instanceof NodoInvocacionMetodo) {
-            hijos.add(((NodoInvocacionMetodo) nodo).getParametros());
+            NodoInvocacionMetodo n = (NodoInvocacionMetodo) nodo;
 
-        }else if (nodo instanceof NodoFuncion) {
+            hijos.add(n.getObjeto());
+            hijos.add(n.getParametros());
+
+        } else if (nodo instanceof NodoListaParametros) {
+            hijos.addAll(
+                ((NodoListaParametros) nodo).getParametros()
+            );
+
+        } else if (nodo instanceof NodoFuncion) {
             NodoFuncion n = (NodoFuncion) nodo;
 
             hijos.add(n.getParametros());
@@ -149,7 +180,6 @@ public class ImpresorArbol {
             hijos.add(n.getCuerpoEjecutable());
         }
 
-        // Eliminamos hijos nulos.
         hijos.removeIf(hijo -> hijo == null);
 
         return hijos;

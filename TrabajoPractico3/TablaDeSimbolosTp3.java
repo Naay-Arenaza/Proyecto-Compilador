@@ -279,14 +279,17 @@ public class TablaDeSimbolosTp3 {
     public List<RegistroSimboloTp3> obtenerSimbolosEnAmbito(String ambito) {
         List<RegistroSimboloTp3> resultado = new ArrayList<>();
 
+        if (ambito == null || ambito.trim().isEmpty()) {
+            return resultado;
+        }
+
         for (RegistroSimboloTp3 registro : tabla.values()) {
-            if (!USO_CONSTANTE.equals(registro.getUso())
-                    && ambito.equals(registro.getAmbito())) {
+            if (!USO_CONSTANTE.equals(registro.getUso()) && ambito.equals(registro.getAmbito())) {
                 resultado.add(registro);
             }
         }
 
-        return resultado;
+        return Collections.unmodifiableList(resultado);
     }
 
     public void imprimirTabla() {
@@ -480,6 +483,16 @@ public class TablaDeSimbolosTp3 {
 
         return null;
     }
+
+    public RegistroSimboloTp3 resolverMiembroClasePorReferencia(String referenciaClase, String nombreMiembro) {
+        RegistroSimboloTp3 clase = buscarClasePorReferencia(referenciaClase);
+
+        if (clase == null) {
+            return null;
+        }
+
+        return resolverMiembroClase(clase,nombreMiembro,new LinkedHashSet<String>());
+    }
    
     private RegistroSimboloTp3 buscarClasePorReferencia(String referencia) { // Obtiene una clase por nombre visible o por nombre completo. 
         if (referencia == null) {
@@ -500,21 +513,47 @@ public class TablaDeSimbolosTp3 {
         return null;
     }
 
-    // Tema 29: devuelve el atributo por posicion, comenzando desde indice 0. se consideran primero los atributos propios y luego los heredados, Respetando el orden de EXTENDS.
-    public RegistroSimboloTp3 obtenerAtributoPosicional(String nombreClase, int indice) {
+// Tema 29: devuelve el atributo por posición, comenzando desde índice 0.
+// Se consideran primero los atributos propios y luego los heredados,
+// respetando el orden de EXTENDS.
+public RegistroSimboloTp3 obtenerAtributoPosicional(String nombreClase, int indice) {
+    RegistroSimboloTp3 clase = buscarClaseVisible(nombreClase, ambitoActual);
+    return obtenerAtributoPosicional(clase, indice);
+}
 
-        if (indice < 0) {return null;}
+/**
+ * Resuelve un atributo posicional a partir de la referencia completa
+ * de la clase almacenada en el símbolo del objeto.
+ * Ejemplo: "MiClase:main".
+ */
+public RegistroSimboloTp3 obtenerAtributoPosicionalPorReferencia(
+        String referenciaClase, int indice) {
 
-        RegistroSimboloTp3 clase = buscarClaseVisible(nombreClase, ambitoActual);
+    return obtenerAtributoPosicional(
+        buscarClasePorReferencia(referenciaClase),
+        indice
+    );
+}
 
-        if (clase == null) {return null;}
+// Método auxiliar que realiza la búsqueda del atributo.
+private RegistroSimboloTp3 obtenerAtributoPosicional(
+        RegistroSimboloTp3 clase, int indice) {
 
-        List<RegistroSimboloTp3> atributos = obtenerAtributosEfectivos(clase,new LinkedHashSet<String>());
-
-        if (indice >= atributos.size()) {return null;}
-
-        return atributos.get(indice);
+    if (indice < 0 || clase == null) {
+        return null;
     }
+
+    List<RegistroSimboloTp3> atributos = obtenerAtributosEfectivos(
+        clase,
+        new LinkedHashSet<String>()
+    );
+
+    if (indice >= atributos.size()) {
+        return null;
+    }
+
+    return atributos.get(indice);
+}
 
     private List<RegistroSimboloTp3> obtenerAtributosEfectivos(RegistroSimboloTp3 clase,Set<String> visitadas) {
 

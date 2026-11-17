@@ -27,7 +27,6 @@ programa:
         NodoPrograma raiz = new NodoPrograma($1.sval,(NodoAST) $2.obj,(NodoAST) $4.obj);
         raizAST = raiz;
         $$ = new ParserVal(raiz);
-        System.out.println("Declaración de programa y AST generado");
     }
     | error sentencias_declarativas BEGIN sentencias_ejecutables END { yyerror("Falta de nombre de programa");  $$ = new ParserVal(null);}
     | ID sentencias_declarativas sentencias_ejecutables END { yyerror("Falta la palabra reservada BEGIN"); $$ = new ParserVal(null);}
@@ -38,13 +37,11 @@ programa:
  sentencias_declarativas: 
     sentencias_declarativas sentencia_declarativa{
         NodoBloque bloque = (NodoBloque) $1.obj;
-
         if ($2.obj != null) {
             bloque.agregarSentencia((NodoAST) $2.obj);
         }
         $$ = new ParserVal(bloque);}
-    |
-    {$$ = new ParserVal(new NodoBloque());}
+    | {$$ = new ParserVal(new NodoBloque());}
     ;
 
 sentencia_declarativa: 
@@ -56,18 +53,12 @@ sentencia_declarativa:
     ;
 
 declaracion_variables: 
-    tipo lista_variables ';' {
-        System.out.println("Declaracion de VAR");
-        declararListaVariables((List<String>) $2.obj, $1.sval, false);
-    }
+    tipo lista_variables ';' {declararListaVariables((List<String>) $2.obj, $1.sval, false);}
     | tipo lista_variables %prec SIN_PUNTO_Y_COMA { yyerror("Declaracion de variables: Falta ';' " );}
     ;
 
 declaracion_variables_comptime:
-    COMPTIME tipo lista_variables ';' {
-        System.out.println("Declaracion de comptime");
-        declararListaVariables((List<String>) $3.obj, $2.sval, true);
-    }
+    COMPTIME tipo lista_variables ';' { declararListaVariables((List<String>) $3.obj, $2.sval, true);}
     | COMPTIME tipo lista_variables error { yyerror("Declaracion de variables COMPTIME: Falta el ';'");}
     | COMPTIME lista_variables ';' { yyerror("Falta tipo en las variables en COMPTIME");}
     ;
@@ -98,19 +89,12 @@ lista_variables:
 
 declaracion_funcion: 
     encabezado_funcion '(' parametros_formales ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' {
-        String nombreFuncion = $1.sval;
-
-        // Guardamos el ámbito antes de salir.
         String ambitoFuncion = getAmbitoActual();
-
         boolean valida = ($1.obj instanceof RegistroSimboloTp3);;
-
-        gestorAmbitos.salirAmbito();      // restaura también la supresión
-
+        gestorAmbitos.salirAmbito();  
         if (!valida) {
-            gestorAmbitos.finalizarSupresion();   // <-- acá baja
+            gestorAmbitos.finalizarSupresion(); 
         }
-
         $$ = valida ? new ParserVal(new NodoFuncion($1.sval, ambitoFuncion, (NodoAST) $3.obj, (NodoAST) $5.obj, (NodoAST) $7.obj)) : new ParserVal(null);
     }
 
@@ -123,9 +107,35 @@ declaracion_funcion:
     | tipo FUNCTION ID '(' error ')' sentencias_declarativas BEGIN sentencias_ejecutables END ';' { yyerror("Error en parametros de funcion: Falta una ',' o tipo invalido"); }
     ;
 
+encabezado_metodo:
+    tipo ID %prec ID {
+        RegistroSimboloTp3 metodo = gestorAmbitos.declararMetodo($2.sval, $1.sval, getLineaActual() );
+        if (metodo == null) {
+            errorSemantico("Método ya declarado en el ámbito actual: " + $2.sval);
+            gestorAmbitos.iniciarSupresion();
+        }
+        gestorAmbitos.entrarAmbitoFuncion($2.sval);
+        ParserVal valor = new ParserVal($2.sval);
+        valor.obj = metodo;
+        $$ = valor;
+    }
+    ;
+
 parametros_formales: 
-    parametros_formales ',' parametro_formal {System.out.println("Declaracion de parametro_formales");}
-    | parametro_formal {System.out.println("Declaracion de parametro_formales");}
+    parametros_formales ',' parametro_formal {
+        NodoBloque lista = (NodoBloque) $1.obj;
+        if ($3.obj != null) {
+            lista.agregarSentencia((NodoAST) $3.obj);
+        }
+        $$ = new ParserVal(lista);
+    }
+    | parametro_formal {
+        NodoBloque lista = new NodoBloque();
+        if ($1.obj != null) {
+            lista.agregarSentencia((NodoAST) $1.obj);
+        }
+        $$ = new ParserVal(lista);
+    }
     ;
 
 encabezado_funcion:
@@ -135,37 +145,35 @@ encabezado_funcion:
             errorSemantico("Función ya declarada en el ámbito actual: " + $3.sval);
             gestorAmbitos.iniciarSupresion();
         }
-
         gestorAmbitos.entrarAmbitoFuncion($3.sval);
-
         ParserVal valor = new ParserVal($3.sval);
-        valor.obj = funcion;      // null => inválida
+        valor.obj = funcion;    
         $$ = valor;
     }
     ;
 
 parametro_formal: 
-    tipo ID { System.out.println("Declaracion de parametro_formal"); }
-    | ID { yyerror("Parametro Formal: Falta el 'tipo'");}
-    | tipo { yyerror("Parametro Formal: Falta el 'ID''");}
+    tipo ID { 
+        String nombre = $2.sval;
+        String tipoParametro = $1.sval;
+        registrarParametroFormal(nombre, tipoParametro);
+        $$ = new ParserVal(new NodoHoja("PARAMETRO", tipoParametro + " " + nombre, getLineaActual()));
+    }
+    | ID { yyerror("Parametro Formal: Falta el 'tipo'"); $$ = new ParserVal(null);}
+    | tipo { yyerror("Parametro Formal: Falta el 'ID''"); $$ = new ParserVal(null);}
     ;
 
 declaracion_clase: 
     encabezado_clase BEGIN cuerpo_clase END ';' {
-        System.out.println("Declaracion de clase");
         boolean valida = ($1.obj instanceof RegistroSimboloTp3);
         String ambitoClase = getAmbitoActual();  
         if (!pilaClases.isEmpty()) {
             pilaClases.pop();
         }
-
         gestorAmbitos.salirAmbito();
-
         if (!valida) {
-            gestorAmbitos.finalizarSupresion();   // <-- acá baja
+            gestorAmbitos.finalizarSupresion();
         }
-
-
         $$ = valida ? new ParserVal(new NodoClase($1.sval, ambitoClase, (NodoAST) $3.obj)) : new ParserVal(null);
     }
     | CLASS ID error cuerpo_clase END ';' { yyerror ("Falta el BEGIN de clase");}
@@ -208,10 +216,7 @@ elemento_clase:
     ;
 
 sentencia_extends:
-    EXTENDS lista_ids ';' {
-        System.out.println("Sentencia EXTENDS");
-        registrarClasesBase((List<String>) $2.obj);
-    }
+    EXTENDS lista_ids ';' {registrarClasesBase((List<String>) $2.obj);}
     | EXTENDS error ';' { yyerror("Sintaxis de lista de herencia invalida"); }
     | EXTENDS lista_ids { yyerror("Sentencia EXTENDS: Falta el ';'");}
     | EXTENDS ';' { yyerror("Falta lista ids");}
@@ -231,25 +236,39 @@ lista_ids:
     | lista_ids ID { yyerror("Lista de IDs: Falta la ','");}
     ;
 
-declaracion_metodo: 
-    tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END ';' {
-        System.out.println("Declaracion de Metodo");
-        RegistroSimboloTp3 metReg = gestorAmbitos.declararMetodo($2.sval, $1.sval, lexer.getLineaActual());
-    if (metReg == null) {
-        errorSemantico("Método ya declarado en el ámbito actual: " + $2.sval);
+
+declaracion_metodo:
+    encabezado_metodo '(' parametros_formales ')' BEGIN sentencias_ejecutables END ';' {
+        String nombreMetodo = $1.sval;
+        String ambitoMetodo = getAmbitoActual();
+
+        boolean valida = ($1.obj instanceof RegistroSimboloTp3);
+
+        gestorAmbitos.salirAmbito();
+
+        if (!valida) {
+            gestorAmbitos.finalizarSupresion();
         }
-    NodoMetodo nodoMetodo = new NodoMetodo($2.sval, getAmbitoActual(), (NodoAST)$4.obj, (NodoAST)$8.obj);
-    $$ = new ParserVal(nodoMetodo);
+
+        $$ = valida ? new ParserVal( new NodoMetodo(nombreMetodo,ambitoMetodo,(NodoAST)$3.obj,(NodoAST)$6.obj)): new ParserVal(null);
     }
-    | tipo ID '(' parametros_formales ')' error sentencias_ejecutables END ';' { yyerror("Falta el BEGIN en la declaracion del metodo");}
-    | tipo ID '(' error ')' BEGIN sentencias_ejecutables END ';' { yyerror("Falta una ',' o tipo invalido en los parametros del metodo"); }
-    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables error ';' { yyerror("Falta el END en la declaracion del metodo");}
-    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END { yyerror("Falta el ';' en la declaracion del metodo");}
+    | tipo ID '(' parametros_formales ')' error sentencias_ejecutables END ';' {
+        yyerror("Falta el BEGIN en la declaracion del metodo");
+    }
+    | tipo ID '(' error ')' BEGIN sentencias_ejecutables END ';' {
+        yyerror("Falta una ',' o tipo invalido en los parametros del metodo");
+    }
+    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables error ';' {
+        yyerror("Falta el END en la declaracion del metodo");
+    }
+    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END {
+        yyerror("Falta el ';' en la declaracion del metodo");
+    }
     ;
+
 
 declaracion_objeto: 
     ID lista_variables ';' {
-        System.out.println("Declaracion de objeto");
         List<String> nombres = (List<String>) $2.obj;
         String tipoClase = $1.sval;
 
@@ -301,14 +320,11 @@ sentencia_ejecutable:
 
 asignacion: 
     lado_izquierdo ASIGNACION expresion {
-        if (!expresionInvalida){
+        if (!expresionInvalida && $1.obj != null && $3.obj != null) {
             NodoAST izquierdo = (NodoAST) $1.obj;
             NodoAST derecho = (NodoAST) $3.obj;
-
             actualizarComptimeSiCorresponde(izquierdo, derecho);
-
             $$ = new ParserVal(new NodoAsignacion(izquierdo, derecho));
-            System.out.println("Declaracion Asignacion");
         } else {
             expresionInvalida = false;
             $$ = new ParserVal(null);
@@ -320,9 +336,7 @@ asignacion:
 
 lado_izquierdo: 
     ID { $$ = new ParserVal(new NodoHoja("ID", $1.sval, getLineaActual())); }
-    | acceso_posicional {
-        $$ = $1; 
-        System.out.println("Declaracion de acceso_posicional");}
+    | acceso_posicional { $$ = $1; }
     | ID   indice ']'            { yyerror("Acceso posicional: Falta corchete de apertura "); $$ = new ParserVal(null);}
     ;
 
@@ -366,16 +380,23 @@ factor:
         $$ = $1;
         System.out.println("Acceso posicional");}
     | ID '=' '(' expresion_simple ')' {
-        $$ = new ParserVal(new NodoAsignacion(new NodoHoja("ID", $1.sval, getLineaActual()), (NodoAST)$4.obj));
-        System.out.println("Asignacion EXP");}
+        if ($4.obj != null) {
+            $$ = new ParserVal(new NodoAsignacion(new NodoHoja("ID", $1.sval, getLineaActual()),(NodoAST)$4.obj));
+        } else {
+            $$ = new ParserVal(null);
+        }
+    }
     | to_double { $$ = $1; }
     | invocacion { $$ = $1; }
     ;
 
 to_double:
     TODF '(' expresion ')' {
-        $$ = new ParserVal(new NodoUnario("TODF", (NodoAST)$3.obj));
-        System.out.println("Conversion DF"); 
+        if ($3.obj != null) {
+            $$ = new ParserVal(new NodoUnario("TODF", (NodoAST)$3.obj));
+        } else {
+            $$ = new ParserVal(null);
+        }
     }
     |TODF '('error')'                       { yyerror("Solo se pueden expresiones"); $$ = new ParserVal(null);}
     |TODF '('')'                            { yyerror("Falta expresion"); $$ = new ParserVal(null);}
@@ -413,32 +434,56 @@ factor_simple:
 
 invocacion: 
     ID '(' parametros_reales ')' lista_constantes_opcional {
-                                            $$ = new ParserVal(new NodoInvocacion($1.sval, (NodoAST)$3.obj));
-                                            System.out.println("Metodo|funcion con orden opcional"); }
+        $$ = new ParserVal(new NodoInvocacion($1.sval, (NodoListaParametros)$3.obj,(List<Integer>)$5.obj,getLineaActual(),tablaSimbolos.resolverFuncion($1.sval)));
+        System.out.println("Invocación de función con orden opcional");
+    }
     | ID '.' ID '(' parametros_reales ')' lista_constantes_opcional {
-                                            $$ = new ParserVal(new NodoInvocacionMetodo($1.sval, $3.sval, (NodoAST)$5.obj));
-                                            System.out.println("Objeto con orden opcional"); }
-    | ID '(' parametros_reales ';' lista_constantes_opcional { yyerror("Error en los parametros: Falta un ')'"); $$ = new ParserVal(null);}
+        $$ = new ParserVal(new NodoInvocacionMetodo( new NodoHoja("ID", $1.sval, getLineaActual()), $3.sval, (NodoListaParametros)$5.obj, (List<Integer>)$7.obj, getLineaActual() ));
+        System.out.println("Invocación de método con orden opcional");
+    }
+    | ID '(' parametros_reales ';' lista_constantes_opcional { yyerror("Error en los parametros: Falta un ')' "); $$ = new ParserVal(null);}
     | ID '(' ')' lista_constantes_opcional { yyerror("Lista de parametros vacia."); $$ = new ParserVal(null);}
     | ID '.' ID '(' ')' lista_constantes_opcional { yyerror("Lista de parametros vacia."); expresionInvalida = true; $$ = new ParserVal(null);}
     ;
 
 lista_constantes_opcional:
-    '[' lista_constantes ']'
-    | '[' error ']' { yyerror("Error en la lista de constantes: Falta una ',' o hay un elemento inválido"); }
-    | 
+    '[' lista_constantes ']' {$$ = $2;}
+    | '[' error ']' { yyerror("Error en la lista de constantes: Falta una ',' o hay un elemento inválido"); $$ = new ParserVal(null);}
+    | { $$ = new ParserVal(null);}
     ;
 
 lista_constantes:
-    lista_constantes ',' CTE
-    | CTE
+    lista_constantes ',' CTE {
+        List<Integer> orden = (List<Integer>)$1.obj;
+        Integer posicion =  convertirPosicionParametro($3.sval);
+        if (posicion == null) {
+            errorSemantico( "El orden de parámetros solo admite constantes enteras positivas.");
+        }
+        orden.add(posicion);
+        $$ = new ParserVal(orden);
+    }
+    | CTE {
+        List<Integer> orden = new ArrayList<>();
+        Integer posicion =  convertirPosicionParametro($1.sval);
+        if (posicion == null) {
+            errorSemantico( "El orden de parámetros solo admite constantes enteras positivas." );
+        }
+        orden.add(posicion);
+        $$ = new ParserVal(orden);
+    }
     ;
 
 parametros_reales: 
     parametros_reales ',' parametro_real {
-        $$ = new ParserVal(new NodoBinario("PARAM", (NodoAST)$1.obj, (NodoAST)$3.obj));
+        NodoListaParametros lista = (NodoListaParametros)$1.obj;
+        lista.agregarParametro((NodoAST)$3.obj);
+        $$ = new ParserVal(lista);
     }
-    | parametro_real { $$ = $1; }
+    | parametro_real {
+        NodoListaParametros lista = new NodoListaParametros();
+        lista.agregarParametro((NodoAST)$1.obj);
+        $$ = new ParserVal(lista); 
+    }
     | parametros_reales parametro_real {yyerror("Falta ',' entre argumentos"); $$ = new ParserVal(null);}
     | parametros_reales ',' error parametro_real {yyerror("Elemento no valido despues de ','"); $$ = new ParserVal(null);}
     ;
@@ -449,8 +494,9 @@ parametro_real:
 
 iterativa:
     REPEAT bloque_ejecutable WHILE '(' condicion ')' {
-        $$ = new ParserVal(new NodoRepeat((NodoAST)$2.obj, (NodoAST)$5.obj));
-        System.out.println("Declaracion Iterativa WHILE");
+        NodoRepeat repeticion = new NodoRepeat((NodoAST)$2.obj,(NodoAST)$5.obj);
+        invalidarComptimesModificadosEnControl(repeticion);
+        $$ = new ParserVal(repeticion);
     }
     | REPEAT bloque_ejecutable error '(' condicion ')' { yyerror("Falta WHILE en condicion de iteracion"); $$ = new ParserVal(null);}
     | REPEAT bloque_ejecutable WHILE '(' condicion { yyerror("Falta de parentesis de cierre en condicion iterativa"); $$ = new ParserVal(null);}
@@ -462,12 +508,14 @@ iterativa:
 
 seleccion: 
     IF '(' condicion ')' bloque_ejecutable ELSE bloque_ejecutable END_IF {
-        System.out.println("Declaracion Seleccion");
-        $$ = new ParserVal(new NodoIF((NodoAST)$3.obj, (NodoAST)$5.obj, (NodoAST)$7.obj));
+        NodoIF seleccion = new NodoIF((NodoAST)$3.obj,(NodoAST)$5.obj,(NodoAST)$7.obj);
+        invalidarComptimesModificadosEnControl(seleccion);
+        $$ = new ParserVal(seleccion);
     }
     | IF '(' condicion ')' bloque_ejecutable END_IF {
-        System.out.println("Declaracion Seleccion Simple");
-        $$ = new ParserVal(new NodoIF((NodoAST)$3.obj, (NodoAST)$5.obj, null));
+        NodoIF seleccion = new NodoIF((NodoAST)$3.obj,(NodoAST)$5.obj,null);
+        invalidarComptimesModificadosEnControl(seleccion);
+        $$ = new ParserVal(seleccion);
     }
     | IF '(' condicion bloque_ejecutable END_IF { yyerror("Falta de parentesis de cierre en seleccion"); $$ = new ParserVal(null);}
     | IF condicion ')' bloque_ejecutable END_IF { yyerror("Falta de parentesis de apertura en seleccion"); $$ = new ParserVal(null);} 
@@ -477,61 +525,30 @@ seleccion:
 
 condicion: 
     expresion comparador expresion {
-        System.out.println("Condicion");
         NodoAST comp = (NodoAST) $2.obj;
         $$ = new ParserVal(new NodoBinario(comp.getEtiqueta(), (NodoAST)$1.obj, (NodoAST)$3.obj));
     }
     ;
 
 comparador: 
-    IGUAL {
-        $$ = new ParserVal(new NodoHoja("==", "==", getLineaActual()));
-        System.out.println("Comparador");
-    }
-    | DISTINTO {
-        $$ = new ParserVal(new NodoHoja("!=", "!=", getLineaActual()));
-        System.out.println("Comparador");
-    }
-    | MAYORIGUAL {
-        $$ = new ParserVal(new NodoHoja(">=", ">=", getLineaActual()));
-        System.out.println("Comparador");
-    }
-    | MENORIGUAL {
-        $$ = new ParserVal(new NodoHoja("<=", "<=", getLineaActual()));
-        System.out.println("Comparador");
-    }
-    | '>' {
-        $$ = new ParserVal(new NodoHoja(">", ">", getLineaActual()));
-        System.out.println("Comparador");
-    }
-    | '<'  {
-        $$ = new ParserVal(new NodoHoja("<", "<", getLineaActual()));
-        System.out.println("Comparador");
-    }
+    IGUAL {$$ = new ParserVal(new NodoHoja("==", "==", getLineaActual()));}
+    | DISTINTO { $$ = new ParserVal(new NodoHoja("!=", "!=", getLineaActual()));}
+    | MAYORIGUAL {$$ = new ParserVal(new NodoHoja(">=", ">=", getLineaActual()));}
+    | MENORIGUAL {$$ = new ParserVal(new NodoHoja("<=", "<=", getLineaActual()));}
+    | '>' {$$ = new ParserVal(new NodoHoja(">", ">", getLineaActual()));}
+    | '<'  {$$ = new ParserVal(new NodoHoja("<", "<", getLineaActual()));}
     ;
 
  bloque_ejecutable:  
-    sentencia_ejecutable {
-        $$ = $1;
-        System.out.println("BloqueEJ1");
-    }
-    | BEGIN sentencias_ejecutables END {
-        $$ = $2;
-        System.out.println("BloqueEJ2");
-    }
+    sentencia_ejecutable {$$ = $1;}
+    | BEGIN sentencias_ejecutables END {$$ = $2;}
     | error sentencias_ejecutables END {yyerror("Declaracion de bloque ejecutable: Falta el BEGIN "); $$ = new ParserVal(null);}
     | BEGIN sentencias_ejecutables error {yyerror("Declaracion de bloque ejecutable: Falta el END "); $$ = new ParserVal(null);}
     ;
 
 salida: 
-    POUT '(' CADENA ')' {
-        $$ = new ParserVal(new NodoPrint(new NodoHoja("CADENA", $3.sval, getLineaActual())));
-        System.out.println("POUT cadena");
-    } 
-    | POUT '(' expresion ')' {
-        System.out.println("POUT expresion");
-        $$ = new ParserVal(new NodoPrint((NodoAST)$3.obj));
-    }
+    POUT '(' CADENA ')' {$$ = new ParserVal(new NodoPrint(new NodoHoja("CADENA", $3.sval, getLineaActual())));} 
+    | POUT '(' expresion ')' {$$ = new ParserVal(new NodoPrint((NodoAST)$3.obj));}
     | POUT'('')' {yyerror("Falta Argumento en POUT"); $$ = new ParserVal(null);}
     | POUT '('expresion {yyerror ("Falta parentesis de cierre"); $$ = new ParserVal(null);}
     | POUT expresion ')' {yyerror ("Falta parentesis de apertura"); $$ = new ParserVal(null);}
@@ -543,8 +560,25 @@ salida:
 
 retorno: 
     RET '(' expresion ')' {
-        $$ = new ParserVal(new NodoReturn((NodoAST)$3.obj));
-        System.out.println("Declaracion Retorno");
+        String ambito = getAmbitoActual();
+        String tipoRetorno = null;
+
+        int separador = ambito.lastIndexOf(':');
+
+        if (separador >= 0) {
+            String nombre = ambito.substring(separador + 1);
+            RegistroSimboloTp3 registro;
+            if (!pilaClases.isEmpty()) {
+                registro = tablaSimbolos.resolverMiembroClase(pilaClases.peek(),nombre);
+            } else {
+                registro = tablaSimbolos.resolverFuncion(nombre);
+            }
+
+            if (registro != null) {
+                tipoRetorno = registro.getTipo();
+            }
+        }
+        $$ = new ParserVal(new NodoReturn((NodoAST)$3.obj,tipoRetorno,getLineaActual()));
     }
     | RET error ';' {yyerror("Retorno debe tener una expresion y parentesis"); $$ = new ParserVal(null);}
     ;
@@ -560,8 +594,10 @@ private RecolectorErroresTp3 recolectorErrores;
 public Parser(AnalizadorLexicoTp3 lexer){
     this.lexer = lexer;
     this.tablaSimbolos = lexer.getTablaSimbolos();
+    this.raizAST.setTablaSimbolos(this.tablaSimbolos);
     this.gestorAmbitos = new GestionAmbitoTp3(this.tablaSimbolos);
     this.recolectorErrores = lexer.getRecolectorErroresTp3();
+    NodoAST.setRecolectorErrores(this.recolectorErrores);
 }
 
 public NodoAST getRaizAST() {
@@ -576,6 +612,7 @@ private int yylex(){
     return token;
 }
 
+
 private void declararListaVariables(List<String> nombres, String tipo, boolean comptime) {
     for (String nombre : nombres) {
         RegistroSimboloTp3 reg = gestorAmbitos.declararVariable(nombre, tipo, lexer.getLineaActual(), comptime);
@@ -589,9 +626,7 @@ private void registrarClasesBase(List<String> clasesBase) {
     if (clasesBase == null || pilaClases.isEmpty()) {
         return;
     }
-
     String clase = pilaClases.peek();
-
     for (String base : clasesBase) {
         if (!gestorAmbitos.agregarClaseBase(clase, base)) {
             errorSemantico("Clase base no existe: " + base);
@@ -610,29 +645,312 @@ private void yyerror(String mensaje){
     recolectorErrores.agregarError("Sintactico",lexer.getLineaActual(),mensaje);
 }
 
+
 private void actualizarComptimeSiCorresponde(NodoAST izquierdo, NodoAST derecho) {
-    if (gestorAmbitos.estaSuprimido()) {
-        return;
-    }
-    
-    if (!(izquierdo instanceof NodoHoja) || !(derecho instanceof NodoHoja)) {
-        return;
-    }
+    if (gestorAmbitos.estaSuprimido()) return;
+    if (!(izquierdo instanceof NodoHoja)) return;
 
     NodoHoja hojaIzq = (NodoHoja) izquierdo;
-    NodoHoja hojaDer = (NodoHoja) derecho;
 
-    // Solo actualizamos asignaciones simples del tipo: ID := CTE
-    if (!"ID".equals(hojaIzq.getTipoNodo()) || !"CTE".equals(hojaDer.getTipoNodo())) {
-        return;
-    }
+    if (!"ID".equals(hojaIzq.getTipoNodo())) return;
 
     RegistroSimboloTp3 reg = tablaSimbolos.buscar(hojaIzq.getValor());
 
-    if (reg != null && reg.esComptime()) {
-        tablaSimbolos.actualizarValorComptime(hojaIzq.getValor(),hojaDer.getValor(),lexer.getLineaActual());
+    if (reg == null || !reg.esComptime()) return;
+
+    String resultado = evaluarValorComptime(derecho);
+
+    if (resultado != null) {
+        tablaSimbolos.actualizarValorComptime(hojaIzq.getValor(),resultado,getLineaActual());
+    } else {
+        reg.quitarAtributo("VALOR_COMPTIME");  // El resultado no se puede determinar durante la compilación.
     }
 }
+
+
+
+private void invalidarComptimesModificadosEnControl(NodoAST nodo) {
+    if (nodo == null) {
+        return;
+    }
+    java.util.List<RegistroSimboloTp3> modificados = new java.util.ArrayList<>();
+
+    recolectarVariablesComptimeModificadas(nodo, modificados);
+
+    for (RegistroSimboloTp3 registro : modificados) {
+        registro.quitarAtributo("VALOR_COMPTIME");
+    }
+    invalidarReferenciasComptime(nodo, modificados);
+}
+
+
+private void recolectarVariablesComptimeModificadas( NodoAST nodo, java.util.List<RegistroSimboloTp3> modificados) {
+    if (nodo == null) {
+        return;
+    }
+
+    if (nodo instanceof NodoAsignacion) {
+        NodoAsignacion asignacion = (NodoAsignacion) nodo;
+        NodoAST variable = asignacion.getVariable();
+
+        if (variable instanceof NodoHoja) {
+            NodoHoja hoja = (NodoHoja) variable;
+            RegistroSimboloTp3 registro = hoja.getSimboloVinculado();
+            if (registro != null && registro.esComptime()) {
+                boolean existe = false;
+                for (RegistroSimboloTp3 anterior : modificados) {
+                    if (anterior == registro) {
+                        existe = true;
+                        break;
+                    }
+                }
+                if (!existe) {
+                    modificados.add(registro);
+                }
+            }
+        }
+
+        recolectarVariablesComptimeModificadas(asignacion.getExpresion(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoBloque) {
+        for (NodoAST sentencia :((NodoBloque) nodo).getSentencias()) {
+            recolectarVariablesComptimeModificadas(sentencia, modificados);
+        }
+        return;
+    }
+
+    if (nodo instanceof NodoIF) {
+        NodoIF seleccion = (NodoIF) nodo;
+        recolectarVariablesComptimeModificadas(seleccion.getCondicion(), modificados);
+        recolectarVariablesComptimeModificadas(seleccion.getCuerpoThen(), modificados);
+        recolectarVariablesComptimeModificadas(seleccion.getCuerpoElse(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoRepeat) {
+        NodoRepeat repeticion = (NodoRepeat) nodo;
+        recolectarVariablesComptimeModificadas(repeticion.getCuerpo(), modificados);
+        recolectarVariablesComptimeModificadas(repeticion.getCondicion(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoBinario) {
+        NodoBinario binario = (NodoBinario) nodo;
+        recolectarVariablesComptimeModificadas(binario.getIzq(), modificados);
+        recolectarVariablesComptimeModificadas(binario.getDer(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoUnario) {
+        recolectarVariablesComptimeModificadas(((NodoUnario) nodo).getOperando(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoAccesoArreglo) {
+        NodoAccesoArreglo acceso = (NodoAccesoArreglo) nodo;
+        recolectarVariablesComptimeModificadas(acceso.getArreglo(), modificados);
+        recolectarVariablesComptimeModificadas(acceso.getIndice(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoPrint) {
+        recolectarVariablesComptimeModificadas(((NodoPrint) nodo).getContenido(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoReturn) {
+        recolectarVariablesComptimeModificadas(((NodoReturn) nodo).getExpresionRetorno(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoListaParametros) {
+        for (NodoAST parametro :((NodoListaParametros) nodo).getParametros()) {
+            recolectarVariablesComptimeModificadas(parametro, modificados);
+        }
+        return;
+    }
+
+    if (nodo instanceof NodoInvocacion) {
+        recolectarVariablesComptimeModificadas(((NodoInvocacion) nodo).getParametros(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoInvocacionMetodo) {
+        recolectarVariablesComptimeModificadas(((NodoInvocacionMetodo) nodo).getObjeto(), modificados);
+        recolectarVariablesComptimeModificadas(((NodoInvocacionMetodo) nodo).getParametros(), modificados);
+    }
+}
+
+
+private void invalidarReferenciasComptime(NodoAST nodo,java.util.List<RegistroSimboloTp3> modificados) {
+    if (nodo == null) {
+        return;
+    }
+
+    if (nodo instanceof NodoHoja) {
+        NodoHoja hoja = (NodoHoja) nodo;
+        RegistroSimboloTp3 registro = hoja.getSimboloVinculado();
+
+        if (registro != null) {
+            for (RegistroSimboloTp3 modificado : modificados) {
+                if (registro == modificado) {
+                    hoja.invalidarValorComptime();
+                    break;
+                }
+            }
+        }
+        return;
+    }
+
+    if (nodo instanceof NodoAsignacion) {
+        NodoAsignacion asignacion = (NodoAsignacion) nodo;
+        invalidarReferenciasComptime(asignacion.getVariable(), modificados);
+        invalidarReferenciasComptime(asignacion.getExpresion(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoBloque) {
+        for (NodoAST sentencia : ((NodoBloque) nodo).getSentencias()) {
+            invalidarReferenciasComptime(sentencia, modificados);
+        }
+        return;
+    }
+
+    if (nodo instanceof NodoIF) {
+        NodoIF seleccion = (NodoIF) nodo;
+        invalidarReferenciasComptime(seleccion.getCondicion(), modificados);
+        invalidarReferenciasComptime(seleccion.getCuerpoThen(), modificados);
+        invalidarReferenciasComptime(seleccion.getCuerpoElse(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoRepeat) {
+        NodoRepeat repeticion = (NodoRepeat) nodo;
+        invalidarReferenciasComptime(repeticion.getCuerpo(), modificados);
+        invalidarReferenciasComptime(repeticion.getCondicion(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoBinario) {
+        NodoBinario binario = (NodoBinario) nodo;
+        invalidarReferenciasComptime(binario.getIzq(), modificados);
+        invalidarReferenciasComptime(binario.getDer(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoUnario) {
+        invalidarReferenciasComptime(((NodoUnario) nodo).getOperando(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoAccesoArreglo) {
+        NodoAccesoArreglo acceso = (NodoAccesoArreglo) nodo;
+
+        invalidarReferenciasComptime(acceso.getArreglo(), modificados);
+        invalidarReferenciasComptime(acceso.getIndice(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoPrint) {
+        invalidarReferenciasComptime(((NodoPrint) nodo).getContenido(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoReturn) {
+        invalidarReferenciasComptime(((NodoReturn) nodo).getExpresionRetorno(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoListaParametros) {
+        for (NodoAST parametro :((NodoListaParametros) nodo).getParametros()) {
+            invalidarReferenciasComptime(parametro, modificados);
+        }
+        return;
+    }
+
+    if (nodo instanceof NodoInvocacion) {
+        invalidarReferenciasComptime(((NodoInvocacion) nodo).getParametros(), modificados);
+        return;
+    }
+
+    if (nodo instanceof NodoInvocacionMetodo) {
+        NodoInvocacionMetodo invocacion =(NodoInvocacionMetodo) nodo;
+        invalidarReferenciasComptime(invocacion.getObjeto(), modificados);
+        invalidarReferenciasComptime(invocacion.getParametros(), modificados);
+    }
+}
+
+
+private String evaluarValorComptime(NodoAST nodo) {
+    if (nodo == null) return null;
+
+    if (nodo instanceof NodoHoja) {
+        NodoHoja hoja = (NodoHoja) nodo;
+
+        if ("CTE".equals(hoja.getTipoNodo())) {
+            return hoja.getValor();
+        }
+
+        if ("ID".equals(hoja.getTipoNodo())) {
+            return tablaSimbolos.obtenerValorComptime(hoja.getValor());
+        }
+        return null;
+    }
+
+    if (nodo instanceof NodoBinario) {
+        NodoBinario binario = (NodoBinario) nodo;
+
+        String valorIzq = evaluarValorComptime(binario.getIzq());
+        String valorDer = evaluarValorComptime(binario.getDer());
+
+        if (valorIzq == null || valorDer == null) return null;
+
+        if (!valorIzq.endsWith("$us") || !valorDer.endsWith("$us")) {
+            return null;
+        }
+
+        try {
+            long a = Long.parseLong(valorIzq.substring(0, valorIzq.length() - 3));
+
+            long b = Long.parseLong(valorDer.substring(0, valorDer.length() - 3));
+
+            long resultado;
+
+            switch (binario.getEtiqueta()) {
+                case "+":
+                    resultado = Math.addExact(a, b);
+                    break;
+
+                case "-":
+                    resultado = Math.subtractExact(a, b);
+                    break;
+
+                case "*":
+                    resultado = Math.multiplyExact(a, b);
+                    break;
+
+                case "/":
+                    if (b == 0) return null;
+                    resultado = a / b;
+                    break;
+
+                default:
+                    return null;
+            }
+
+            if (resultado < 0 || resultado > 255) {
+                return null;
+            }
+            return resultado + "$us";
+        } catch (ArithmeticException | NumberFormatException e) {
+            return null;
+        }
+    }
+    return null;
+}
+
 
 private int getLineaActual() {
     return lexer.getLineaActual();
@@ -640,4 +958,56 @@ private int getLineaActual() {
 
 private String getAmbitoActual() {
     return tablaSimbolos.getAmbitoActual();
+}
+
+private void registrarParametroFormal(String nombre, String tipo) {
+    if (gestorAmbitos.estaSuprimido()) {
+        return;
+    }
+
+    String ambitoActual = tablaSimbolos.getAmbitoActual();
+
+    int separador = ambitoActual.lastIndexOf(':');
+
+    if (separador < 0) {
+        errorSemantico("Parámetro formal fuera de una función o método: " + nombre);
+        return;
+    }
+
+    String nombreFuncion = ambitoActual.substring(separador + 1);
+
+    String ambitoDeclaracion = ambitoActual.substring(0, separador);
+
+    RegistroSimboloTp3 parametro = gestorAmbitos.declararParametro(nombre,tipo,lexer.getLineaActual());
+
+    if (parametro == null) {
+        errorSemantico("Parámetro formal ya declarado en el ámbito actual: " + nombre);
+        return;
+    }
+
+    boolean agregado = tablaSimbolos.agregarParametroFormal(nombreFuncion,nombre,tipo,lexer.getLineaActual(),ambitoDeclaracion);
+
+    if (!agregado) {
+        errorSemantico("No se pudo registrar el parámetro en la firma de "+ nombreFuncion + ": " + nombre);
+    }
+}
+
+
+private Integer convertirPosicionParametro(String lexema) {
+
+    if (lexema == null) {
+        return null;
+    }
+
+    int separadorTipo = lexema.indexOf('$');
+
+    String numero = separadorTipo >= 0? lexema.substring(0, separadorTipo): lexema;
+
+    try {
+        int posicion = Integer.parseInt(numero);
+        return posicion > 0 ? posicion : null;
+
+    } catch (NumberFormatException e) {
+        return null;
+    }
 }

@@ -25,6 +25,10 @@ public abstract class NodoAST {
         return tablaSimbolos;
     }
 
+    public String obtenerTipo() {
+        return null;
+    }
+
     public abstract String generarCodigo();
 
     public static void setRecolectorErrores(RecolectorErroresTp3 recolector) {

@@ -147,7 +147,7 @@ public class RegistroSimboloTp3 { // Representa una entrada de la tabla de simbo
         return valor == null ? "-" : valor;
     }
 
-    public static final class ParametroTp3 {//Elemento de la firma de una funcion o metodo.
+    public static final class ParametroTp3 { //Elemento de la firma de una funcion o metodo.
         private final String nombre;
         private final String tipo;
         private final int linea;
@@ -155,6 +155,10 @@ public class RegistroSimboloTp3 { // Representa una entrada de la tabla de simbo
         public ParametroTp3(String nombre, String tipo, int linea) {
             if (nombre == null || nombre.trim().isEmpty()) {
                 throw new IllegalArgumentException("El nombre del parametro no puede ser vacio.");
+            }
+
+            if (tipo == null || tipo.trim().isEmpty()) {
+                throw new IllegalArgumentException("El tipo del parametro no puede ser vacio.");
             }
             this.nombre = nombre;
             this.tipo = tipo;
