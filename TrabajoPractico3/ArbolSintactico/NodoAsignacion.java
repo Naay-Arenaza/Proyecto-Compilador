@@ -14,13 +14,9 @@ public class NodoAsignacion extends NodoAST {
         this.expresion = expresion;
     }
 
-    public NodoAST getVariable() {
-        return variable;
-    }
+    public NodoAST getVariable() { return variable;}
 
-    public NodoAST getExpresion() {
-        return expresion;
-    }
+    public NodoAST getExpresion() { return expresion;}
 
     private int obtenerLinea() {
         if (variable instanceof NodoHoja) {
@@ -29,73 +25,36 @@ public class NodoAsignacion extends NodoAST {
         return 0;
     }
 
-    
-private boolean validarTipos() {
-    TablaDeSimbolosTp3 tabla = getTablaSimbolos();
+    private boolean validarTipos() {
+        TablaDeSimbolosTp3 tabla = getTablaSimbolos();
 
-    if (tabla == null || variable == null || expresion == null) {
-        return false;
-    }
+        if (tabla == null || variable == null || expresion == null) {
+            return false;
+        }
 
         String tipoDestino = variable.obtenerTipo();
         String tipoExpresion = expresion.obtenerTipo();
 
         if (tipoDestino == null || tipoExpresion == null) {
-
-            // Primero comprobamos si el error proviene de una operación binaria.
-            if (expresion instanceof NodoBinario) {
-                NodoBinario binario = (NodoBinario) expresion;
-
-                if (binario.getErrorTipo() != null) {
-                    registrarError(
-                        "Semántico",
-                        obtenerLinea(),
-                        binario.getErrorTipo()
-                    );
-                    return false;
-                }
+            String error = null;
+            
+            if (tipoDestino == null) {// Primero revisamos si falló la variable de destino.
+                error = variable.obtenerErrorTipo();
             }
 
-            // Después comprobamos si el error proviene de una conversión TODF.
-            if (expresion instanceof NodoUnario) {
-                NodoUnario unario = (NodoUnario) expresion;
-
-                if (unario.getErrorTipo() != null) {
-                    registrarError(
-                        "Semántico",
-                        obtenerLinea(),
-                        unario.getErrorTipo()
-                    );
-                    return false;
-                }
+            if (error == null && tipoExpresion == null) {// Si no hay error allí, revisamos la expresión.
+                error = expresion.obtenerErrorTipo();
             }
-
-            registrarError(
-                "Semántico",
-                obtenerLinea(),
-                "No se pudo determinar el tipo de la variable o de la expresión."
-            );
-
+            registrarError("Semántico",obtenerLinea(), error != null ? error : "No se pudo determinar el tipo de la variable o de la expresión." );
             return false;
         }
 
-        // Asignación entre tipos iguales.
-        if (tabla.tipoCompatibleAsignacion(tipoDestino, tipoExpresion, false)) {
-            return true;
-        }
+        if (tabla.tipoCompatibleAsignacion(tipoDestino, tipoExpresion, false)) { return true; } // Asignación entre tipos iguales.
 
-        // Compatibilidad estructural de objetos (Tema 25).
-        if (tabla.tiposObjetoCompatibles(tipoDestino, tipoExpresion)) {
-            return true;
-        }
+            
+        if (tabla.tiposObjetoCompatibles(tipoDestino, tipoExpresion)) { return true;}// Compatibilidad estructural de objetos (Tema 25).
 
-        registrarError(
-            "Semántico",
-            obtenerLinea(),
-            "Tipos incompatibles en la asignación: no se puede asignar "
-                + tipoExpresion + " a " + tipoDestino + "."
-        );
-
+        registrarError("Semántico",obtenerLinea(),"Tipos incompatibles en la asignación: no se puede asignar " + tipoExpresion + " a " + tipoDestino + "." );
         return false;
     }
 
@@ -109,13 +68,8 @@ private boolean validarTipos() {
 
     @Override
     public String generarCodigo() {
-
-        if (!validarTipos()) {
-            return null;
-        }
-
+        if (!validarTipos()) { return null; }
         String der = expresion.generarCodigo();
-
         String izq;
 
         if (variable instanceof NodoHoja) {
@@ -124,9 +78,7 @@ private boolean validarTipos() {
             izq = variable.generarCodigo();
         }
 
-        if (der == null || izq == null) {
-            return null;
-        }
+        if (der == null || izq == null) { return null; }
 
         System.out.println(izq + " := " + der);
         return izq;

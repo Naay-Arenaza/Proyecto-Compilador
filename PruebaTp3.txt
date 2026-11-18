@@ -1,12 +1,11 @@
 prog
-
-DOUBLEF FUNCTION calcular(USHORTINT a)
+USHORTINT contador;
 BEGIN
-    RET(TODF(a));
-END;
+    contador := 1$us;
 
-DOUBLEF x;
-
-BEGIN
-    x := calcular(10$us);
+    WHILE (contador <= 5$us) REPEAT
+        BEGIN
+            POUT(contador);
+            contador := contador + 1$us;
+        END;
 END

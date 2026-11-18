@@ -48,11 +48,19 @@ public class NodoReturn extends NodoAST {
         String tipoExpresion = expresionRetorno.obtenerTipo();
 
         if (tipoExpresion == null) {
-            registrarError(
-                "Semántico",
-                linea,
-                "No se pudo determinar el tipo de la expresión de retorno."
-            );
+
+            String errorExpresion = expresionRetorno.obtenerErrorTipo();
+
+            if (errorExpresion != null) {
+                registrarError("Semántico", linea, errorExpresion);
+            } else {
+                registrarError(
+                    "Semántico",
+                    linea,
+                    "No se pudo determinar el tipo de la expresión de retorno."
+                );
+            }
+
             return null;
         }
 

@@ -17,44 +17,28 @@ public class NodoRepeat extends NodoAST {
     @Override
     public String generarCodigo() {
 
-        // 1. Validar semánticamente la condición.
-        if (condicion instanceof NodoBinario) {
+        if (condicion instanceof NodoBinario) {// 1. Validar semánticamente la condición.
             NodoBinario binario = (NodoBinario) condicion;
 
             if (binario.obtenerTipo() == null) {
                 String error = binario.getErrorTipo();
-
-                registrarError(
-                    "Semántico",
-                    obtenerLinea(condicion),
-                    error != null
-                        ? error
-                        : "La condición del REPEAT tiene tipos incompatibles."
-                );
-
+                registrarError("Semántico", obtenerLinea(condicion), error != null ? error : "La condición del REPEAT tiene tipos incompatibles.");
                 return null;
             }
         }
 
-        // 2. Etiqueta de inicio de iteración.
-        String lInicio = GeneradorTAC.nuevaEtiqueta();
+        String lInicio = GeneradorTAC.nuevaEtiqueta();// 2. Etiqueta de inicio de iteración.
         System.out.println(lInicio + ":");
 
-        // 3. Generar el código del cuerpo.
-        if (cuerpo != null) {
+        if (cuerpo != null) {// 3. Generar el código del cuerpo.
             cuerpo.generarCodigo();
         }
 
-        // 4. Evaluar condición.
-        if (condicion != null) {
+        if (condicion != null) {// 4. Evaluar condición.
             String condRes = condicion.generarCodigo();
-
             if (condRes == null) return null;
-
-            // Volver al inicio si la condición es verdadera.
-            System.out.println("IF " + condRes + " GOTO " + lInicio);
+            System.out.println("IF " + condRes + " GOTO " + lInicio); // Volver al inicio si la condición es verdadera.
         }
-
         return null;
     }
 
@@ -65,7 +49,6 @@ public class NodoRepeat extends NodoAST {
 
         if (nodo instanceof NodoBinario) {
             NodoBinario binario = (NodoBinario) nodo;
-
             int linea = obtenerLinea(binario.getIzq());
             return linea != 0 ? linea : obtenerLinea(binario.getDer());
         }

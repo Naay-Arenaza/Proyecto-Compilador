@@ -1,4 +1,5 @@
 
+
 package TrabajoPractico3.ArbolSintactico;
 
 import java.util.List;
@@ -13,21 +14,16 @@ public class NodoInvocacionMetodo extends NodoAST {
     private final NodoListaParametros parametros;
     private final List<Integer> ordenParametros;
     private final int linea;
+    private String errorTipo;
 
-    public NodoInvocacionMetodo(
-            NodoHoja objeto,
-            String metodo,
-            NodoListaParametros parametros,
-            List<Integer> ordenParametros,
-            int linea) {
-
+    public NodoInvocacionMetodo(NodoHoja objeto, String metodo, NodoListaParametros parametros,  List<Integer> ordenParametros, int linea) {
         super("INVOCACION_METODO");
-
         this.objeto = objeto;
         this.metodo = metodo;
         this.parametros = parametros;
         this.ordenParametros = ordenParametros;
         this.linea = linea;
+        this.errorTipo = null;
     }
 
     public NodoHoja getObjeto() {
@@ -46,170 +42,131 @@ public class NodoInvocacionMetodo extends NodoAST {
         return ordenParametros;
     }
 
-    @Override
-public String obtenerTipo() {
-
-    TablaDeSimbolosTp3 tabla = getTablaSimbolos();
-
-    if (tabla == null || objeto == null) {
-        return null;
+    public String getErrorTipo() {
+        return errorTipo;
     }
-
-    // Obtener el símbolo del objeto.
-    RegistroSimboloTp3 registroObjeto =
-        objeto.getSimboloVinculado();
-
-    if (registroObjeto == null ||
-        !TablaDeSimbolosTp3.USO_OBJETO.equals(
-            registroObjeto.getUso())) {
-        return null;
-    }
-
-    // Resolver el método en la clase del objeto.
-    RegistroSimboloTp3 registroMetodo =
-        tabla.resolverMiembroClase(
-            registroObjeto.getTipo(),
-            metodo
-        );
-
-    if (registroMetodo == null ||
-        !TablaDeSimbolosTp3.USO_METODO.equals(
-            registroMetodo.getUso())) {
-        return null;
-    }
-
-    // El tipo del símbolo del método es su tipo de retorno.
-    return registroMetodo.getTipo();
-}
 
     @Override
-    public String generarCodigo() {
+    public String obtenerErrorTipo() {
+        return errorTipo;
+    }
 
+    @Override
+    public String obtenerTipo() {
+        errorTipo = null;
         TablaDeSimbolosTp3 tabla = getTablaSimbolos();
 
         if (tabla == null) {
-            registrarError(
-                "Interno",
-                linea,
-                "No se configuró la tabla de símbolos para generar la invocación del método."
-            );
+            errorTipo = "No se pudo acceder a la tabla de símbolos.";
+            return null;
+        }
+
+        if (objeto == null) {
+            errorTipo = "No se especificó el objeto de la invocación.";
+            return null;
+        }
+
+        RegistroSimboloTp3 registroObjeto = objeto.getSimboloVinculado();
+
+        if (registroObjeto == null || !TablaDeSimbolosTp3.USO_OBJETO.equals( registroObjeto.getUso())) {
+            String errorObjeto = objeto.obtenerErrorTipo();
+            errorTipo = errorObjeto != null ? errorObjeto : "'" + objeto.getValor() + "' no es un objeto declarado.";
+            return null;
+        }
+
+        RegistroSimboloTp3 registroMetodo = tabla.resolverMiembroClase( registroObjeto.getTipo(),  metodo);
+
+        if (registroMetodo == null || !TablaDeSimbolosTp3.USO_METODO.equals(registroMetodo.getUso())) {
+            errorTipo = "El método '" + metodo + "' no existe en la clase '" + registroObjeto.getTipo() + "'.";
+            return null;
+        }
+        return registroMetodo.getTipo();
+    }
+
+    @Override
+    public String generarCodigo() {
+        TablaDeSimbolosTp3 tabla = getTablaSimbolos();
+
+        if (tabla == null) {
+            registrarError( "Interno",    linea,"No se configuró la tabla de símbolos para generar la invocación del método.");
             return "";
         }
 
-        // Obtener el símbolo concreto del objeto.
-        RegistroSimboloTp3 registroObjeto =
-            objeto.getSimboloVinculado();
-
-        if (registroObjeto == null ||
-            !TablaDeSimbolosTp3.USO_OBJETO.equals(
-                registroObjeto.getUso())) {
-
-            registrarError(
-                "Semántico",
-                linea,
-                "'" + objeto.getValor() +
-                "' no es un objeto declarado."
-            );
+        if (objeto == null) {
+            registrarError("Semántico",linea, "No se especificó el objeto de la invocación.");
             return "";
         }
 
-        // Resolver el método en la clase del objeto.
-        RegistroSimboloTp3 registroMetodo =
-            tabla.resolverMiembroClase(
-                registroObjeto.getTipo(),
-                metodo
-            );
+        RegistroSimboloTp3 registroObjeto = objeto.getSimboloVinculado();
 
-        if (registroMetodo == null ||
-            !TablaDeSimbolosTp3.USO_METODO.equals(
-                registroMetodo.getUso())) {
-
-            registrarError(
-                "Semántico",
-                linea,
-                "El método '" + metodo +
-                "' no existe en la clase '" +
-                registroObjeto.getTipo() + "'."
-            );
+        if (registroObjeto == null || !TablaDeSimbolosTp3.USO_OBJETO.equals( registroObjeto.getUso())) {
+            String error = objeto.obtenerErrorTipo();
+            registrarError( "Semántico", linea,error != null ? error: "'" + objeto.getValor()  + "' no es un objeto declarado.");
             return "";
         }
 
-        List<NodoAST> argumentos =
-            parametros.getParametros();
+        RegistroSimboloTp3 registroMetodo = tabla.resolverMiembroClase(registroObjeto.getTipo(), metodo);
 
-        // Verificar cantidad de argumentos.
-        if (!tabla.validarCantidadParametros(
-                metodo,
-                registroMetodo.getAmbito(),
-                argumentos.size())) {
-
-            registrarError(
-                "Semántico",
-                linea,
-                "Cantidad de argumentos incorrecta al invocar '" +
-                metodo + "'. Se recibieron " +
-                argumentos.size() + " y se esperaban " +
-                registroMetodo.getCantidadParametros() + "."
-            );
+        if (registroMetodo == null || !TablaDeSimbolosTp3.USO_METODO.equals( registroMetodo.getUso())) {
+            registrarError("Semántico", linea, "El método '" + metodo + "' no existe en la clase '"  + registroObjeto.getTipo() + "'." );
             return "";
         }
 
-        // Validar orden de copia.
-        if (!tabla.validarOrdenParametros(
-                ordenParametros,
-                argumentos.size())) {
-
-            registrarError(
-                "Semántico",
-                linea,
-                "El orden de parámetros del método '" +
-                metodo + "' debe ser una permutación de 1 a " +
-                argumentos.size() + "."
-            );
+        if (parametros == null || parametros.getParametros() == null) {// Validar la lista de argumentos.
+            registrarError( "Sintáctico", linea,   "La invocación del método '" + metodo + "' tiene una lista de argumentos inválida." );
             return "";
         }
 
-        List<Integer> ordenCopia =
-            tabla.obtenerOrdenDeCopia(
-                ordenParametros,
-                argumentos.size()
-            );
+        List<NodoAST> argumentos =  parametros.getParametros();
+        List<RegistroSimboloTp3.ParametroTp3> formales = registroMetodo.getParametros();
 
-        List<RegistroSimboloTp3.ParametroTp3> formales =
-            registroMetodo.getParametros();
-
-        for (Integer indice : ordenCopia) {
-
-            String valorReal =
-                argumentos.get(indice).generarCodigo();
-
-            RegistroSimboloTp3.ParametroTp3 formal =
-                formales.get(indice);
-
-            String nombreFormal =
-                formal.getNombre() + ":" +
-                registroMetodo.getAmbito() + ":" +
-                registroMetodo.getLexema();
-
-            System.out.println(
-                nombreFormal + " := " + valorReal
-            );
+        if (!tabla.validarCantidadParametros( metodo, registroMetodo.getAmbito(), argumentos.size())) {// Validar cantidad de argumentos.
+            registrarError( "Semántico", linea,"Cantidad de argumentos incorrecta al invocar '"  + metodo + "'. Se recibieron "  + argumentos.size() + " y se esperaban " + registroMetodo.getCantidadParametros() + ".");
+            return "";
         }
 
-        String etiqueta =
-            "METHOD_" +
-            registroMetodo.getAmbito().replace(':', '_') +
-            "_" + registroMetodo.getLexema();
+        for (int i = 0; i < argumentos.size(); i++) {// Validar tipos de los argumentos.
+            NodoAST argumento = argumentos.get(i);
+            String tipoReal = argumento.obtenerTipo();
+            String tipoFormal = formales.get(i).getTipo();
+            if (tipoReal == null || tipoFormal == null) {
+                String errorArgumento =argumento.obtenerErrorTipo();
+                registrarError( "Semántico", linea,  errorArgumento != null  ? errorArgumento : "No se pudo determinar el tipo del argumento "  + (i + 1) + " del método '" + metodo + "'." );
+                return "";
+            }
 
+            boolean compatible =  tabla.tipoCompatibleAsignacion( tipoFormal,tipoReal, false);
+
+            boolean compatibleEstructural = tabla.tiposObjetoCompatibles( tipoFormal, tipoReal);
+
+            if (!compatible && !compatibleEstructural) {
+                registrarError(  "Semántico", linea, "Tipo incompatible para el parámetro '"  + formales.get(i).getNombre()   + "' del método '" + metodo + "': se esperaba " + tipoFormal  + " y se recibió " + tipoReal + ".");
+                return "";
+            }
+        }
+
+        if (!tabla.validarOrdenParametros(ordenParametros, argumentos.size())) {// Validar el orden de copia.
+            registrarError( "Semántico", linea, "El orden de parámetros del método '" + metodo + "' debe ser una permutación de 1 a " + argumentos.size() + ".");
+            return "";
+        }
+
+        List<Integer> ordenCopia = tabla.obtenerOrdenDeCopia(ordenParametros, argumentos.size());
+        
+        for (Integer indice : ordenCopia) {// Copiar argumentos a parámetros formales.
+            String valorReal = argumentos.get(indice).generarCodigo();
+            if (valorReal == null) { return "";}
+            RegistroSimboloTp3.ParametroTp3 formal = formales.get(indice);
+            String nombreFormal =  formal.getNombre() + ":"  + registroMetodo.getAmbito() + ":" + registroMetodo.getLexema();
+            System.out.println(nombreFormal + " := " + valorReal );
+        }
+        
+        String etiqueta = "METHOD_" + registroMetodo.getAmbito().replace(':', '_')  + "_" + registroMetodo.getLexema();// Generar llamada al método.
         String nombreObjeto = objeto.generarCodigo();
-
+        if (nombreObjeto == null) {
+            return "";
+        }
         String resultado = GeneradorTAC.nuevoTemporal();
-
-        System.out.println(
-            resultado + " = CALL_METHOD " +
-            nombreObjeto + ", " + etiqueta
-        );
-
+        System.out.println(resultado + " = CALL_METHOD "  + nombreObjeto + ", " + etiqueta );
         return resultado;
     }
 }

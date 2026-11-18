@@ -16,13 +16,9 @@ public class NodoBloque extends NodoAST {
         this.sentencias = new ArrayList<>(sentencias);
     }
 
-    public void agregarSentencia(NodoAST sentencia) {
-        sentencias.add(sentencia);
-    }
+    public void agregarSentencia(NodoAST sentencia) {  sentencias.add(sentencia); }
 
-    public List<NodoAST> getSentencias() {
-        return Collections.unmodifiableList(sentencias);
-    }
+    public List<NodoAST> getSentencias() { return Collections.unmodifiableList(sentencias); }
 
     @Override
     public String generarCodigo() {

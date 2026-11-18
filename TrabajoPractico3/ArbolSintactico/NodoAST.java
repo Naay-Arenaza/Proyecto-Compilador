@@ -8,32 +8,21 @@ public abstract class NodoAST {
     private static TablaDeSimbolosTp3 tablaSimbolos;
     private static RecolectorErroresTp3 recolectorErrores;
 
-    public NodoAST(String etiqueta) {
-        this.etiqueta = etiqueta;
-    }
+    public NodoAST(String etiqueta) {this.etiqueta = etiqueta; }
     
+    public String getEtiqueta() {return etiqueta; }
 
-    public String getEtiqueta() {
-        return etiqueta;
-    }
+    public static void setTablaSimbolos(TablaDeSimbolosTp3 tabla) { NodoAST.tablaSimbolos = tabla; }
 
-    public static void setTablaSimbolos(TablaDeSimbolosTp3 tabla) {
-        NodoAST.tablaSimbolos = tabla;
-    }
+    protected static TablaDeSimbolosTp3 getTablaSimbolos() { return tablaSimbolos; }
 
-    protected static TablaDeSimbolosTp3 getTablaSimbolos() {
-        return tablaSimbolos;
-    }
+    public String obtenerTipo() { return null;}
 
-    public String obtenerTipo() {
-        return null;
-    }
+    public String obtenerErrorTipo() { return null;}
 
     public abstract String generarCodigo();
 
-    public static void setRecolectorErrores(RecolectorErroresTp3 recolector) {
-        NodoAST.recolectorErrores = recolector;
-    }
+    public static void setRecolectorErrores(RecolectorErroresTp3 recolector) { NodoAST.recolectorErrores = recolector;}
 
     protected static void registrarError(String tipo, int linea, String descripcion) {
         if (recolectorErrores != null) {

@@ -21,6 +21,11 @@ public class NodoUnario extends NodoAST {
     }
 
     @Override
+    public String obtenerErrorTipo() {
+        return errorTipo;
+    }
+
+    @Override
     public String obtenerTipo() {
         errorTipo = null;
 
@@ -32,7 +37,15 @@ public class NodoUnario extends NodoAST {
         String tipoOperando = operando.obtenerTipo();
 
         if (tipoOperando == null) {
-            errorTipo = "No se pudo determinar el tipo del operando de TODF.";
+
+            String errorOperando = operando.obtenerErrorTipo();
+
+            if (errorOperando != null) {
+                errorTipo = errorOperando;
+            } else {
+                errorTipo = "No se pudo determinar el tipo del operando de TODF.";
+            }
+
             return null;
         }
 

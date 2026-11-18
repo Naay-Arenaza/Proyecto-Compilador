@@ -13,8 +13,8 @@ public class NodoClase extends NodoAST {
     }
 
     public String getNombre() { return nombre; }
-    public String getAmbitoCompleto() { return ambitoCompleto; }
 
+    public String getAmbitoCompleto() { return ambitoCompleto; }
 
     @Override
     public String generarCodigo() {

@@ -198,21 +198,33 @@ encabezado_clase:
     ;
 
 cuerpo_clase:
-    elementos_clase sentencia_extends
-    | elementos_clase
-    | sentencia_extends
-    |
+    elementos_clase sentencia_extends { $$ = $1; }
+    | elementos_clase { $$ = $1; }
+    | sentencia_extends { $$ = new ParserVal(new NodoBloque()); }
+    | { $$ = new ParserVal(new NodoBloque());}
     ;
 
-elementos_clase: 
-    elementos_clase elemento_clase
-    | elemento_clase
+elementos_clase:
+    elementos_clase elemento_clase {
+        NodoBloque bloque = (NodoBloque) $1.obj;
+        if ($2.obj instanceof NodoAST) {
+            bloque.agregarSentencia((NodoAST) $2.obj);
+        }
+        $$ = new ParserVal(bloque);
+    }
+    | elemento_clase {
+        NodoBloque bloque = new NodoBloque();
+        if ($1.obj instanceof NodoAST) {
+            bloque.agregarSentencia((NodoAST) $1.obj);
+        }
+        $$ = new ParserVal(bloque);
+    }
     ;
 
-elemento_clase: 
-    declaracion_variables
-    | declaracion_metodo
-    | declaracion_objeto
+elemento_clase:
+    declaracion_variables { $$ = new ParserVal(null);}
+    | declaracion_metodo { $$ = $1;}
+    | declaracion_objeto {  $$ = new ParserVal(null);}
     ;
 
 sentencia_extends:
@@ -273,13 +285,14 @@ declaracion_objeto:
         String tipoClase = $1.sval;
 
         for (String nombre : nombres) {
-            RegistroSimboloTp3 obj = gestorAmbitos.declararObjeto(nombre, tipoClase, lexer.getLineaActual());
+            RegistroSimboloTp3 obj = gestorAmbitos.declararObjeto(nombre, tipoClase, getLineaActual());
             if (obj == null) {
                 errorSemantico("No se pudo declarar el objeto '" + nombre + "': clase no visible o identificador duplicado");
             }
         }
+        $$ = new ParserVal(null);
     }
-    | ID lista_variables { yyerror("Declaracion Objeto: Falta el ';'");}
+    | ID lista_variables { yyerror("Declaracion Objeto: Falta el ';'"); $$ = new ParserVal(null);}
     ;
 
 ////////////////////////////////////////////// Sentencias ejecutables
@@ -612,7 +625,6 @@ private int yylex(){
     return token;
 }
 
-
 private void declararListaVariables(List<String> nombres, String tipo, boolean comptime) {
     for (String nombre : nombres) {
         RegistroSimboloTp3 reg = gestorAmbitos.declararVariable(nombre, tipo, lexer.getLineaActual(), comptime);
@@ -636,7 +648,7 @@ private void registrarClasesBase(List<String> clasesBase) {
 
 private void errorSemantico(String mensaje) {
     if (gestorAmbitos.estaSuprimido()) {
-        return;   // el cuerpo ya está invalidado -> no generamos cascada de errores internos
+        return; 
     }
     recolectorErrores.agregarError("Semantico",lexer.getLineaActual(),mensaje);
 }
@@ -644,7 +656,6 @@ private void errorSemantico(String mensaje) {
 private void yyerror(String mensaje){
     recolectorErrores.agregarError("Sintactico",lexer.getLineaActual(),mensaje);
 }
-
 
 private void actualizarComptimeSiCorresponde(NodoAST izquierdo, NodoAST derecho) {
     if (gestorAmbitos.estaSuprimido()) return;
@@ -663,7 +674,7 @@ private void actualizarComptimeSiCorresponde(NodoAST izquierdo, NodoAST derecho)
     if (resultado != null) {
         tablaSimbolos.actualizarValorComptime(hojaIzq.getValor(),resultado,getLineaActual());
     } else {
-        reg.quitarAtributo("VALOR_COMPTIME");  // El resultado no se puede determinar durante la compilación.
+        reg.quitarAtributo("VALOR_COMPTIME");
     }
 }
 
@@ -709,7 +720,6 @@ private void recolectarVariablesComptimeModificadas( NodoAST nodo, java.util.Lis
                 }
             }
         }
-
         recolectarVariablesComptimeModificadas(asignacion.getExpresion(), modificados);
         return;
     }
@@ -994,7 +1004,6 @@ private void registrarParametroFormal(String nombre, String tipo) {
 
 
 private Integer convertirPosicionParametro(String lexema) {
-
     if (lexema == null) {
         return null;
     }

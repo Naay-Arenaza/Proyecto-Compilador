@@ -513,106 +513,117 @@ public class TablaDeSimbolosTp3 {
         return null;
     }
 
-// Tema 29: devuelve el atributo por posición, comenzando desde índice 0.
-// Se consideran primero los atributos propios y luego los heredados,
-// respetando el orden de EXTENDS.
-public RegistroSimboloTp3 obtenerAtributoPosicional(String nombreClase, int indice) {
-    RegistroSimboloTp3 clase = buscarClaseVisible(nombreClase, ambitoActual);
-    return obtenerAtributoPosicional(clase, indice);
-}
-
-/**
- * Resuelve un atributo posicional a partir de la referencia completa
- * de la clase almacenada en el símbolo del objeto.
- * Ejemplo: "MiClase:main".
- */
-public RegistroSimboloTp3 obtenerAtributoPosicionalPorReferencia(
-        String referenciaClase, int indice) {
-
-    return obtenerAtributoPosicional(
-        buscarClasePorReferencia(referenciaClase),
-        indice
-    );
-}
-
-// Método auxiliar que realiza la búsqueda del atributo.
-private RegistroSimboloTp3 obtenerAtributoPosicional(
-        RegistroSimboloTp3 clase, int indice) {
-
-    if (indice < 0 || clase == null) {
-        return null;
+    // Tema 29: devuelve el atributo por posición, comenzando desde índice 0.
+    // Se consideran primero los atributos propios y luego los heredados,
+    // respetando el orden de EXTENDS.
+    public RegistroSimboloTp3 obtenerAtributoPosicional(String nombreClase, int indice) {
+        RegistroSimboloTp3 clase = buscarClaseVisible(nombreClase, ambitoActual);
+        return obtenerAtributoPosicional(clase, indice);
     }
 
-    List<RegistroSimboloTp3> atributos = obtenerAtributosEfectivos(
-        clase,
-        new LinkedHashSet<String>()
-    );
+    /**
+     * Resuelve un atributo posicional a partir de la referencia completa
+     * de la clase almacenada en el símbolo del objeto.
+     * Ejemplo: "MiClase:main".
+     */
+    public RegistroSimboloTp3 obtenerAtributoPosicionalPorReferencia(String referenciaClase, int indice) {
 
-    if (indice >= atributos.size()) {
-        return null;
+        return obtenerAtributoPosicional(
+            buscarClasePorReferencia(referenciaClase),
+            indice
+        );
+    }
+    private RegistroSimboloTp3 obtenerAtributoPosicional(RegistroSimboloTp3 clase, int indice) {
+        if (indice < 1 || clase == null) {// Las posiciones del lenguaje comienzan en 1.
+            return null;
+        }
+        List<RegistroSimboloTp3> atributos = obtenerAtributosEfectivos(  clase, new LinkedHashSet<String>());
+
+        int indiceInterno = indice - 1;// Convertir la posición del lenguaje al índice de Java.
+
+        if (indiceInterno >= atributos.size()) {
+            return null;
+        }
+
+        return atributos.get(indiceInterno);
     }
 
-    return atributos.get(indice);
-}
 
-    private List<RegistroSimboloTp3> obtenerAtributosEfectivos(RegistroSimboloTp3 clase,Set<String> visitadas) {
-
+    private List<RegistroSimboloTp3> obtenerAtributosEfectivos(RegistroSimboloTp3 clase, Set<String> visitadas) {
         List<RegistroSimboloTp3> resultado = new ArrayList<>();
-
         if (clase == null || !visitadas.add(clase.getNombreCompleto())) {
             return resultado;
         }
 
+        // 1. Obtener los atributos y objetos declarados en la clase actual.
         String ambitoClase = clase.getAmbito() + ":" + clase.getLexema();
+
         for (RegistroSimboloTp3 miembro : obtenerSimbolosEnAmbito(ambitoClase)) {
-
-            if (USO_ATRIBUTO.equals(miembro.getUso()) ||
-                USO_OBJETO.equals(miembro.getUso())) {
-
+            if (USO_ATRIBUTO.equals(miembro.getUso()) || USO_OBJETO.equals(miembro.getUso())) {
                 resultado.add(miembro);
             }
         }
 
+        // 2. Obtener los atributos y objetos heredados.
         Object basesObjeto = clase.obtenerAtributo(ATR_EXTENDS);
 
         if (basesObjeto instanceof List<?>) {
             for (Object referenciaBase : (List<?>) basesObjeto) {
-                RegistroSimboloTp3 base = buscarClasePorReferencia(String.valueOf(referenciaBase));
-                resultado.addAll(obtenerAtributosEfectivos(base, visitadas));
+                RegistroSimboloTp3 base =  buscarClasePorReferencia(String.valueOf(referenciaBase));
+                resultado.addAll(  obtenerAtributosEfectivos(base, visitadas) );
             }
         }
-
         return resultado;
     }
 
-    // Tema 25: compara estructuralmente dos clases. Criterio aplicado: misma cantidad, orden, nombre y tipo de atributos Efectivos. La consigna no detalla una regla mas amplia de equivalencia.
-    public boolean estructurasCompatibles(String nombreClaseA, String nombreClaseB) {
+    // Tema 25: compara estructuralmente dos clases. Solo son compatibles si contienen exclusivamente atributos u objetos y estos coinciden en cantidad, orden, nombre y tipo.
+    public boolean estructurasCompatibles( String nombreClaseA, String nombreClaseB) {
         RegistroSimboloTp3 claseA = buscarClaseVisible(nombreClaseA, ambitoActual);
         RegistroSimboloTp3 claseB = buscarClaseVisible(nombreClaseB, ambitoActual);
 
-        if (claseA == null || claseB == null) {
-            return false;
+        if (claseA == null || claseB == null) { return false; }
+
+        // Obtener todos los miembros declarados directamente en cada clase.
+        List<RegistroSimboloTp3> miembrosA = obtenerSimbolosEnAmbito( claseA.getAmbito() + ":" + claseA.getLexema() );
+        List<RegistroSimboloTp3> miembrosB = obtenerSimbolosEnAmbito( claseB.getAmbito() + ":" + claseB.getLexema());
+        
+        for (RegistroSimboloTp3 miembro : miembrosA) {// Ambas clases deben contener exclusivamente atributos u objetos.
+            if (!USO_ATRIBUTO.equals(miembro.getUso()) && !USO_OBJETO.equals(miembro.getUso())) {
+                return false;
+            }
         }
 
-        List<RegistroSimboloTp3> atributosA = obtenerAtributosEfectivos(claseA, new LinkedHashSet<String>());
-        List<RegistroSimboloTp3> atributosB = obtenerAtributosEfectivos(claseB, new LinkedHashSet<String>());
-
-        if (atributosA.size() != atributosB.size()) {
-            return false;
+        for (RegistroSimboloTp3 miembro : miembrosB) {
+            if (!USO_ATRIBUTO.equals(miembro.getUso()) && !USO_OBJETO.equals(miembro.getUso())) {
+                return false;
+            }
         }
 
+        // Obtener los atributos y objetos propios y heredados.
+        List<RegistroSimboloTp3> atributosA = obtenerAtributosEfectivos(  claseA, new LinkedHashSet<String>() );
+
+        List<RegistroSimboloTp3> atributosB =  obtenerAtributosEfectivos(claseB, new LinkedHashSet<String>());
+
+        // Deben tener la misma cantidad.
+        if (atributosA.size() != atributosB.size()) { return false;}
+
+        // Comparar cada miembro por posición, nombre y tipo.
         for (int i = 0; i < atributosA.size(); i++) {
             RegistroSimboloTp3 atributoA = atributosA.get(i);
             RegistroSimboloTp3 atributoB = atributosB.get(i);
-            if (!atributoA.getLexema().equals(atributoB.getLexema())) {
+
+            if (!equalsIgnorandoMayusculas(atributoA.getLexema(),atributoB.getLexema())) {
                 return false;
             }
+
             if (!equalsIgnorandoMayusculas(atributoA.getTipo(), atributoB.getTipo())) {
                 return false;
             }
         }
         return true;
     }
+
+
 
     public boolean tiposObjetoCompatibles(String tipoDestino, String tipoOrigen) {
         if (equalsIgnorandoMayusculas(tipoDestino, tipoOrigen)) {
@@ -621,8 +632,7 @@ private RegistroSimboloTp3 obtenerAtributoPosicional(
         return estructurasCompatibles(tipoDestino, tipoOrigen);
     }
 
-    // TEMA 20: ORDEN OPCIONAL DE PARAMETROS
-    // Valida que el orden recibido sea una permutacion de 1..n. 
+    // TEMA 20: ORDEN OPCIONAL DE PARAMETROS Valida que el orden recibido sea una permutacion de 1..n. 
     public boolean validarOrdenParametros(List<Integer> orden, int cantidadParametros) {
         if (cantidadParametros < 0) {return false;}
         if (orden == null) {return true;}        // Sin lista explicita, se utiliza el orden natural.
@@ -640,7 +650,6 @@ private RegistroSimboloTp3 obtenerAtributoPosicional(
 
     // Devuelve indices base cero para copiar los argumentos en el orden solicitado. 
     public List<Integer> obtenerOrdenDeCopia(List<Integer> orden, int cantidadParametros) {
-
         if (!validarOrdenParametros(orden, cantidadParametros)) {
             throw new IllegalArgumentException("El orden de parametros no es una permutacion valida de 1..n." );
         }
@@ -661,27 +670,20 @@ private RegistroSimboloTp3 obtenerAtributoPosicional(
 
     //Devuelve los parametros formales en el orden de copia solicitado.Retorna null si no existe la funcion/metodo o si el orden es invalido.
     public List<RegistroSimboloTp3.ParametroTp3> obtenerParametrosEnOrden(String nombreFuncion,String ambitoDeclaracion, List<Integer> orden) {
-
         RegistroSimboloTp3 funcion = buscarLocal(nombreFuncion, ambitoDeclaracion);
-
         if (funcion == null) {
             return null;
         }
-
         if (!USO_FUNCION.equals(funcion.getUso()) && !USO_METODO.equals(funcion.getUso())) {
             return null;
         }
-
         List<RegistroSimboloTp3.ParametroTp3> parametros = funcion.getParametros();
 
-        // Comprobar que el orden sea válido antes de procesarlo.
-        if (!validarOrdenParametros(orden, parametros.size())) {
+        if (!validarOrdenParametros(orden, parametros.size())) {        // Comprobar que el orden sea válido antes de procesarlo.
             return null;
         }
-
-        // Obtener las posiciones en orden de copia.
-        List<Integer> posiciones = obtenerOrdenDeCopia(orden, parametros.size());
-
+        
+        List<Integer> posiciones = obtenerOrdenDeCopia(orden, parametros.size());// Obtener las posiciones en orden de copia.
         List<RegistroSimboloTp3.ParametroTp3> resultado = new ArrayList<>();
 
         for (Integer posicion : posiciones) {
@@ -691,8 +693,7 @@ private RegistroSimboloTp3 obtenerAtributoPosicional(
         return Collections.unmodifiableList(resultado);
     }
 
-    // TEMA 33: CONVERSION EXPLICITA ENTERO -> DOUBLEF (TODF)
-    public boolean esEntero(String tipo) {
+    public boolean esEntero(String tipo) {    // TEMA 33: CONVERSION EXPLICITA ENTERO -> DOUBLEF (TODF)
         if (tipo == null) {
             return false;
         }

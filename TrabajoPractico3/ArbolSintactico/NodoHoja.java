@@ -34,37 +34,21 @@ public class NodoHoja extends NodoAST {
 
         this.valorComptimeConocidoAlCrear = this.valorComptimeAlCrear != null;
     }
-    public String getTipoNodo() {
-        return tipoNodo;
-    }
+    public String getTipoNodo() { return tipoNodo; }
 
-    public String getValor() {
-        return valor;
-    }
+    public String getValor() { return valor;}
 
-    public RegistroSimboloTp3 getSimboloVinculado() {
-        return registroSimbolos;
-    }
+    public RegistroSimboloTp3 getSimboloVinculado() { return registroSimbolos;}
 
-    public String getValorComptimeAlCrear() {
-        return valorComptimeAlCrear;
-    }
+    public String getValorComptimeAlCrear() { return valorComptimeAlCrear;}
 
-    public boolean teniaValorComptimeAlCrear() {
-        return valorComptimeConocidoAlCrear;
-    }
+    public boolean teniaValorComptimeAlCrear() {  return valorComptimeConocidoAlCrear;}
     
-    public void invalidarValorComptime() {
-        this.valorComptimeAlCrear = null;
-    }
+    public void invalidarValorComptime() { this.valorComptimeAlCrear = null;}
 
-    public List<NodoAST> getHijos() {
-        return Collections.emptyList();
-    }
+    public List<NodoAST> getHijos() { return Collections.emptyList(); }
 
-    public int getLinea() {
-        return linea;
-    }
+    public int getLinea() { return linea; }
 
     @Override
     public String obtenerTipo() {
@@ -81,17 +65,14 @@ public class NodoHoja extends NodoAST {
 
         if ("CTE".equals(tipoNodo)) {// Si es una constante, consultamos su tipo en la tabla.
             RegistroSimboloTp3 constante = getTablaSimbolos().obtenerConstante(valor);
-
             if (constante != null) {
                 return constante.getTipo();
             }
         }
-
         return null;
     }
 
     public String generarReferencia() {
-
         if (!"ID".equals(tipoNodo)) {
             return valor;
         }
@@ -110,14 +91,26 @@ public class NodoHoja extends NodoAST {
     }
 
     @Override
+    public String obtenerErrorTipo() {
+        if ("ID".equals(tipoNodo) && registroSimbolos == null) {
+            return "Identificador no declarado o no utilizable como variable: " + valor;
+        }
+
+        if ("CTE".equals(tipoNodo)) {
+            if (getTablaSimbolos() == null || getTablaSimbolos().obtenerConstante(valor) == null) {
+                return "No se pudo resolver la constante: " + valor;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public String generarCodigo() {
         if (!"ID".equals(tipoNodo)) {
             return valor;
         }
-
-        // Si es COMPTIME y tenía un valor conocido al crear
-        // esta hoja, usamos ese valor en lugar del identificador.
-        if (valorComptimeAlCrear != null) {
+        
+        if (valorComptimeAlCrear != null) { // Si es COMPTIME y tenía un valor conocido al crear esta hoja, usamos ese valor en lugar del identificador.
             return valorComptimeAlCrear;
         }
 

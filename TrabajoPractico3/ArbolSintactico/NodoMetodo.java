@@ -17,7 +17,6 @@ public class NodoMetodo extends NodoAST {
     public String getNombre() { return nombre; }
     public String getAmbitoCompleto() { return ambitoCompleto; }
 
-
     @Override
     public String generarCodigo() {
         System.out.println("; --- INICIO METODO " + nombre + " ---");// Encabezado del método
@@ -29,7 +28,6 @@ public class NodoMetodo extends NodoAST {
         }
         
         System.out.println("RET");// Retorno de finalización del método
-
         return null;
     }
 }
