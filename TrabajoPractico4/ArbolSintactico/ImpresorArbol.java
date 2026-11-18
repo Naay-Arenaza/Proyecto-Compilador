@@ -1,0 +1,117 @@
+package TrabajoPractico4.ArbolSintactico;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ImpresorArbol {
+    public static void imprimir(NodoAST raiz) {
+        System.out.println();
+        System.out.println("------------------------------------------------------------");
+        System.out.println("                     Árbol sintáctico");
+        System.out.println("------------------------------------------------------------");
+        System.out.println();
+        if (raiz == null) {
+            System.out.println("No hay árbol sintáctico para mostrar.");
+            return;
+        }
+        imprimirNodo(raiz, 0);
+    }
+
+    private static void imprimirNodo(NodoAST nodo, int nivel) {
+        if (nodo == null) {
+            return;
+        }
+        System.out.println("    ".repeat(nivel) + obtenerNombre(nodo));
+        List<NodoAST> hijos = obtenerHijos(nodo);
+        for (NodoAST hijo : hijos) {
+            imprimirNodo(hijo, nivel + 1);
+        }
+    }
+
+    private static String obtenerNombre(NodoAST nodo) {
+        if (nodo instanceof NodoHoja) {
+            NodoHoja hoja = (NodoHoja) nodo;
+            return hoja.getTipoNodo() + ": " + hoja.getValor();
+        }
+
+        if (nodo instanceof NodoPrograma) {
+            NodoPrograma n = (NodoPrograma) nodo;
+            return "PROGRAMA: " + n.getNombrePrograma();
+        }
+
+        if (nodo instanceof NodoInvocacion) {
+            NodoInvocacion invocacion = (NodoInvocacion) nodo;
+            String orden = invocacion.getOrdenParametros() == null ? "natural" : invocacion.getOrdenParametros().toString();
+            return "INVOCACION: "   + invocacion.getNombreFuncion()  + " [orden: " + orden + "]";
+        }
+
+        if (nodo instanceof NodoInvocacionMetodo) {
+            NodoInvocacionMetodo invocacion = (NodoInvocacionMetodo) nodo;
+            String orden = invocacion.getOrdenParametros() == null ? "natural" : invocacion.getOrdenParametros().toString();
+            return "INVOCACION MÉTODO: " + invocacion.getObjeto().getValor() + "."  + invocacion.getMetodo() + " [orden: " + orden + "]";
+        }
+        if (nodo instanceof NodoListaParametros) {
+            NodoListaParametros lista = (NodoListaParametros) nodo;
+            return "LISTA_PARAMETROS (" + lista.getParametros().size() + " argumentos)";
+        }
+        if (nodo instanceof NodoFuncion) {
+            NodoFuncion funcion = (NodoFuncion) nodo;
+            return "FUNCIÓN: " + funcion.getNombre() + " [" + funcion.getAmbitoCompleto() + "]";
+        }
+        return nodo.getEtiqueta();
+    }
+
+    private static List<NodoAST> obtenerHijos(NodoAST nodo) {
+        List<NodoAST> hijos = new ArrayList<>();
+        if (nodo instanceof NodoPrograma) {
+            NodoPrograma n = (NodoPrograma) nodo;
+            hijos.add(n.getDeclaraciones());
+            hijos.add(n.getBloqueEjecutable());
+        } else if (nodo instanceof NodoBloque) {
+            hijos.addAll(((NodoBloque) nodo).getSentencias());
+        } else if (nodo instanceof NodoAsignacion) {
+            NodoAsignacion n = (NodoAsignacion) nodo;
+            hijos.add(n.getVariable());
+            hijos.add(n.getExpresion());
+        } else if (nodo instanceof NodoBinario) {
+            NodoBinario n = (NodoBinario) nodo;
+            hijos.add(n.getIzq());
+            hijos.add(n.getDer());
+        } else if (nodo instanceof NodoUnario) {
+            hijos.add(((NodoUnario) nodo).getOperando());
+        } else if (nodo instanceof NodoAccesoArreglo) {
+            NodoAccesoArreglo n = (NodoAccesoArreglo) nodo;
+            hijos.add(n.getArreglo());
+            hijos.add(n.getIndice());
+        } else if (nodo instanceof NodoIF) {
+            NodoIF n = (NodoIF) nodo;
+            hijos.add(n.getCondicion());
+            hijos.add(n.getCuerpoThen());
+            hijos.add(n.getCuerpoElse());
+        } else if (nodo instanceof NodoRepeat) {
+            NodoRepeat n = (NodoRepeat) nodo;
+            hijos.add(n.getCuerpo());
+            hijos.add(n.getCondicion());
+        } else if (nodo instanceof NodoPrint) {
+            hijos.add(((NodoPrint) nodo).getContenido());
+        } else if (nodo instanceof NodoReturn) {
+            hijos.add(((NodoReturn) nodo).getExpresionRetorno());
+        } else if (nodo instanceof NodoInvocacion) {
+            hijos.add(((NodoInvocacion) nodo).getParametros());
+        } else if (nodo instanceof NodoInvocacionMetodo) {
+            NodoInvocacionMetodo n = (NodoInvocacionMetodo) nodo;
+            hijos.add(n.getObjeto());
+            hijos.add(n.getParametros());
+        } else if (nodo instanceof NodoListaParametros) {
+            hijos.addAll(
+                ((NodoListaParametros) nodo).getParametros()
+            );
+        } else if (nodo instanceof NodoFuncion) {
+            NodoFuncion n = (NodoFuncion) nodo;
+            hijos.add(n.getParametros());
+            hijos.add(n.getCuerpoDeclarativo());
+            hijos.add(n.getCuerpoEjecutable());
+        }
+        hijos.removeIf(hijo -> hijo == null);
+        return hijos;
+    }
+}

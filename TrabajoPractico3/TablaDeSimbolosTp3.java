@@ -340,7 +340,6 @@ public class TablaDeSimbolosTp3 {
                 System.out.println("  Clase del objeto: " + registro.obtenerAtributo(ATR_CLASE));
             }
         }
-        System.out.println();
         System.out.println("-----------------------------------------------------------------------------------------------------");
     }
 
