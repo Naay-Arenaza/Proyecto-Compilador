@@ -32,21 +32,25 @@ public class RecolectorErroresTp3 { // Acumula los errores encontrados durante e
 
         List<ErrorTp3> copia = getErrores();
 
-        salida.println();
-        salida.println("========================================");
-        salida.println("             ERRORES");
-        salida.println("========================================");
+        System.out.println();
+        System.out.println("------------------------------------------------------------");
+        System.out.println("                         Errores");
+        System.out.println("------------------------------------------------------------");
+
 
         if (copia.isEmpty()) {
+            System.out.println();
             salida.println("No se encontraron errores.");
+            System.out.println();
+            System.out.println("------------------------------------------------------------");
             return;
         }
-
+        System.out.println();
         for (int i = 0; i < copia.size(); i++) {
             salida.println((i + 1) + ". " + copia.get(i));
         }
-
-        salida.println("----------------------------------------");
+        System.out.println();
+        System.out.println("------------------------------------------------------------");
         salida.println("Total de errores: " + copia.size());
     }
 }

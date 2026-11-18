@@ -126,7 +126,6 @@ public class AnalizadorLexicoTp3{
             if (caracterLeido == LecturaCodigoTp3.EOF) { // Fin de archivo - EOF
                 
                 if (estadoActual == 0) { // Fin de archivo
-                    System.out.println("Final archivo - Linea " + lectorCodigo.getLineaActual());
                     lectorCodigo.cerrar();
                     return 0;
                 }
@@ -161,7 +160,6 @@ public class AnalizadorLexicoTp3{
                     while (!(columna == 24)){
                         caracterLeido = lectorCodigo.leerSiguienteCaracter();
                         if (caracterLeido == LecturaCodigoTp3.EOF) {
-                            System.out.println("Final archivo - Linea " + lectorCodigo.getLineaActual());
                             break;
                         }
                         columna = obtenerColumna(caracterLeido);

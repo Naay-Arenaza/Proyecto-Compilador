@@ -64,12 +64,8 @@ declaracion_variables_comptime:
     ;
 
 tipo: 
-    USHORTINT { System.out.println("Declaracion de tipo");
-                $$ = new ParserVal("USHORTINT");
-    } 
-    | DOUBLEF { System.out.println("Declaracion de tipo");
-                $$ = new ParserVal("DOUBLEF");
-    }
+    USHORTINT { $$ = new ParserVal("USHORTINT");} 
+    | DOUBLEF { $$ = new ParserVal("DOUBLEF");}
     ;
 
 lista_variables: 
@@ -78,13 +74,11 @@ lista_variables:
         lista.add($3.sval);
         $$ = $1;
     }
-    | ID {
-        List<String> lista = new ArrayList<>();
-        lista.add($1.sval);
-        $$ = new ParserVal(lista);
+    | ID {  List<String> lista = new ArrayList<>();
+            lista.add($1.sval);
+            $$ = new ParserVal(lista);
     }
-    | lista_variables ID { 
-        yyerror("Lista de variables: Falta la ','");}
+    | lista_variables ID { yyerror("Lista de variables: Falta la ','"); $$ = new ParserVal(null);}
     ;
 
 declaracion_funcion: 
@@ -109,7 +103,7 @@ declaracion_funcion:
 
 encabezado_metodo:
     tipo ID %prec ID {
-        RegistroSimboloTp3 metodo = gestorAmbitos.declararMetodo($2.sval, $1.sval, getLineaActual() );
+        RegistroSimboloTp3 metodo = gestorAmbitos.declararMetodo($2.sval, $1.sval, getLineaActual());
         if (metodo == null) {
             errorSemantico("Método ya declarado en el ámbito actual: " + $2.sval);
             gestorAmbitos.iniciarSupresion();
@@ -176,14 +170,14 @@ declaracion_clase:
         }
         $$ = valida ? new ParserVal(new NodoClase($1.sval, ambitoClase, (NodoAST) $3.obj)) : new ParserVal(null);
     }
-    | CLASS ID error cuerpo_clase END ';' { yyerror ("Falta el BEGIN de clase");}
-    | CLASS ID BEGIN cuerpo_clase error ';' { yyerror("Falta el END de clase");}
-    | CLASS ID BEGIN cuerpo_clase END { yyerror("Falta el ';' al final de la clase");}
+    | CLASS ID error cuerpo_clase END ';' { yyerror ("Falta el BEGIN de clase"); $$ = new ParserVal(null);}
+    | CLASS ID BEGIN cuerpo_clase error ';' { yyerror("Falta el END de clase"); $$ = new ParserVal(null);}
+    | CLASS ID BEGIN cuerpo_clase END { yyerror("Falta el ';' al final de la clase"); $$ = new ParserVal(null);}
     ;
 
 encabezado_clase:
     CLASS ID %prec ID {
-        RegistroSimboloTp3 clase = gestorAmbitos.declararClase($2.sval, lexer.getLineaActual());
+        RegistroSimboloTp3 clase = gestorAmbitos.declararClase($2.sval, getLineaActual());
 
         if (clase == null) {
             errorSemantico("Clase ya declarada en el ámbito actual: " + $2.sval);
@@ -245,7 +239,7 @@ lista_ids:
         lista.add($1.sval);
         $$ = new ParserVal(lista);
     }
-    | lista_ids ID { yyerror("Lista de IDs: Falta la ','");}
+    | lista_ids ID { yyerror("Lista de IDs: Falta la ','");$$ = new ParserVal(null);}
     ;
 
 
@@ -253,29 +247,17 @@ declaracion_metodo:
     encabezado_metodo '(' parametros_formales ')' BEGIN sentencias_ejecutables END ';' {
         String nombreMetodo = $1.sval;
         String ambitoMetodo = getAmbitoActual();
-
         boolean valida = ($1.obj instanceof RegistroSimboloTp3);
-
         gestorAmbitos.salirAmbito();
-
         if (!valida) {
             gestorAmbitos.finalizarSupresion();
         }
-
         $$ = valida ? new ParserVal( new NodoMetodo(nombreMetodo,ambitoMetodo,(NodoAST)$3.obj,(NodoAST)$6.obj)): new ParserVal(null);
     }
-    | tipo ID '(' parametros_formales ')' error sentencias_ejecutables END ';' {
-        yyerror("Falta el BEGIN en la declaracion del metodo");
-    }
-    | tipo ID '(' error ')' BEGIN sentencias_ejecutables END ';' {
-        yyerror("Falta una ',' o tipo invalido en los parametros del metodo");
-    }
-    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables error ';' {
-        yyerror("Falta el END en la declaracion del metodo");
-    }
-    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END {
-        yyerror("Falta el ';' en la declaracion del metodo");
-    }
+    | tipo ID '(' parametros_formales ')' error sentencias_ejecutables END ';' {yyerror("Falta el BEGIN en la declaracion del metodo");}
+    | tipo ID '(' error ')' BEGIN sentencias_ejecutables END ';' {yyerror("Falta una ',' o tipo invalido en los parametros del metodo");}
+    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables error ';' {yyerror("Falta el END en la declaracion del metodo");}
+    | tipo ID '(' parametros_formales ')' BEGIN sentencias_ejecutables END {yyerror("Falta el ';' en la declaracion del metodo");}
     ;
 
 
@@ -283,7 +265,6 @@ declaracion_objeto:
     ID lista_variables ';' {
         List<String> nombres = (List<String>) $2.obj;
         String tipoClase = $1.sval;
-
         for (String nombre : nombres) {
             RegistroSimboloTp3 obj = gestorAmbitos.declararObjeto(nombre, tipoClase, getLineaActual());
             if (obj == null) {
@@ -324,11 +305,11 @@ sentencia_ejecutable:
     | salida ';' { $$ = $1; }
     | retorno ';' { $$ = $1; }
     | iterativa ';' { $$ = $1; }
-    | asignacion { yyerror("Asignacion: Falta el ';', o un operador o expresion");}
-    | seleccion { yyerror("Seleccion: Falta el ';'");}
-    | salida { yyerror("Salida: Falta el ';'");}
-    | retorno { yyerror("Retorno: Falta el ';'");}
-    | iterativa { yyerror("Iterativa: Falta el ';'");}
+    | asignacion { yyerror("Asignacion: Falta el ';', o un operador o expresion");$$ = new ParserVal(null);}
+    | seleccion { yyerror("Seleccion: Falta el ';'");$$ = new ParserVal(null);}
+    | salida { yyerror("Salida: Falta el ';'");$$ = new ParserVal(null);}
+    | retorno { yyerror("Retorno: Falta el ';'");$$ = new ParserVal(null);}
+    | iterativa { yyerror("Iterativa: Falta el ';'");$$ = new ParserVal(null);}
     ;
 
 asignacion: 
@@ -389,9 +370,7 @@ termino:
 factor: 
     ID { $$ = new ParserVal(new NodoHoja("ID", $1.sval, getLineaActual())); }
     | CTE { $$ = new ParserVal(new NodoHoja("CTE", $1.sval, getLineaActual())); }
-    | acceso_posicional {
-        $$ = $1;
-        System.out.println("Acceso posicional");}
+    | acceso_posicional {$$ = $1;}
     | ID '=' '(' expresion_simple ')' {
         if ($4.obj != null) {
             $$ = new ParserVal(new NodoAsignacion(new NodoHoja("ID", $1.sval, getLineaActual()),(NodoAST)$4.obj));
@@ -411,9 +390,9 @@ to_double:
             $$ = new ParserVal(null);
         }
     }
-    |TODF '('error')'                       { yyerror("Solo se pueden expresiones"); $$ = new ParserVal(null);}
-    |TODF '('')'                            { yyerror("Falta expresion"); $$ = new ParserVal(null);}
-    |TODF error                             { yyerror("Falta parentesis"); $$ = new ParserVal(null);}
+    |TODF '('error')' { yyerror("Solo se pueden expresiones"); $$ = new ParserVal(null);}
+    |TODF '('')' { yyerror("Falta expresion"); $$ = new ParserVal(null);}
+    |TODF error { yyerror("Falta parentesis"); $$ = new ParserVal(null);}
 ;
 
 expresion_simple:
@@ -448,11 +427,9 @@ factor_simple:
 invocacion: 
     ID '(' parametros_reales ')' lista_constantes_opcional {
         $$ = new ParserVal(new NodoInvocacion($1.sval, (NodoListaParametros)$3.obj,(List<Integer>)$5.obj,getLineaActual(),tablaSimbolos.resolverFuncion($1.sval)));
-        System.out.println("Invocación de función con orden opcional");
     }
     | ID '.' ID '(' parametros_reales ')' lista_constantes_opcional {
         $$ = new ParserVal(new NodoInvocacionMetodo( new NodoHoja("ID", $1.sval, getLineaActual()), $3.sval, (NodoListaParametros)$5.obj, (List<Integer>)$7.obj, getLineaActual() ));
-        System.out.println("Invocación de método con orden opcional");
     }
     | ID '(' parametros_reales ';' lista_constantes_opcional { yyerror("Error en los parametros: Falta un ')' "); $$ = new ParserVal(null);}
     | ID '(' ')' lista_constantes_opcional { yyerror("Lista de parametros vacia."); $$ = new ParserVal(null);}
@@ -575,9 +552,7 @@ retorno:
     RET '(' expresion ')' {
         String ambito = getAmbitoActual();
         String tipoRetorno = null;
-
         int separador = ambito.lastIndexOf(':');
-
         if (separador >= 0) {
             String nombre = ambito.substring(separador + 1);
             RegistroSimboloTp3 registro;
@@ -586,7 +561,6 @@ retorno:
             } else {
                 registro = tablaSimbolos.resolverFuncion(nombre);
             }
-
             if (registro != null) {
                 tipoRetorno = registro.getTipo();
             }
@@ -627,7 +601,7 @@ private int yylex(){
 
 private void declararListaVariables(List<String> nombres, String tipo, boolean comptime) {
     for (String nombre : nombres) {
-        RegistroSimboloTp3 reg = gestorAmbitos.declararVariable(nombre, tipo, lexer.getLineaActual(), comptime);
+        RegistroSimboloTp3 reg = gestorAmbitos.declararVariable(nombre, tipo, getLineaActual(), comptime);
         if (reg == null) {
             errorSemantico("Ya declarado en el ámbito actual. Identificador: " + nombre);
         }
@@ -672,13 +646,11 @@ private void actualizarComptimeSiCorresponde(NodoAST izquierdo, NodoAST derecho)
     String resultado = evaluarValorComptime(derecho);
 
     if (resultado != null) {
-        tablaSimbolos.actualizarValorComptime(hojaIzq.getValor(),resultado,getLineaActual());
+        tablaSimbolos.actualizarValorComptime(hojaIzq.getValor(), resultado, getLineaActual());
     } else {
         reg.quitarAtributo("VALOR_COMPTIME");
     }
 }
-
-
 
 private void invalidarComptimesModificadosEnControl(NodoAST nodo) {
     if (nodo == null) {
@@ -693,7 +665,6 @@ private void invalidarComptimesModificadosEnControl(NodoAST nodo) {
     }
     invalidarReferenciasComptime(nodo, modificados);
 }
-
 
 private void recolectarVariablesComptimeModificadas( NodoAST nodo, java.util.List<RegistroSimboloTp3> modificados) {
     if (nodo == null) {
@@ -793,7 +764,6 @@ private void recolectarVariablesComptimeModificadas( NodoAST nodo, java.util.Lis
     }
 }
 
-
 private void invalidarReferenciasComptime(NodoAST nodo,java.util.List<RegistroSimboloTp3> modificados) {
     if (nodo == null) {
         return;
@@ -802,7 +772,6 @@ private void invalidarReferenciasComptime(NodoAST nodo,java.util.List<RegistroSi
     if (nodo instanceof NodoHoja) {
         NodoHoja hoja = (NodoHoja) nodo;
         RegistroSimboloTp3 registro = hoja.getSimboloVinculado();
-
         if (registro != null) {
             for (RegistroSimboloTp3 modificado : modificados) {
                 if (registro == modificado) {
@@ -892,17 +861,14 @@ private void invalidarReferenciasComptime(NodoAST nodo,java.util.List<RegistroSi
     }
 }
 
-
 private String evaluarValorComptime(NodoAST nodo) {
     if (nodo == null) return null;
 
     if (nodo instanceof NodoHoja) {
         NodoHoja hoja = (NodoHoja) nodo;
-
         if ("CTE".equals(hoja.getTipoNodo())) {
             return hoja.getValor();
         }
-
         if ("ID".equals(hoja.getTipoNodo())) {
             return tablaSimbolos.obtenerValorComptime(hoja.getValor());
         }
@@ -923,33 +889,26 @@ private String evaluarValorComptime(NodoAST nodo) {
 
         try {
             long a = Long.parseLong(valorIzq.substring(0, valorIzq.length() - 3));
-
             long b = Long.parseLong(valorDer.substring(0, valorDer.length() - 3));
-
             long resultado;
 
             switch (binario.getEtiqueta()) {
                 case "+":
                     resultado = Math.addExact(a, b);
                     break;
-
                 case "-":
                     resultado = Math.subtractExact(a, b);
                     break;
-
                 case "*":
                     resultado = Math.multiplyExact(a, b);
                     break;
-
                 case "/":
                     if (b == 0) return null;
                     resultado = a / b;
                     break;
-
                 default:
                     return null;
             }
-
             if (resultado < 0 || resultado > 255) {
                 return null;
             }
@@ -960,7 +919,6 @@ private String evaluarValorComptime(NodoAST nodo) {
     }
     return null;
 }
-
 
 private int getLineaActual() {
     return lexer.getLineaActual();
@@ -974,44 +932,31 @@ private void registrarParametroFormal(String nombre, String tipo) {
     if (gestorAmbitos.estaSuprimido()) {
         return;
     }
-
     String ambitoActual = tablaSimbolos.getAmbitoActual();
-
     int separador = ambitoActual.lastIndexOf(':');
-
     if (separador < 0) {
         errorSemantico("Parámetro formal fuera de una función o método: " + nombre);
         return;
     }
-
     String nombreFuncion = ambitoActual.substring(separador + 1);
-
     String ambitoDeclaracion = ambitoActual.substring(0, separador);
-
-    RegistroSimboloTp3 parametro = gestorAmbitos.declararParametro(nombre,tipo,lexer.getLineaActual());
-
+    RegistroSimboloTp3 parametro = gestorAmbitos.declararParametro(nombre,tipo, getLineaActual());
     if (parametro == null) {
         errorSemantico("Parámetro formal ya declarado en el ámbito actual: " + nombre);
         return;
     }
-
-    boolean agregado = tablaSimbolos.agregarParametroFormal(nombreFuncion,nombre,tipo,lexer.getLineaActual(),ambitoDeclaracion);
-
+    boolean agregado = tablaSimbolos.agregarParametroFormal(nombreFuncion,nombre,tipo, getLineaActual(),ambitoDeclaracion);
     if (!agregado) {
         errorSemantico("No se pudo registrar el parámetro en la firma de "+ nombreFuncion + ": " + nombre);
     }
 }
 
-
 private Integer convertirPosicionParametro(String lexema) {
     if (lexema == null) {
         return null;
     }
-
     int separadorTipo = lexema.indexOf('$');
-
     String numero = separadorTipo >= 0? lexema.substring(0, separadorTipo): lexema;
-
     try {
         int posicion = Integer.parseInt(numero);
         return posicion > 0 ? posicion : null;

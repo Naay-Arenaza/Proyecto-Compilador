@@ -293,7 +293,12 @@ public class TablaDeSimbolosTp3 {
     }
 
     public void imprimirTabla() {
-        System.out.println("\n====================== TABLA DE SIMBOLOS ======================");
+        System.out.println();
+        System.out.println("------------------------------------------------------------");
+        System.out.println("                    Tabla de símbolos");
+        System.out.println("------------------------------------------------------------");
+        System.out.println();
+
         System.out.printf("%-30s | %-12s | %-20s | %-22s | %-6s%n",
             "NOMBRE COMPLETO", "TIPO", "USO", "AMBITO", "LINEA");
         System.out.println("------------------------------------------------------------------------------------------------------");
@@ -335,8 +340,8 @@ public class TablaDeSimbolosTp3 {
                 System.out.println("  Clase del objeto: " + registro.obtenerAtributo(ATR_CLASE));
             }
         }
-
-        System.out.println("======================================================================================================\n");
+        System.out.println();
+        System.out.println("-----------------------------------------------------------------------------------------------------");
     }
 
 
@@ -599,9 +604,7 @@ public class TablaDeSimbolosTp3 {
             }
         }
 
-        // Obtener los atributos y objetos propios y heredados.
-        List<RegistroSimboloTp3> atributosA = obtenerAtributosEfectivos(  claseA, new LinkedHashSet<String>() );
-
+        List<RegistroSimboloTp3> atributosA = obtenerAtributosEfectivos(  claseA, new LinkedHashSet<String>() );// Obtener los atributos y objetos propios y heredados.
         List<RegistroSimboloTp3> atributosB =  obtenerAtributosEfectivos(claseB, new LinkedHashSet<String>());
 
         // Deben tener la misma cantidad.
@@ -622,8 +625,6 @@ public class TablaDeSimbolosTp3 {
         }
         return true;
     }
-
-
 
     public boolean tiposObjetoCompatibles(String tipoDestino, String tipoOrigen) {
         if (equalsIgnorandoMayusculas(tipoDestino, tipoOrigen)) {

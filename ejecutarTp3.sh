@@ -1,67 +1,108 @@
-
 #!/bin/bash
 
 set -Eeuo pipefail
 
-# 1. Verificar que se haya pasado un argumento
-if [ -z "${1:-}" ]; then
-    echo "Error: Falta el archivo de texto."
+# ============================================================
+# CONFIGURACIÓN
+# ============================================================
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SRC_DIR="$ROOT_DIR/TrabajoPractico3"
+BUILD_DIR="$ROOT_DIR/build"
+YACC="$SRC_DIR/yacc.linux"
+
+# ============================================================
+# FUNCIONES AUXILIARES
+# ============================================================
+
+error() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+
+# ============================================================
+# 1. VALIDAR ARGUMENTOS
+# ============================================================
+
+if [[ $# -ne 1 ]]; then
     echo "Uso: $0 <archivo_de_prueba.txt>"
     exit 1
 fi
 
-# 2. Obtener las rutas del proyecto
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SRC_DIR="$ROOT_DIR/TrabajoPractico3"
-BUILD_DIR="$ROOT_DIR/build"
-
-# Conservar la ruta del archivo de prueba
 ARCHIVO_PRUEBA="$1"
 
-if [[ "$ARCHIVO_PRUEBA" != /* ]]; then
-    ARCHIVO_PRUEBA="$PWD/$ARCHIVO_PRUEBA"
-fi
-
 if [[ ! -f "$ARCHIVO_PRUEBA" ]]; then
-    echo "Error: No existe el archivo $ARCHIVO_PRUEBA"
-    exit 1
+    error "No existe el archivo de prueba: $ARCHIVO_PRUEBA"
 fi
 
-# 3. Generar el parser con Yacc
-echo "➡️ Generando parser con yacc..."
+ARCHIVO_PRUEBA="$(cd "$(dirname "$ARCHIVO_PRUEBA")" && pwd)/$(basename "$ARCHIVO_PRUEBA")"
 
+# ============================================================
+# 2. VALIDAR ESTRUCTURA Y HERRAMIENTAS
+# ============================================================
+
+[[ -d "$SRC_DIR" ]] || error "No existe la carpeta TrabajoPractico3."
+[[ -f "$SRC_DIR/gramatica.y" ]] || error "No se encontró gramatica.y."
+[[ -x "$YACC" ]] || error "yacc.linux no existe o no tiene permisos de ejecución."
+
+command -v java >/dev/null 2>&1 || error "Java no está instalado."
+command -v javac >/dev/null 2>&1 || error "javac no está instalado."
+
+# ============================================================
+# 3. GENERAR PARSER
+# ============================================================
+echo "Generando parser..."
 (
     cd "$SRC_DIR"
-    ./yacc.linux -J -v gramatica.y
+    "$YACC" -J -v gramatica.y
 )
 
-# 4. Añadir el package a los archivos generados
-echo "➡️ Añadiendo package a los archivos de Yacc..."
+# ============================================================
+# 4. PREPARAR PACKAGE DE LOS ARCHIVOS GENERADOS
+# ============================================================
+
+echo "Preparando archivos generados..."
 
 for archivo in Parser.java ParserVal.java; do
-    if [[ ! -f "$SRC_DIR/$archivo" ]]; then
-        echo "Error: No se generó $archivo"
-        exit 1
+
+    RUTA="$SRC_DIR/$archivo"
+
+    [[ -f "$RUTA" ]] || error "No se generó $archivo."
+
+    if ! grep -Eq '^[[:space:]]*package[[:space:]]+TrabajoPractico3;' "$RUTA"; then
+        sed -i '1i package TrabajoPractico3;' "$RUTA"
     fi
 
-    if ! grep -q '^package TrabajoPractico3;' "$SRC_DIR/$archivo"; then
-        sed -i '1i package TrabajoPractico3;' "$SRC_DIR/$archivo"
-    fi
 done
 
-# 5. Limpiar y crear la carpeta de compilación
-echo "➡️ Preparando compilación..."
-
+# ============================================================
+# 5. PREPARAR CARPETA DE COMPILACIÓN
+# ============================================================
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
-# 6. Compilar TODOS los archivos Java juntos
-echo "➡️ Compilando archivos Java..."
+# Obtener todos los archivos Java del proyecto.
+JAVA_FILES=()
 
-find "$SRC_DIR" -name "*.java" -print0 | \
-    xargs -0 javac -encoding UTF-8 -d "$BUILD_DIR"
+while IFS= read -r -d '' archivo; do
+    JAVA_FILES+=("$archivo")
+done < <(find "$SRC_DIR" -type f -name "*.java" -print0)
 
-# 7. Ejecutar el programa
-echo "➡️ Ejecutando MainTp3..."
+[[ ${#JAVA_FILES[@]} -gt 0 ]] || error "No se encontraron archivos Java."
+
+echo "Compilando ${#JAVA_FILES[@]} archivos Java..."
+
+if ! javac -nowarn -encoding UTF-8 \
+           -d "$BUILD_DIR" \
+           "${JAVA_FILES[@]}" 2>/dev/null; then
+    error "Falló la compilación."
+fi
+
+# ============================================================
+# 6. EJECUTAR TP3
+# ============================================================
+echo "Ejecutando..."
 
 java -cp "$BUILD_DIR" TrabajoPractico3.MainTp3 "$ARCHIVO_PRUEBA"
+
+echo

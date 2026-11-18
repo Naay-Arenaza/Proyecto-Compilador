@@ -1,11 +1,13 @@
+
 prog
 USHORTINT contador;
 BEGIN
     contador := 1$us;
 
-    WHILE (contador <= 5$us) REPEAT
+    REPEAT
         BEGIN
             POUT(contador);
             contador := contador + 1$us;
-        END;
+        END
+    WHILE (contador < 1$us)
 END
