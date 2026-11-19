@@ -22,6 +22,8 @@ public abstract class NodoAST {
 
     public abstract String generarCodigo();
 
+    public String generarWasm() { return null;}
+
     public static void setRecolectorErrores(RecolectorErroresTp4 recolector) { NodoAST.recolectorErrores = recolector;}
 
     protected static void registrarError(String tipo, int linea, String descripcion) {
@@ -29,4 +31,5 @@ public abstract class NodoAST {
             recolectorErrores.agregarError(tipo,linea ,descripcion);
         }
     }
+
 }

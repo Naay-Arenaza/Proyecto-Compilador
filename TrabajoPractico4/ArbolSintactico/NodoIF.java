@@ -1,5 +1,5 @@
 package TrabajoPractico4.ArbolSintactico;
-
+import TrabajoPractico4.GeneracionWebAssembly.*;
 public class NodoIF extends NodoAST {
     private NodoAST condicion;
     private NodoAST cuerpoThen;
@@ -25,27 +25,20 @@ public class NodoIF extends NodoAST {
                 return null;
             }
         }
-
         String lElse = GeneradorTAC.nuevaEtiqueta();
         String lFin = GeneradorTAC.nuevaEtiqueta();
         String condRes = condicion.generarCodigo();
-
         if (condRes == null) return null;
-
         System.out.println("IF_FALSE " + condRes + " GOTO "+ (cuerpoElse != null ? lElse : lFin));
-
         if (cuerpoThen != null) {
             cuerpoThen.generarCodigo();
         }
-
         if (cuerpoElse != null) {
             System.out.println("GOTO " + lFin);
             System.out.println(lElse + ":");
             cuerpoElse.generarCodigo();
         }
-
         System.out.println(lFin + ":");
-
         return null;
     }
 
@@ -53,17 +46,29 @@ public class NodoIF extends NodoAST {
         if (nodo instanceof NodoHoja) {
             return ((NodoHoja) nodo).getLinea();
         }
-
         if (nodo instanceof NodoBinario) {
             NodoBinario binario = (NodoBinario) nodo;
             int linea = obtenerLinea(binario.getIzq());
             return linea != 0 ? linea : obtenerLinea(binario.getDer());
         }
-
         if (nodo instanceof NodoUnario) {
             return obtenerLinea(((NodoUnario) nodo).getOperando());
         }
-
         return 0;
+    }
+    
+    @Override
+    public String generarWasm() {
+        String auxCond = condicion.generarWasm();
+        if (auxCond == null) return null;
+        GeneradorWasm.emitirGet(auxCond);
+        GeneradorWasm.emitir("if");
+        if (cuerpoThen != null) cuerpoThen.generarWasm();
+        if (cuerpoElse != null) {
+            GeneradorWasm.emitir("else");
+            cuerpoElse.generarWasm();
+        }
+        GeneradorWasm.emitir("end");
+        return null;
     }
 }

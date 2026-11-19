@@ -1,7 +1,8 @@
 package TrabajoPractico4.ArbolSintactico;
-import java.util.List;
 import TrabajoPractico4.RegistroSimboloTp4;
 import TrabajoPractico4.TablaDeSimbolosTp4;
+import java.util.List;
+import TrabajoPractico4.GeneracionWebAssembly.*;
 
 public class NodoInvocacionMetodo extends NodoAST {
     private final NodoHoja objeto;
@@ -32,9 +33,7 @@ public class NodoInvocacionMetodo extends NodoAST {
     public String getErrorTipo() { return errorTipo;}
 
     @Override
-    public String obtenerErrorTipo() {
-        return errorTipo;
-    }
+    public String obtenerErrorTipo() { return errorTipo;}
 
     @Override
     public String obtenerTipo() {
@@ -96,7 +95,6 @@ public class NodoInvocacionMetodo extends NodoAST {
             registrarError("Semántico", linea, "El método '" + metodo + "' no existe en la clase '"  + registroObjeto.getTipo() + "'." );
             return "";
         }
-
         if (parametros == null || parametros.getParametros() == null) {// Validar la lista de argumentos.
             registrarError( "Sintáctico", linea,   "La invocación del método '" + metodo + "' tiene una lista de argumentos inválida." );
             return "";
@@ -152,5 +150,33 @@ public class NodoInvocacionMetodo extends NodoAST {
         String resultado = GeneradorTAC.nuevoTemporal();
         System.out.println(resultado + " = CALL_METHOD "  + nombreObjeto + ", " + etiqueta );
         return resultado;
+    }
+
+   @Override
+    public String generarWasm() {
+        TablaDeSimbolosTp4 tabla = getTablaSimbolos();
+        RegistroSimboloTp4 regObjeto = objeto.getSimboloVinculado();
+        RegistroSimboloTp4 regMetodo = tabla.resolverMiembroClase(regObjeto.getTipo(), metodo);
+        List<NodoAST> argumentos = parametros.getParametros();
+        List<Integer> ordenCopia = tabla.obtenerOrdenDeCopia(ordenParametros, argumentos.size());
+
+        String[] auxArgs = new String[argumentos.size()];
+        for (Integer indice : ordenCopia) {
+            auxArgs[indice] = argumentos.get(indice).generarWasm();
+            if (auxArgs[indice] == null) return null;
+        }
+
+        String refObjWasm = GeneradorWasm.sanitizarNombre(regObjeto.getNombreCompleto());
+        GeneradorWasm.emitirGet(refObjWasm);
+
+        for (int i = 0; i < argumentos.size(); i++) {
+            GeneradorWasm.emitirGet(auxArgs[i]);
+        }
+
+        String etiquetaWasm = "$METHOD_" + regMetodo.getAmbito().replace(':', '_') + "_" + regMetodo.getLexema();
+        String auxRetorno = GeneradorWasm.nuevaAuxiliar(GeneradorWasm.mapearTipo(regMetodo.getTipo()));
+        GeneradorWasm.emitir("call " + etiquetaWasm);
+        GeneradorWasm.emitirSet(auxRetorno);
+        return auxRetorno;
     }
 }

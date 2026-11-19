@@ -16,6 +16,8 @@ public class NodoClase extends NodoAST {
 
     public String getAmbitoCompleto() { return ambitoCompleto; }
 
+    public NodoAST getCuerpo() { return cuerpo; }
+
     @Override
     public String generarCodigo() {
         System.out.println("; ==========================================");
@@ -29,4 +31,12 @@ public class NodoClase extends NodoAST {
         return null;
     }
 
+    @Override
+    public String generarWasm() {
+        if (cuerpo != null) {
+            cuerpo.generarWasm();
+        }
+        return null;
+    }
 }
+

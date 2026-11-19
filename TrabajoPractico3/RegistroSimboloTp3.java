@@ -1,5 +1,4 @@
 package TrabajoPractico3;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -15,15 +14,14 @@ public class RegistroSimboloTp3 { // Representa una entrada de la tabla de simbo
     private final String nombreCompleto;
     private final int linea;
     private final long ordenDeclaracion;
-
     private final Map<String, Object> atributos; // Informacion semantica adicional del simbolo.
     private final List<ParametroTp3> parametros; // Firma formal de una funcion o metodo, en el orden declarado.
 
-    public RegistroSimboloTp3(String lexema, String tipoToken, int linea) {//Constructor de compatibilidad para registros simples
+    public RegistroSimboloTp3(String lexema, String tipoToken, int linea) {
         this(lexema, tipoToken, null, null, null, linea, -1L);
     }
 
-    public RegistroSimboloTp3(String lexema, String tipoToken,String tipo, String uso, String ambito,int linea,long ordenDeclaracion) {//Constructor completo utilizado por la tabla de simbolos.
+    public RegistroSimboloTp3(String lexema, String tipoToken,String tipo, String uso, String ambito,int linea,long ordenDeclaracion) {
         if (lexema == null || lexema.trim().isEmpty()) {
             throw new IllegalArgumentException("El lexema no puede ser vacio.");
         }
@@ -55,11 +53,11 @@ public class RegistroSimboloTp3 { // Representa una entrada de la tabla de simbo
 
     public long getOrdenDeclaracion() {return ordenDeclaracion;}
 
-    public Map<String, Object> getAtributos() {return Collections.unmodifiableMap(atributos);}    // Devuelve una vista de solo lectura de los atributos adicionales.
+    public Map<String, Object> getAtributos() {return Collections.unmodifiableMap(atributos);}  
   
-    public List<ParametroTp3> getParametros() {return Collections.unmodifiableList(parametros);}  // Devuelve los parametros formales en el orden de declaracion. 
+    public List<ParametroTp3> getParametros() {return Collections.unmodifiableList(parametros);} 
 
-    public void agregarAtributo(String nombre, Object valor) {    // ATRIBUTOS ADICIONALES
+    public void agregarAtributo(String nombre, Object valor) {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del atributo no puede ser vacio.");
         }
@@ -84,7 +82,6 @@ public class RegistroSimboloTp3 { // Representa una entrada de la tabla de simbo
     public void setValorComptime(String valor) {agregarAtributo("VALOR_COMPTIME", valor);}
 
     public boolean agregarParametro(String nombre, String tipoParametro, int lineaParametro) {
-    // Agrega un parametro si no existe otro parametro formal con el mismo nombre. Retorna false ante un duplicado.
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del parametro no puede ser vacio.");
         }
@@ -95,7 +92,7 @@ public class RegistroSimboloTp3 { // Representa una entrada de la tabla de simbo
         return true;
     }
 
-    public boolean agregarParametro(ParametroTp3 parametro) {    // Agrega un parametro ya construido, evitando nombres repetidos.
+    public boolean agregarParametro(ParametroTp3 parametro) { 
         if (parametro == null) {
             throw new IllegalArgumentException("El parametro no puede ser null.");
         }
@@ -143,9 +140,7 @@ public class RegistroSimboloTp3 { // Representa una entrada de la tabla de simbo
         return lexema + ":" + ambito;
     }
 
-    private static String valorONoDefinido(String valor) {
-        return valor == null ? "-" : valor;
-    }
+    private static String valorONoDefinido(String valor) { return valor == null ? "-" : valor; }
 
     public static final class ParametroTp3 { //Elemento de la firma de una funcion o metodo.
         private final String nombre;
@@ -165,17 +160,11 @@ public class RegistroSimboloTp3 { // Representa una entrada de la tabla de simbo
             this.linea = linea;
         }
 
-        public String getNombre() {
-            return nombre;
-        }
+        public String getNombre() { return nombre;}
 
-        public String getTipo() {
-            return tipo;
-        }
+        public String getTipo() { return tipo;}
 
-        public int getLinea() {
-            return linea;
-        }
+        public int getLinea() {  return linea;}
 
         @Override
         public String toString() {

@@ -1,7 +1,7 @@
 package TrabajoPractico4;
+
 public class TokenTp4 {
     public static final int EOF = 0;  
-
     private int id;
     private String atributo;
 
@@ -10,17 +10,11 @@ public class TokenTp4 {
         this.atributo = atributo;
     }
 
-    public TokenTp4(int id) {
-        this(id, null);
-    }
+    public TokenTp4(int id) {  this(id, null); }
 
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
 
-    public String getAtributo() {
-        return atributo;
-    }
+    public String getAtributo() { return atributo; }
 
     @Override
     public String toString() {

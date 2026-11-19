@@ -10,7 +10,6 @@ public class TablaPalabrasReservadasTp3 {
     }
 
     private void precargarPalabras() {
-        // IDs asignados a cada palabra reservada según la gramática
         tablaPR.put("if", Parser.IF);
         tablaPR.put("else", Parser.ELSE);
         tablaPR.put("begin", Parser.BEGIN);
@@ -47,11 +46,9 @@ public class TablaPalabrasReservadasTp3 {
         System.out.println("\n================ TABLA DE PALABRAS RESERVADAS ================");
         System.out.printf("%-15s | %-10s%n", "PALABRA", "TOKEN ID");
         System.out.println("-------------------------------------------------------------");
-
         for (Map.Entry<String, Short> entrada : this.tablaPR.entrySet()) {
             System.out.printf("%-15s | %-10d%n", entrada.getKey(), entrada.getValue());
         }
-
         System.out.println("=============================================================\n");
     }
 }

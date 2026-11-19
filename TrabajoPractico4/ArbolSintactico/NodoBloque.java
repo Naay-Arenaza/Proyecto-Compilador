@@ -29,4 +29,12 @@ public class NodoBloque extends NodoAST {
         }
         return null;
     }
+
+    @Override
+    public String generarWasm() {
+        for (NodoAST s : sentencias) {
+            if (s != null) s.generarWasm();
+        }
+        return null;
+    }
 }

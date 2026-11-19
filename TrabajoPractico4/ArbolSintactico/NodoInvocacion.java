@@ -1,20 +1,14 @@
 package TrabajoPractico4.ArbolSintactico;
-
-import java.util.List;
-
 import TrabajoPractico4.RegistroSimboloTp4;
 import TrabajoPractico4.TablaDeSimbolosTp4;
+import java.util.List;
+import TrabajoPractico4.GeneracionWebAssembly.*;
 
 public class NodoInvocacion extends NodoAST {
-
     private final String nombreFuncion;
-
     private final NodoListaParametros parametros;
-
     private final List<Integer> ordenParametros;
-
     private final int linea;
-
     private final RegistroSimboloTp4 funcionResuelta;
 
     public NodoInvocacion( String nombreFuncion,NodoListaParametros parametros,List<Integer> ordenParametros,int linea,RegistroSimboloTp4 funcionResuelta) {
@@ -70,13 +64,11 @@ public class NodoInvocacion extends NodoAST {
 
         List<NodoAST> argumentos = parametros.getParametros();
 
-        // 1. Comprobar cantidad de parámetros.
         if (!tabla.validarCantidadParametros(  nombreFuncion,   funcion.getAmbito(), argumentos.size())) {
             registrarError( "Semántico",  linea,"Cantidad de argumentos incorrecta al invocar '" + nombreFuncion + "'. Se recibieron "  + argumentos.size() + " y se esperaban "  + funcion.getCantidadParametros() + "."  );
             return "";
         }
 
-        // 2. Comprobar que el orden indicado sea válido.
         if (!tabla.validarOrdenParametros( ordenParametros, argumentos.size())) {
             registrarError( "Semántico",  linea,  "El orden de parámetros de '" + nombreFuncion  + "' debe ser una permutación de 1 a "   + argumentos.size() + "." );
             return "";
@@ -87,9 +79,7 @@ public class NodoInvocacion extends NodoAST {
         
         for (int i = 0; i < argumentos.size(); i++) {
             String tipoReal = argumentos.get(i).obtenerTipo();
-
             String tipoFormal = formales.get(i).getTipo();
-
             if (tipoReal == null || tipoFormal == null || (!tabla.tipoCompatibleAsignacion(tipoFormal,tipoReal,false) && !tabla.tiposObjetoCompatibles(tipoFormal,tipoReal))) {
                 registrarError("Semántico",linea,"Tipo incompatible para el parámetro '"+ formales.get(i).getNombre()+ "' de la función '" + nombreFuncion+ "': se esperaba " + tipoFormal+ " y se recibió "+ (tipoReal == null
                         ? "un tipo indeterminado" : tipoReal) + ".");
@@ -109,5 +99,28 @@ public class NodoInvocacion extends NodoAST {
         String resultado = GeneradorTAC.nuevoTemporal();
         System.out.println( resultado + " = CALL " + etiqueta);
         return resultado;
+    }
+
+    @Override
+    public String generarWasm() {
+        TablaDeSimbolosTp4 tabla = getTablaSimbolos();
+        List<NodoAST> argumentos = parametros.getParametros();
+        List<Integer> ordenCopia = tabla.obtenerOrdenDeCopia(ordenParametros, argumentos.size());
+
+        String[] auxArgs = new String[argumentos.size()];
+        for (Integer indice : ordenCopia) {
+            auxArgs[indice] = argumentos.get(indice).generarWasm();
+            if (auxArgs[indice] == null) return null;
+        }
+
+        for (int i = 0; i < argumentos.size(); i++) {
+            GeneradorWasm.emitirGet(auxArgs[i]);
+        }
+
+        String etiquetaWasm = "$FUNC_" + funcionResuelta.getAmbito().replace(':', '_') + "_" + funcionResuelta.getLexema();
+        String auxRetorno = GeneradorWasm.nuevaAuxiliar(GeneradorWasm.mapearTipo(funcionResuelta.getTipo()));
+        GeneradorWasm.emitir("call " + etiquetaWasm);
+        GeneradorWasm.emitirSet(auxRetorno);
+        return auxRetorno;
     }
 }

@@ -1,5 +1,5 @@
 package TrabajoPractico4.ArbolSintactico;
-
+import TrabajoPractico4.GeneracionWebAssembly.*;
 public class NodoRepeat extends NodoAST {
     private NodoAST cuerpo;
     private NodoAST condicion;
@@ -11,6 +11,7 @@ public class NodoRepeat extends NodoAST {
     }
 
     public NodoAST getCuerpo() { return cuerpo; }
+
     public NodoAST getCondicion() { return condicion; }
 
     @Override
@@ -23,14 +24,11 @@ public class NodoRepeat extends NodoAST {
                 return null;
             }
         }
-
         String lInicio = GeneradorTAC.nuevaEtiqueta();
         System.out.println(lInicio + ":");
-
         if (cuerpo != null) {
             cuerpo.generarCodigo();
         }
-
         if (condicion != null) {
             String condRes = condicion.generarCodigo();
             if (condRes == null) return null;
@@ -43,17 +41,27 @@ public class NodoRepeat extends NodoAST {
         if (nodo instanceof NodoHoja) {
             return ((NodoHoja) nodo).getLinea();
         }
-
         if (nodo instanceof NodoBinario) {
             NodoBinario binario = (NodoBinario) nodo;
             int linea = obtenerLinea(binario.getIzq());
             return linea != 0 ? linea : obtenerLinea(binario.getDer());
         }
-
         if (nodo instanceof NodoUnario) {
             return obtenerLinea(((NodoUnario) nodo).getOperando());
         }
-
         return 0;
+    }
+    
+    @Override
+    public String generarWasm() {
+        String etiquetaLoop = GeneradorWasm.nuevaEtiqueta();
+        GeneradorWasm.emitir("loop " + etiquetaLoop);
+        if (cuerpo != null) cuerpo.generarWasm();
+        String auxCond = condicion.generarWasm();
+        if (auxCond == null) return null;
+        GeneradorWasm.emitirGet(auxCond);
+        GeneradorWasm.emitir("br_if " + etiquetaLoop);
+        GeneradorWasm.emitir("end");
+        return null;
     }
 }

@@ -12,24 +12,15 @@ public class ErrorTp4 { // Representa un error detectado durante el análisis de
         this.descripcion = descripcion;
     }
 
-    public String getTipo() {
-        return tipo;
-    }
+    public String getTipo() { return tipo; }
 
-    public int getLinea() {
-        return linea;
-    }
+    public int getLinea() { return linea; }
 
-    public String getDescripcion() {
-        return descripcion;
-    }
+    public String getDescripcion() { return descripcion; }
 
     @Override
     public String toString() {
-        String ubicacion = linea > 0
-                ? "Línea " + linea + ": "
-                : "";
-
+        String ubicacion = linea > 0 ? "Línea " + linea + ": " : "";
         return "[Error " + tipo + "] " + ubicacion + descripcion;
     }
 }

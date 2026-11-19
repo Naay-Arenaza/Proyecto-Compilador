@@ -1,5 +1,4 @@
 package TrabajoPractico3.ArbolSintactico;
-
 import TrabajoPractico3.RecolectorErroresTp3;
 import TrabajoPractico3.TablaDeSimbolosTp3;
 

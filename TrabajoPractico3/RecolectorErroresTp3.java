@@ -1,6 +1,4 @@
-
 package TrabajoPractico3;
-
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,15 +27,11 @@ public class RecolectorErroresTp3 { // Acumula los errores encontrados durante e
     }
 
     public void imprimirErrores(PrintStream salida) { // Imprime todos los errores juntos.
-
         List<ErrorTp3> copia = getErrores();
-
         System.out.println();
         System.out.println("------------------------------------------------------------");
         System.out.println("                         Errores");
         System.out.println("------------------------------------------------------------");
-
-
         if (copia.isEmpty()) {
             System.out.println();
             salida.println("No se encontraron errores.");

@@ -1,5 +1,4 @@
 package TrabajoPractico4.ArbolSintactico;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,13 +17,9 @@ public class NodoListaParametros extends NodoAST {
         }
     }
 
-    public List<NodoAST> getParametros() {
-        return Collections.unmodifiableList(parametros);
-    }
+    public List<NodoAST> getParametros() {return Collections.unmodifiableList(parametros); }
 
     @Override
-    public String generarCodigo() {
-        return null;
-    }
+    public String generarCodigo() { return null; }
 }
 

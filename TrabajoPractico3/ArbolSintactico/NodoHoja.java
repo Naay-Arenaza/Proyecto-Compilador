@@ -1,16 +1,13 @@
 package TrabajoPractico3.ArbolSintactico;
-
 import java.util.Collections;
 import java.util.List;
 import TrabajoPractico3.RegistroSimboloTp3;
-
 
 public class NodoHoja extends NodoAST {
     private String tipoNodo;
     private String valor;
     private int linea;
-
-    private final RegistroSimboloTp3 registroSimbolos; // Hoja guarda el símbolo concreto al que se refiere el identificador
+    private final RegistroSimboloTp3 registroSimbolos; 
     private String valorComptimeAlCrear;
     private final boolean valorComptimeConocidoAlCrear;
 
@@ -19,19 +16,16 @@ public class NodoHoja extends NodoAST {
         this.tipoNodo = tipoNodo;
         this.valor = valor;
         this.linea = linea;
-
         if ("ID".equals(tipoNodo) && getTablaSimbolos() != null) {
             this.registroSimbolos = getTablaSimbolos().resolverVariable(valor);
         } else {
             this.registroSimbolos = null;
         }
-
         if ("ID".equals(tipoNodo)&& registroSimbolos != null&& registroSimbolos.esComptime()&& registroSimbolos.tieneValorComptime()) {
             this.valorComptimeAlCrear = registroSimbolos.getValorComptime();
         } else {
             this.valorComptimeAlCrear = null;
         }
-
         this.valorComptimeConocidoAlCrear = this.valorComptimeAlCrear != null;
     }
     public String getTipoNodo() { return tipoNodo; }
@@ -55,15 +49,13 @@ public class NodoHoja extends NodoAST {
         if (getTablaSimbolos() == null) {
             return null;
         }
-
-        if ("ID".equals(tipoNodo)) {// Si es una variable, obtenemos el tipo de su símbolo.
+        if ("ID".equals(tipoNodo)) {
             if (registroSimbolos == null) {
                 return null;
             }
             return registroSimbolos.getTipo();
         }
-
-        if ("CTE".equals(tipoNodo)) {// Si es una constante, consultamos su tipo en la tabla.
+        if ("CTE".equals(tipoNodo)) {
             RegistroSimboloTp3 constante = getTablaSimbolos().obtenerConstante(valor);
             if (constante != null) {
                 return constante.getTipo();
@@ -76,17 +68,14 @@ public class NodoHoja extends NodoAST {
         if (!"ID".equals(tipoNodo)) {
             return valor;
         }
-
         if (super.getTablaSimbolos() == null) {
             registrarError("Interno",linea, "No se configuró la tabla de símbolos para generar código.");
             return valor;
         }
-
         if (registroSimbolos == null) {
             registrarError("Semántico",linea,"Identificador no declarado o no utilizable como variable: " + valor);
             return valor;
         }
-
         return registroSimbolos.getNombreCompleto();
     }
 
@@ -95,7 +84,6 @@ public class NodoHoja extends NodoAST {
         if ("ID".equals(tipoNodo) && registroSimbolos == null) {
             return "Identificador no declarado o no utilizable como variable: " + valor;
         }
-
         if ("CTE".equals(tipoNodo)) {
             if (getTablaSimbolos() == null || getTablaSimbolos().obtenerConstante(valor) == null) {
                 return "No se pudo resolver la constante: " + valor;
@@ -109,11 +97,9 @@ public class NodoHoja extends NodoAST {
         if (!"ID".equals(tipoNodo)) {
             return valor;
         }
-        
-        if (valorComptimeAlCrear != null) { // Si es COMPTIME y tenía un valor conocido al crear esta hoja, usamos ese valor en lugar del identificador.
+        if (valorComptimeAlCrear != null) { 
             return valorComptimeAlCrear;
         }
-
         return generarReferencia();
     }
 }

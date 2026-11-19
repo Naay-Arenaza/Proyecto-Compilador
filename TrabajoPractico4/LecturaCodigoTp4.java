@@ -23,7 +23,7 @@ public class LecturaCodigoTp4 {
         this.reader = new BufferedReader(new FileReader(rutaArchivo));
     }
 
-    public char leerSiguienteCaracter() { //Lee un solo carácter guardando la marca previa para retroceder
+    public char leerSiguienteCaracter() {
         try {
             reader.mark(1); 
             int valor = reader.read(); 
@@ -53,9 +53,7 @@ public class LecturaCodigoTp4 {
         }
     }
 
-    public int getLineaActual() {
-        return lineaActual;
-    }
+    public int getLineaActual() { return lineaActual;}
 
     public void cerrar() { 
         try {
@@ -65,9 +63,7 @@ public class LecturaCodigoTp4 {
         }
     }
 
-    public RecolectorErroresTp4 getRecolectorErrores() {
-        return recolectorErrores;
-    }
+    public RecolectorErroresTp4 getRecolectorErrores() { return recolectorErrores;}
 
     private void registrarErrorLectura(String descripcion) {
         if (!errorLecturaRegistrado) {

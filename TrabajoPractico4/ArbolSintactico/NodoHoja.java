@@ -1,15 +1,13 @@
 package TrabajoPractico4.ArbolSintactico;
-
+import TrabajoPractico4.RegistroSimboloTp4;
 import java.util.Collections;
 import java.util.List;
-import TrabajoPractico4.RegistroSimboloTp4;
-
+import TrabajoPractico4.GeneracionWebAssembly.*;;
 
 public class NodoHoja extends NodoAST {
     private String tipoNodo;
     private String valor;
     private int linea;
-
     private final RegistroSimboloTp4 registroSimbolos;
     private String valorComptimeAlCrear;
     private final boolean valorComptimeConocidoAlCrear;
@@ -25,13 +23,11 @@ public class NodoHoja extends NodoAST {
         } else {
             this.registroSimbolos = null;
         }
-
         if ("ID".equals(tipoNodo)&& registroSimbolos != null&& registroSimbolos.esComptime()&& registroSimbolos.tieneValorComptime()) {
             this.valorComptimeAlCrear = registroSimbolos.getValorComptime();
         } else {
             this.valorComptimeAlCrear = null;
         }
-
         this.valorComptimeConocidoAlCrear = this.valorComptimeAlCrear != null;
     }
     public String getTipoNodo() { return tipoNodo; }
@@ -55,14 +51,12 @@ public class NodoHoja extends NodoAST {
         if (getTablaSimbolos() == null) {
             return null;
         }
-
         if ("ID".equals(tipoNodo)) {
             if (registroSimbolos == null) {
                 return null;
             }
             return registroSimbolos.getTipo();
         }
-
         if ("CTE".equals(tipoNodo)) {
             RegistroSimboloTp4 constante = getTablaSimbolos().obtenerConstante(valor);
             if (constante != null) {
@@ -76,17 +70,14 @@ public class NodoHoja extends NodoAST {
         if (!"ID".equals(tipoNodo)) {
             return valor;
         }
-
         if (super.getTablaSimbolos() == null) {
             registrarError("Interno",linea, "No se configuró la tabla de símbolos para generar código.");
             return valor;
         }
-
         if (registroSimbolos == null) {
             registrarError("Semántico",linea,"Identificador no declarado o no utilizable como variable: " + valor);
             return valor;
         }
-
         return registroSimbolos.getNombreCompleto();
     }
 
@@ -95,7 +86,6 @@ public class NodoHoja extends NodoAST {
         if ("ID".equals(tipoNodo) && registroSimbolos == null) {
             return "Identificador no declarado o no utilizable como variable: " + valor;
         }
-
         if ("CTE".equals(tipoNodo)) {
             if (getTablaSimbolos() == null || getTablaSimbolos().obtenerConstante(valor) == null) {
                 return "No se pudo resolver la constante: " + valor;
@@ -108,12 +98,61 @@ public class NodoHoja extends NodoAST {
     public String generarCodigo() {
         if (!"ID".equals(tipoNodo)) {
             return valor;
-        }
-        
+        } 
         if (valorComptimeAlCrear != null) { 
             return valorComptimeAlCrear;
         }
-
         return generarReferencia();
+    }
+
+    @Override
+    public String generarWasm() {
+        String tipoLeng = obtenerTipo();
+        String tipoWasm = GeneradorWasm.mapearTipo(tipoLeng);
+
+        if ("CTE".equals(tipoNodo)) {
+            if ("CADENA".equalsIgnoreCase(tipoLeng) || valor.startsWith("\"") || valor.startsWith("'")) {
+                String limpio = valor.substring(1, valor.length() - 1);
+                int offset = GeneradorWasm.registrarString(limpio);
+                String aux = GeneradorWasm.nuevaAuxiliar("i32");
+                GeneradorWasm.emitir("i32.const " + offset);
+                GeneradorWasm.emitirSet(aux);
+                return aux;
+            }
+            String num = GeneradorWasm.limpiarLiteralNumerico(valor, tipoLeng);
+            String aux = GeneradorWasm.nuevaAuxiliar(tipoWasm);
+            GeneradorWasm.emitir(tipoWasm + ".const " + num);
+            GeneradorWasm.emitirSet(aux);
+            return aux;
+        }
+
+        if ("ID".equals(tipoNodo)) {
+            if (valorComptimeAlCrear != null) {
+                String num = GeneradorWasm.limpiarLiteralNumerico(valorComptimeAlCrear, tipoLeng);
+                String aux = GeneradorWasm.nuevaAuxiliar(tipoWasm);
+                GeneradorWasm.emitir(tipoWasm + ".const " + num);
+                GeneradorWasm.emitirSet(aux);
+                return aux;
+            }
+            
+            String refWasm = GeneradorWasm.sanitizarNombre(registroSimbolos.getNombreCompleto());
+            String aux = GeneradorWasm.nuevaAuxiliar(tipoWasm);
+            GeneradorWasm.emitirGet(refWasm);
+            GeneradorWasm.emitirSet(aux);
+            return aux;
+        }
+
+        if ("CADENA".equalsIgnoreCase(tipoNodo) || (valor != null && (valor.startsWith("{") || valor.startsWith("\"")))) {
+            String texto = valor != null ? valor : "";
+            if ((texto.startsWith("{") && texto.endsWith("}")) || (texto.startsWith("\"") && texto.endsWith("\""))) {
+                texto = texto.substring(1, texto.length() - 1);
+            }
+            int offset = GeneradorWasm.registrarString(texto);
+            String aux = GeneradorWasm.nuevaAuxiliar("i32");
+            GeneradorWasm.emitir("i32.const " + offset);
+            GeneradorWasm.emitirSet(aux);
+            return aux;
+        }
+        return null;
     }
 }

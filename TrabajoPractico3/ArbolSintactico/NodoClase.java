@@ -18,14 +18,12 @@ public class NodoClase extends NodoAST {
 
     @Override
     public String generarCodigo() {
-        System.out.println("; ==========================================");// Encabezado de la clase
+        System.out.println("; ==========================================");
         System.out.println("; CLASE " + ambitoCompleto);
         System.out.println("; ==========================================");
-        
-        if (cuerpo != null) {// Generar el código de los miembros de la clase
+        if (cuerpo != null) {
             cuerpo.generarCodigo();
         }
-
         return null;
     }
 

@@ -1,5 +1,5 @@
 package TrabajoPractico4.ArbolSintactico;
-
+import TrabajoPractico4.GeneracionWebAssembly.*;
 import TrabajoPractico4.TablaDeSimbolosTp4;
 
 public class NodoReturn extends NodoAST {
@@ -14,9 +14,7 @@ public class NodoReturn extends NodoAST {
         this.linea = linea;
     }
 
-    public NodoAST getExpresionRetorno() {
-        return expresionRetorno;
-    }
+    public NodoAST getExpresionRetorno() { return expresionRetorno;}
 
     @Override
     public String generarCodigo() {
@@ -49,5 +47,19 @@ public class NodoReturn extends NodoAST {
         }
         System.out.println("RETURN " + retVal);
         return retVal;
+    }
+
+    @Override
+    public String generarWasm() {
+        String auxRet = expresionRetorno.generarWasm();
+        if (auxRet == null) return null;
+        String bandera = GeneradorWasm.getNombreBanderaFuncionActual();
+        if (bandera != null) {
+            GeneradorWasm.emitir("i32.const 0");
+            GeneradorWasm.emitir("global.set " + bandera);
+        }
+        GeneradorWasm.emitirGet(auxRet);
+        GeneradorWasm.emitir("return");
+        return auxRet;
     }
 }

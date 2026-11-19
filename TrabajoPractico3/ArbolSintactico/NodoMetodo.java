@@ -19,15 +19,13 @@ public class NodoMetodo extends NodoAST {
 
     @Override
     public String generarCodigo() {
-        System.out.println("; --- INICIO METODO " + nombre + " ---");// Encabezado del método
-        String etiquetaInicio = "METHOD_" + ambitoCompleto.replace(':', '_') + ":";// Etiqueta de inicio
+        System.out.println("; --- INICIO METODO " + nombre + " ---");
+        String etiquetaInicio = "METHOD_" + ambitoCompleto.replace(':', '_') + ":";
         System.out.println(etiquetaInicio);
-
-        if (cuerpoEjecutable != null) {// Generar instrucciones del método
+        if (cuerpoEjecutable != null) {
             cuerpoEjecutable.generarCodigo();
         }
-        
-        System.out.println("RET");// Retorno de finalización del método
+        System.out.println("RET");
         return null;
     }
 }

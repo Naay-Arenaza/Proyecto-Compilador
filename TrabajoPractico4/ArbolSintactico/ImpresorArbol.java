@@ -32,18 +32,15 @@ public class ImpresorArbol {
             NodoHoja hoja = (NodoHoja) nodo;
             return hoja.getTipoNodo() + ": " + hoja.getValor();
         }
-
         if (nodo instanceof NodoPrograma) {
             NodoPrograma n = (NodoPrograma) nodo;
             return "PROGRAMA: " + n.getNombrePrograma();
         }
-
         if (nodo instanceof NodoInvocacion) {
             NodoInvocacion invocacion = (NodoInvocacion) nodo;
             String orden = invocacion.getOrdenParametros() == null ? "natural" : invocacion.getOrdenParametros().toString();
             return "INVOCACION: "   + invocacion.getNombreFuncion()  + " [orden: " + orden + "]";
         }
-
         if (nodo instanceof NodoInvocacionMetodo) {
             NodoInvocacionMetodo invocacion = (NodoInvocacionMetodo) nodo;
             String orden = invocacion.getOrdenParametros() == null ? "natural" : invocacion.getOrdenParametros().toString();
@@ -56,6 +53,14 @@ public class ImpresorArbol {
         if (nodo instanceof NodoFuncion) {
             NodoFuncion funcion = (NodoFuncion) nodo;
             return "FUNCIÓN: " + funcion.getNombre() + " [" + funcion.getAmbitoCompleto() + "]";
+        }
+        if (nodo instanceof NodoClase) {
+            NodoClase clase = (NodoClase) nodo;
+            return "CLASE: " + clase.getNombre()   + " [" + clase.getAmbitoCompleto() + "]";
+        }
+        if (nodo instanceof NodoMetodo) {
+            NodoMetodo metodo = (NodoMetodo) nodo;
+            return "MÉTODO: " + metodo.getNombre() + " [" + metodo.getAmbitoCompleto() + "]";
         }
         return nodo.getEtiqueta();
     }
@@ -102,9 +107,14 @@ public class ImpresorArbol {
             hijos.add(n.getObjeto());
             hijos.add(n.getParametros());
         } else if (nodo instanceof NodoListaParametros) {
-            hijos.addAll(
-                ((NodoListaParametros) nodo).getParametros()
-            );
+            hijos.addAll(((NodoListaParametros) nodo).getParametros());
+        } else if (nodo instanceof NodoClase) {
+            NodoClase n = (NodoClase) nodo;
+            hijos.add(n.getCuerpo());
+        } else if (nodo instanceof NodoMetodo) {
+            NodoMetodo n = (NodoMetodo) nodo;
+            hijos.add(n.getParametros());
+            hijos.add(n.getCuerpoEjecutable());
         } else if (nodo instanceof NodoFuncion) {
             NodoFuncion n = (NodoFuncion) nodo;
             hijos.add(n.getParametros());
@@ -114,4 +124,5 @@ public class ImpresorArbol {
         hijos.removeIf(hijo -> hijo == null);
         return hijos;
     }
+
 }

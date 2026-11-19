@@ -1,8 +1,6 @@
-
 package TrabajoPractico3.ArbolSintactico;
 
 public class NodoFuncion extends NodoAST {
-
     private String nombre;
     private String ambitoCompleto;
     private NodoAST parametros;
@@ -18,44 +16,28 @@ public class NodoFuncion extends NodoAST {
         this.cuerpoEjecutable = ejecutables;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
+    public String getNombre() {return nombre; }
 
-    public String getAmbitoCompleto() {
-        return ambitoCompleto;
-    }
+    public String getAmbitoCompleto() {return ambitoCompleto;}
 
-    public NodoAST getParametros() {
-        return parametros;
-    }
+    public NodoAST getParametros() {return parametros;}
 
-    public NodoAST getCuerpoDeclarativo() {
-        return cuerpoDeclarativo;
-    }
+    public NodoAST getCuerpoDeclarativo() { return cuerpoDeclarativo;}
 
-    public NodoAST getCuerpoEjecutable() {
-        return cuerpoEjecutable;
-    }
-
+    public NodoAST getCuerpoEjecutable() { return cuerpoEjecutable; }
 
     @Override
     public String generarCodigo() {
-        System.out.println("; --- INICIO FUNCION " + nombre + " ---");// Encabezado de la función
-        String etiquetaInicio = "FUNC_" + ambitoCompleto.replace(':', '_') + ":";// Etiqueta de inicio
+        System.out.println("; --- INICIO FUNCION " + nombre + " ---");
+        String etiquetaInicio = "FUNC_" + ambitoCompleto.replace(':', '_') + ":";
         System.out.println(etiquetaInicio);
-
-        if (cuerpoDeclarativo != null) {// Generar declaraciones locales
+        if (cuerpoDeclarativo != null) {
             cuerpoDeclarativo.generarCodigo();
         }
-
-        if (cuerpoEjecutable != null) {// Generar instrucciones de la función
+        if (cuerpoEjecutable != null) {
             cuerpoEjecutable.generarCodigo();
         }
-
-        System.out.println("RET");// Retorno de finalización de la función
-
+        System.out.println("RET");
         return null;
     }
-
 }

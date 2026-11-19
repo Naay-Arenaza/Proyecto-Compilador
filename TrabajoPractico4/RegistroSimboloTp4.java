@@ -1,12 +1,11 @@
 package TrabajoPractico4;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RegistroSimboloTp4 { // Representa una entrada de la tabla de simbolo
+public class RegistroSimboloTp4 {
     private final String lexema;
     private final String tipoToken;
     private final String tipo;
@@ -15,15 +14,14 @@ public class RegistroSimboloTp4 { // Representa una entrada de la tabla de simbo
     private final String nombreCompleto;
     private final int linea;
     private final long ordenDeclaracion;
+    private final Map<String, Object> atributos; 
+    private final List<ParametroTp4> parametros; 
 
-    private final Map<String, Object> atributos; // Informacion semantica adicional del simbolo.
-    private final List<ParametroTp4> parametros; // Firma formal de una funcion o metodo, en el orden declarado.
-
-    public RegistroSimboloTp4(String lexema, String tipoToken, int linea) {//Constructor de compatibilidad para registros simples
+    public RegistroSimboloTp4(String lexema, String tipoToken, int linea) {
         this(lexema, tipoToken, null, null, null, linea, -1L);
     }
 
-    public RegistroSimboloTp4(String lexema, String tipoToken,String tipo, String uso, String ambito,int linea,long ordenDeclaracion) {//Constructor completo utilizado por la tabla de simbolos.
+    public RegistroSimboloTp4(String lexema, String tipoToken,String tipo, String uso, String ambito,int linea,long ordenDeclaracion) {
         if (lexema == null || lexema.trim().isEmpty()) {
             throw new IllegalArgumentException("El lexema no puede ser vacio.");
         }
@@ -55,11 +53,11 @@ public class RegistroSimboloTp4 { // Representa una entrada de la tabla de simbo
 
     public long getOrdenDeclaracion() {return ordenDeclaracion;}
 
-    public Map<String, Object> getAtributos() {return Collections.unmodifiableMap(atributos);}    // Devuelve una vista de solo lectura de los atributos adicionales.
+    public Map<String, Object> getAtributos() {return Collections.unmodifiableMap(atributos);} 
   
-    public List<ParametroTp4> getParametros() {return Collections.unmodifiableList(parametros);}  // Devuelve los parametros formales en el orden de declaracion. 
+    public List<ParametroTp4> getParametros() {return Collections.unmodifiableList(parametros);} 
 
-    public void agregarAtributo(String nombre, Object valor) {    // ATRIBUTOS ADICIONALES
+    public void agregarAtributo(String nombre, Object valor) { 
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del atributo no puede ser vacio.");
         }
@@ -84,7 +82,6 @@ public class RegistroSimboloTp4 { // Representa una entrada de la tabla de simbo
     public void setValorComptime(String valor) {agregarAtributo("VALOR_COMPTIME", valor);}
 
     public boolean agregarParametro(String nombre, String tipoParametro, int lineaParametro) {
-    // Agrega un parametro si no existe otro parametro formal con el mismo nombre. Retorna false ante un duplicado.
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del parametro no puede ser vacio.");
         }
@@ -95,7 +92,7 @@ public class RegistroSimboloTp4 { // Representa una entrada de la tabla de simbo
         return true;
     }
 
-    public boolean agregarParametro(ParametroTp4 parametro) {    // Agrega un parametro ya construido, evitando nombres repetidos.
+    public boolean agregarParametro(ParametroTp4 parametro) {
         if (parametro == null) {
             throw new IllegalArgumentException("El parametro no puede ser null.");
         }
@@ -114,9 +111,7 @@ public class RegistroSimboloTp4 { // Representa una entrada de la tabla de simbo
         return false;
     }
 
-    public int getCantidadParametros() {
-        return parametros.size();
-    }
+    public int getCantidadParametros() { return parametros.size(); }
 
     @Override
     public String toString() {
@@ -143,11 +138,9 @@ public class RegistroSimboloTp4 { // Representa una entrada de la tabla de simbo
         return lexema + ":" + ambito;
     }
 
-    private static String valorONoDefinido(String valor) {
-        return valor == null ? "-" : valor;
-    }
+    private static String valorONoDefinido(String valor) { return valor == null ? "-" : valor;}
 
-    public static final class ParametroTp4 { //Elemento de la firma de una funcion o metodo.
+    public static final class ParametroTp4 {
         private final String nombre;
         private final String tipo;
         private final int linea;
@@ -165,21 +158,13 @@ public class RegistroSimboloTp4 { // Representa una entrada de la tabla de simbo
             this.linea = linea;
         }
 
-        public String getNombre() {
-            return nombre;
-        }
+        public String getNombre() { return nombre;}
 
-        public String getTipo() {
-            return tipo;
-        }
+        public String getTipo() { return tipo; }
 
-        public int getLinea() {
-            return linea;
-        }
+        public int getLinea() { return linea; }
 
         @Override
-        public String toString() {
-            return nombre + ":" + tipo;
-        }
+        public String toString() { return nombre + ":" + tipo; }
     }
 }

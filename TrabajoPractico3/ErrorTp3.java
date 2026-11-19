@@ -2,7 +2,6 @@
 package TrabajoPractico3;
 
 public class ErrorTp3 { // Representa un error detectado durante el análisis del programa.
-
     private final String tipo;
     private final int linea;
     private final String descripcion;
@@ -13,17 +12,11 @@ public class ErrorTp3 { // Representa un error detectado durante el análisis de
         this.descripcion = descripcion;
     }
 
-    public String getTipo() {
-        return tipo;
-    }
+    public String getTipo() { return tipo; }
 
-    public int getLinea() {
-        return linea;
-    }
+    public int getLinea() { return linea; }
 
-    public String getDescripcion() {
-        return descripcion;
-    }
+    public String getDescripcion() { return descripcion; }
 
     @Override
     public String toString() {

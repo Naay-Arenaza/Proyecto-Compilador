@@ -1,10 +1,7 @@
-
 package TrabajoPractico3.ArbolSintactico;
-
 import TrabajoPractico3.TablaDeSimbolosTp3;
 
 public class NodoAsignacion extends NodoAST {
-
     private NodoAST variable;
     private NodoAST expresion;
 
@@ -37,23 +34,17 @@ public class NodoAsignacion extends NodoAST {
 
         if (tipoDestino == null || tipoExpresion == null) {
             String error = null;
-            
-            if (tipoDestino == null) {// Primero revisamos si falló la variable de destino.
+            if (tipoDestino == null) {
                 error = variable.obtenerErrorTipo();
             }
-
-            if (error == null && tipoExpresion == null) {// Si no hay error allí, revisamos la expresión.
+            if (error == null && tipoExpresion == null) {
                 error = expresion.obtenerErrorTipo();
             }
             registrarError("Semántico",obtenerLinea(), error != null ? error : "No se pudo determinar el tipo de la variable o de la expresión." );
             return false;
         }
-
-        if (tabla.tipoCompatibleAsignacion(tipoDestino, tipoExpresion, false)) { return true; } // Asignación entre tipos iguales.
-
-            
-        if (tabla.tiposObjetoCompatibles(tipoDestino, tipoExpresion)) { return true;}// Compatibilidad estructural de objetos (Tema 25).
-
+        if (tabla.tipoCompatibleAsignacion(tipoDestino, tipoExpresion, false)) { return true; } 
+        if (tabla.tiposObjetoCompatibles(tipoDestino, tipoExpresion)) { return true;}
         registrarError("Semántico",obtenerLinea(),"Tipos incompatibles en la asignación: no se puede asignar " + tipoExpresion + " a " + tipoDestino + "." );
         return false;
     }
@@ -71,15 +62,12 @@ public class NodoAsignacion extends NodoAST {
         if (!validarTipos()) { return null; }
         String der = expresion.generarCodigo();
         String izq;
-
         if (variable instanceof NodoHoja) {
             izq = ((NodoHoja) variable).generarReferencia();
         } else {
             izq = variable.generarCodigo();
         }
-
         if (der == null || izq == null) { return null; }
-
         System.out.println(izq + " := " + der);
         return izq;
     }

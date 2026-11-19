@@ -3,14 +3,14 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public final class GestionAmbitoTp4 {
-    private enum TipoAmbito { // Tipos de ámbitos que puede tener el programa.
+    private enum TipoAmbito { 
         GLOBAL,
         CLASE,
         FUNCION
     }
-    private final TablaDeSimbolosTp4 tabla; //Tabla única de símbolos compartida por el compilador.
-    private final Deque<String> pilaAmbitos = new ArrayDeque<>(); // Pila de nombres completos de los ámbitos.
-    private final Deque<TipoAmbito> pilaTipos = new ArrayDeque<>(); // Pila que indica el tipo de cada ámbito.
+    private final TablaDeSimbolosTp4 tabla;
+    private final Deque<String> pilaAmbitos = new ArrayDeque<>(); 
+    private final Deque<TipoAmbito> pilaTipos = new ArrayDeque<>(); 
     private int nivelesSupresion = 0;
 
     public GestionAmbitoTp4 (TablaDeSimbolosTp4 tabla) {
@@ -21,9 +21,7 @@ public final class GestionAmbitoTp4 {
         iniciarPrograma();
     }
 
-    public void iniciarSupresion() {
-        this.nivelesSupresion++;
-    }
+    public void iniciarSupresion() { this.nivelesSupresion++; }
 
     public void finalizarSupresion() {
         if (this.nivelesSupresion > 0) {
@@ -31,33 +29,24 @@ public final class GestionAmbitoTp4 {
         }
     }
 
-    public boolean estaSuprimido() {
-        return this.nivelesSupresion > 0;
-    }
+    public boolean estaSuprimido() { return this.nivelesSupresion > 0; }
 
-    public final void iniciarPrograma() {// Inicializa el ámbito global del programa.
+    public final void iniciarPrograma() {
         pilaAmbitos.clear();
         pilaTipos.clear();
         pilaAmbitos.push(TablaDeSimbolosTp4.AMBITO_GLOBAL);
         pilaTipos.push(TipoAmbito.GLOBAL);
-        this.nivelesSupresion = 0; //??
+        this.nivelesSupresion = 0;
         sincronizarTabla();
     }
 
-    public RegistroSimboloTp4 declararPrograma(String nombre, int linea) {// Registra el nombre del programa en el ámbito global.
-        return tabla.declararPrograma(nombre, linea);
-    }
+    public RegistroSimboloTp4 declararPrograma(String nombre, int linea) {  return tabla.declararPrograma(nombre, linea);}
 
-    public String entrarAmbitoClase(String nombreClase) {// Ingresa al ámbito de una clase.
-        return entrarAmbito(nombreClase, TipoAmbito.CLASE);
-    }
+    public String entrarAmbitoClase(String nombreClase) { return entrarAmbito(nombreClase, TipoAmbito.CLASE); }
 
-    public String entrarAmbitoFuncion(String nombreFuncion) {// Ingresa al ámbito de una función o método.
-        return entrarAmbito(nombreFuncion, TipoAmbito.FUNCION);
-    }
+    public String entrarAmbitoFuncion(String nombreFuncion) {  return entrarAmbito(nombreFuncion, TipoAmbito.FUNCION);}
 
-    private String entrarAmbito(String nombre, TipoAmbito tipo) {// Agrega un nuevo ámbito
-
+    private String entrarAmbito(String nombre, TipoAmbito tipo) {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del nuevo ámbito no puede ser vacío.");
         }
@@ -68,7 +57,7 @@ public final class GestionAmbitoTp4 {
         return getAmbitoActual();
     }
 
-    public String salirAmbito() {// Sale del ámbito actual y vuelve al ámbito anterior.
+    public String salirAmbito() {
         if (pilaAmbitos.size() <= 1) {
             throw new IllegalStateException("No se puede salir del ámbito global main.");
         }
@@ -78,15 +67,14 @@ public final class GestionAmbitoTp4 {
         return getAmbitoActual();
     }
 
-    // CONSULTA DE ÁMBITOS
-    public String getAmbitoActual() {  // Devuelve el nombre completo del ámbito actual.
+    public String getAmbitoActual() { 
         if (pilaAmbitos.isEmpty()) {
             return TablaDeSimbolosTp4.AMBITO_GLOBAL;
         }
         return pilaAmbitos.peek();
     }
 
-    public String getAmbitoPadre() {  // Devuelve el ámbito padre del ámbito actual.
+    public String getAmbitoPadre() { 
         String ambitoActual = getAmbitoActual();
         int posicionSeparador = ambitoActual.lastIndexOf(':');
         if (posicionSeparador == -1) {
@@ -95,36 +83,28 @@ public final class GestionAmbitoTp4 {
         return ambitoActual.substring(0, posicionSeparador);
     }
 
-    public boolean esAmbitoGlobal() {  // Comprueba si estamos en el ámbito global.
-        return pilaTipos.peek() == TipoAmbito.GLOBAL;
-    }
+    public boolean esAmbitoGlobal() { return pilaTipos.peek() == TipoAmbito.GLOBAL; }
 
-    public boolean estaEnAmbitoClase() {    // Comprueba si estamos dentro de una clase.
-        return pilaTipos.peek() == TipoAmbito.CLASE;
-    }
+    public boolean estaEnAmbitoClase() { return pilaTipos.peek() == TipoAmbito.CLASE; }
 
-    public boolean estaEnAmbitoFuncion() {    // Comprueba si estamos dentro de una función o método.
-        return pilaTipos.peek() == TipoAmbito.FUNCION;
-    }
+    public boolean estaEnAmbitoFuncion() { return pilaTipos.peek() == TipoAmbito.FUNCION; }
 
-    // DECLARACIÓN DE SÍMBOLOS
-    public RegistroSimboloTp4 declararVariable(String nombre,String tipo,int linea,boolean comptime) {   // Declara una variable o un atributo de clase.
+    public RegistroSimboloTp4 declararVariable(String nombre,String tipo,int linea,boolean comptime) { 
         if (estaSuprimido()) {
             String uso = estaEnAmbitoClase() ? TablaDeSimbolosTp4.USO_ATRIBUTO : (comptime ? TablaDeSimbolosTp4.USO_COMPTIME : TablaDeSimbolosTp4.USO_VARIABLE);
-        return registroFicticio(nombre, tipo, uso);
+            return registroFicticio(nombre, tipo, uso);
         }
 
-        if (estaEnAmbitoClase()) {  // Si estamos dentro de una clase, declaramos un atributo.
+        if (estaEnAmbitoClase()) { 
             RegistroSimboloTp4 atributo = tabla.declararAtributoClase(nombre,tipo,linea);
-            if (atributo != null && comptime) {  // Conserva la marca comptime si corresponde.
+            if (atributo != null && comptime) { 
                 atributo.agregarAtributo("COMPTIME", Boolean.TRUE);
             }
             return atributo;
         }
-        return tabla.declararVariable(nombre, tipo,linea,comptime );// En los demás ámbitos declaramos una variable.
+        return tabla.declararVariable(nombre, tipo,linea,comptime );
     }
 
-    // Registra una función o un método, dependiendo del ámbito actual.
     public RegistroSimboloTp4 declararFuncion( String nombre, String tipoRetorno, int linea) {
         if (estaSuprimido()) {
             return registroFicticio(nombre, tipoRetorno, TablaDeSimbolosTp4.USO_FUNCION);
@@ -132,28 +112,28 @@ public final class GestionAmbitoTp4 {
         return tabla.declararFuncion( nombre, tipoRetorno, linea);
     }
 
-    public RegistroSimboloTp4 declararClase( String nombre,int linea) {// Registra una clase.
+    public RegistroSimboloTp4 declararClase( String nombre,int linea) {
         if (estaSuprimido()) {
             return registroFicticio(nombre, "CLASS", TablaDeSimbolosTp4.USO_CLASE);
         }
         return tabla.declararClase( nombre, linea);
     }
 
-    public RegistroSimboloTp4 declararMetodo( String nombre,String tipoRetorno, int linea) {// Registra un método dentro de una clase.
+    public RegistroSimboloTp4 declararMetodo( String nombre,String tipoRetorno, int linea) {
     if (estaSuprimido()) {
         return registroFicticio(nombre, tipoRetorno, TablaDeSimbolosTp4.USO_METODO);
     }
         return tabla.declararMetodoClase(nombre,tipoRetorno,linea);
     }
 
-    public RegistroSimboloTp4 declararParametro(String nombre,String tipo,int linea) {// Registra un parámetro formal.
+    public RegistroSimboloTp4 declararParametro(String nombre,String tipo,int linea) {
     if (estaSuprimido()) {
         return registroFicticio(nombre, tipo, TablaDeSimbolosTp4.USO_PARAMETRO);
     }
         return tabla.declararParametro(nombre, tipo,linea);
     }
 
-    public RegistroSimboloTp4 declararObjeto(String nombre,String nombreClase, int linea) {// Registra una instancia de una clase.
+    public RegistroSimboloTp4 declararObjeto(String nombre,String nombreClase, int linea) {
         if (estaSuprimido()) {
             return registroFicticio(nombre, nombreClase, TablaDeSimbolosTp4.USO_OBJETO);
         }
@@ -162,39 +142,35 @@ public final class GestionAmbitoTp4 {
 
     public boolean agregarParametroFormal(String nombreFuncion,String nombreParametro,String tipoParametro,int lineaParametro, String ambitoDeclaracion) {
         if (estaSuprimido()) {
-            return true;          // no toca la firma de la función existente
+            return true;     
         }    
-        // Agrega un parámetro a la firma de una función o método.
         return tabla.agregarParametroFormal(nombreFuncion,nombreParametro,tipoParametro,lineaParametro,ambitoDeclaracion);
     }
 
-    public boolean agregarClaseBase(String clase,String claseBase) {// Registra una relación de herencia entre clases.
+    public boolean agregarClaseBase(String clase,String claseBase) {
         if (estaSuprimido()) {
-            return true;          // no agrega herencia a la clase existente
+            return true;        
         }
         return tabla.agregarClaseBase(clase, claseBase);
     }
 
-    // BÚSQUEDA DE SÍMBOLOS
-    public RegistroSimboloTp4 resolver(String nombre) {// Busca un símbolo visible desde el ámbito actual.
+    public RegistroSimboloTp4 resolver(String nombre) {
         return tabla.buscar( nombre, getAmbitoActual());
     }
 
-    public RegistroSimboloTp4 resolverVariable(String nombre) {// Busca una variable visible.
+    public RegistroSimboloTp4 resolverVariable(String nombre) {
         return tabla.resolverVariable(nombre);
     }
 
-    public RegistroSimboloTp4 resolverFuncion(String nombre) {// Busca una función o método visible.
+    public RegistroSimboloTp4 resolverFuncion(String nombre) {
         return tabla.resolverFuncion(nombre);
     }
 
-    // SINCRONIZACIÓN CON LA TABLA DE SÍMBOLOS
-    private void sincronizarTabla() {// Actualiza el ámbito actual de la tabla de símbolos.
+    private void sincronizarTabla() {
         tabla.setAmbitoActual(getAmbitoActual());
     }
 
     private RegistroSimboloTp4 registroFicticio(String nombre, String tipo, String uso) {
         return new RegistroSimboloTp4(nombre, "IDENTIFICADOR", tipo, uso, getAmbitoActual(), -1, -1L);
     }
-
 }

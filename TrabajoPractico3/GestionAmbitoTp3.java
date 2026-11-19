@@ -3,7 +3,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public final class GestionAmbitoTp3 {
-    private enum TipoAmbito { // Tipos de ámbitos que puede tener el programa.
+    private enum TipoAmbito { 
         GLOBAL,
         CLASE,
         FUNCION
@@ -57,7 +57,6 @@ public final class GestionAmbitoTp3 {
     }
 
     private String entrarAmbito(String nombre, TipoAmbito tipo) {// Agrega un nuevo ámbito
-
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del nuevo ámbito no puede ser vacío.");
         }
@@ -113,7 +112,6 @@ public final class GestionAmbitoTp3 {
             String uso = estaEnAmbitoClase() ? TablaDeSimbolosTp3.USO_ATRIBUTO : (comptime ? TablaDeSimbolosTp3.USO_COMPTIME : TablaDeSimbolosTp3.USO_VARIABLE);
         return registroFicticio(nombre, tipo, uso);
         }
-
         if (estaEnAmbitoClase()) {  // Si estamos dentro de una clase, declaramos un atributo.
             RegistroSimboloTp3 atributo = tabla.declararAtributoClase(nombre,tipo,linea);
             if (atributo != null && comptime) {  // Conserva la marca comptime si corresponde.

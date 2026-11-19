@@ -1,13 +1,22 @@
-
-prog
-USHORTINT contador;
+estructuralok
+class alumno
 BEGIN
-    contador := 1$us;
-
-    REPEAT
-        BEGIN
-            POUT(contador);
-            contador := contador + 1$us;
-        END
-    WHILE (contador < 1$us)
+    ushortint legajo;
+    doublef promedio;
+END;
+class alumno2
+BEGIN
+    ushortint legajo;
+    doublef promedio;
+END;
+alumno a1;
+alumno a2;
+alumno2 a3;
+BEGIN
+    a1[0$us] := 10$us;
+    a1[1$us] := 8.5;
+    a2 := a1;
+    a3 := a1;
+    POUT(a2[0$us]);
+    POUT(a3[1$us]);
 END

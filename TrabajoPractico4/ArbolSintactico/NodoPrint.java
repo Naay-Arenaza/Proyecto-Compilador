@@ -1,5 +1,5 @@
 package TrabajoPractico4.ArbolSintactico;
-
+import TrabajoPractico4.GeneracionWebAssembly.*;
 public class NodoPrint extends NodoAST {
     private NodoAST contenido;
 
@@ -13,7 +13,6 @@ public class NodoPrint extends NodoAST {
     @Override
     public String generarCodigo() {
         if (contenido == null) { return null;}
-
         if (contenido instanceof NodoBinario || contenido instanceof NodoUnario) {// Validar expresiones binarias y conversiones TODF.
             if (contenido.obtenerTipo() == null) {
                 String error = contenido.obtenerErrorTipo();
@@ -40,5 +39,23 @@ public class NodoPrint extends NodoAST {
             return obtenerLinea( ((NodoUnario) nodo).getOperando() );
         }
         return 0;
+    }
+
+    @Override
+    public String generarWasm() {
+        if (contenido == null) return null;
+        String auxVal = contenido.generarWasm();
+        if (auxVal == null) return null;
+        String tipo = contenido.obtenerTipo();
+        boolean esCadena = "CADENA".equalsIgnoreCase(tipo) || (contenido instanceof NodoHoja && ("CADENA".equalsIgnoreCase(((NodoHoja) contenido).getTipoNodo())  || ((NodoHoja) contenido).getValor().startsWith("{")  || ((NodoHoja) contenido).getValor().startsWith("\"")));
+        GeneradorWasm.emitirGet(auxVal);
+        if ("DOUBLEF".equalsIgnoreCase(tipo) || "SINGLEF".equalsIgnoreCase(tipo)) {
+            GeneradorWasm.emitir("call $print_f64");
+        } else if (esCadena) {
+            GeneradorWasm.emitir("call $print_str");
+        } else {
+            GeneradorWasm.emitir("call $print_i32");
+        }
+        return null;
     }
 }

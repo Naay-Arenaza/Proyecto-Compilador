@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ejecutor WebAssembly TP4</title>
+</head>
+<body style="font-family: sans-serif; padding: 20px;">
+  <h3>Ejecutor WebAssembly TP4</h3>
+  <p>Seleccioná tu archivo <b>.wasm</b> compilado para ejecutarlo:</p>
+  <input type="file" id="selectorWasm" accept=".wasm" />
+  <br><br>
+  <pre id="salida" style="background:#111;color:#0f0;padding:14px;font-size:15px;min-height:120px;"></pre>
+
+  <script>
+    const out = document.getElementById("salida");
+    const log = (msg) => { console.log(msg); out.textContent += msg + "\n"; };
+    let memoria;
+
+    function leerCadena(offset) {
+      const bytes = new Uint8Array(memoria.buffer);
+      let fin = offset;
+      while (bytes[fin] !== 0 && fin < bytes.length) fin++;
+      return new TextDecoder("utf-8").decode(bytes.subarray(offset, fin));
+    }
+
+    const importObject = {
+      env: {
+        print_i32: (val) => log("[POUT i32]: " + (val >>> 0)),
+        print_f64: (val) => log("[POUT f64]: " + val),
+        print_str: (ptr) => log("[POUT str]: " + leerCadena(ptr)),
+        error_runtime: (ptr) => {
+          const msg = leerCadena(ptr);
+          log("[ERROR EN EJECUCIÓN]: " + msg);
+          throw new Error(msg);
+        }
+      }
+    };
+
+    document.getElementById("selectorWasm").addEventListener("change", async (e) => {
+      const archivo = e.target.files[0];
+      if (!archivo) return;
+
+      out.textContent = "Ejecutando " + archivo.name + "...\n";
+      try {
+        const bytes = await archivo.arrayBuffer();
+        const res = await WebAssembly.instantiate(bytes, importObject);
+        memoria = res.instance.exports.memory;
+        res.instance.exports.main();
+        log("--- Ejecución finalizada correctamente ---");
+      } catch (err) {
+        log("Detenido: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

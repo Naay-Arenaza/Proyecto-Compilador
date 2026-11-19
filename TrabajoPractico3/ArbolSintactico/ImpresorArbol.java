@@ -32,18 +32,15 @@ public class ImpresorArbol {
             NodoHoja hoja = (NodoHoja) nodo;
             return hoja.getTipoNodo() + ": " + hoja.getValor();
         }
-
         if (nodo instanceof NodoPrograma) {
             NodoPrograma n = (NodoPrograma) nodo;
             return "PROGRAMA: " + n.getNombrePrograma();
         }
-
         if (nodo instanceof NodoInvocacion) {
             NodoInvocacion invocacion = (NodoInvocacion) nodo;
             String orden = invocacion.getOrdenParametros() == null ? "natural" : invocacion.getOrdenParametros().toString();
             return "INVOCACION: "   + invocacion.getNombreFuncion()  + " [orden: " + orden + "]";
         }
-
         if (nodo instanceof NodoInvocacionMetodo) {
             NodoInvocacionMetodo invocacion = (NodoInvocacionMetodo) nodo;
             String orden = invocacion.getOrdenParametros() == null ? "natural" : invocacion.getOrdenParametros().toString();
@@ -111,9 +108,7 @@ public class ImpresorArbol {
             hijos.add(n.getCuerpoDeclarativo());
             hijos.add(n.getCuerpoEjecutable());
         }
-
         hijos.removeIf(hijo -> hijo == null);
-
         return hijos;
     }
 }

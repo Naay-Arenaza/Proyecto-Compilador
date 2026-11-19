@@ -380,6 +380,9 @@ factor:
     }
     | to_double { $$ = $1; }
     | invocacion { $$ = $1; }
+    | ID '=' '(' '(' expresion_simple ')' ')' { yyerror("Un solo parentesis"); $$ = new ParserVal(null); }
+    | ID ASIGNACION '(' expresion ')'         { yyerror("Solo se utilizar ="); $$ = new ParserVal(null); }
+    | ID ASIGNACION '(' '(' expresion ')' ')' { yyerror("Solo se utiliza = y un solo parentesis"); $$ = new ParserVal(null); }
     ;
 
 to_double:
