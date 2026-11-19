@@ -15,7 +15,6 @@ public class MainTp4 {
             System.out.println("Uso: ./ejecutarTp4.sh <archivo.txt>");
             return;
         }
-
         String rutaArchivo = args[0];
         RecolectorErroresTp4 recolector = new RecolectorErroresTp4();
         LecturaCodigoTp4 lector = null;
@@ -29,115 +28,117 @@ public class MainTp4 {
             parser = new Parser(lexer);
             resultado = parser.yyparse();
         } catch (IOException e) {
-            recolector.agregarError("Lectura", 1, "No se pudo abrir el archivo '" + rutaArchivo + "': " + e.getMessage());
+            recolector.agregarError( "Lectura", 1, "No se pudo abrir el archivo '" + rutaArchivo + "': " + e.getMessage() );
+        } catch (RuntimeException e) {
+            recolector.agregarError( "Analisis", 1,"Error inesperado durante el análisis: "  + e.getMessage());
         } finally {
             if (lector != null) {
                 lector.cerrar();
             }
         }
-
-        String codigoIntermedio = null;
+        NodoAST raiz = null;
+        if (parser != null) {
+            raiz = parser.getRaizAST();
+        }
         String codigoWasm = null;
-        NodoAST raiz = (parser != null) ? parser.getRaizAST() : null;
 
         if (raiz != null) {
             if (lexer != null) {
-                NodoAST.setTablaSimbolos(lexer.getTablaSimbolos());
+                NodoAST.setTablaSimbolos( lexer.getTablaSimbolos());
             }
-            NodoAST.setRecolectorErrores(recolector);
-
-            // 1. Generar código intermedio y ejecutar validaciones semánticas del AST
-            codigoIntermedio = generarCodigoIntermedio(raiz);
-
-            // 2. Generar código WebAssembly (.wat) si no hubo errores
+            NodoAST.setRecolectorErrores( recolector );
+            generarCodigoIntermedio(raiz, recolector);
             if (!recolector.hayErrores() && resultado == 0) {
-                codigoWasm = raiz.generarWasm();
+                try {
+                    codigoWasm = raiz.generarWasm();
+                } catch (RuntimeException e) {
+                    recolector.agregarError(  "Generacion WebAssembly",1,   "No se pudo generar el código WebAssembly: " + e.getMessage() );
+                    codigoWasm = null;
+                }
             }
         }
-
-        // --- SALIDAS DEL COMPILADOR (Orden exigido en TP4) ---
-
-        // 1) Errores (Léxicos, Sintácticos y Semánticos)
         imprimirErrores(recolector);
-
-        // 2) Representación intermedia del Grupo 8: Árbol Sintáctico
         if (raiz != null) {
             ImpresorArbol.imprimir(raiz);
         } else {
-            System.out.println("\nNo se pudo generar el árbol sintáctico.");
+            System.out.println( "No se pudo generar el árbol sintáctico." );
         }
 
-        // 3) Tabla de Símbolos
         imprimirTablaSimbolos(lexer);
-
-        // 4) Archivo WebAssembly (.wat)
-        if (codigoWasm != null && !codigoWasm.isBlank() && !recolector.hayErrores() && resultado == 0) {
+        if (codigoWasm != null  && !codigoWasm.isBlank()  && !recolector.hayErrores() && resultado == 0) {
             String rutaSalidaWat = construirRutaSalidaWat(rutaArchivo);
-            guardarArchivoWat(rutaSalidaWat, codigoWasm);
+            guardarArchivoWat( rutaSalidaWat,  codigoWasm );
         } else {
-            System.out.println("\nNo se generó el archivo WebAssembly (.wat).");
-        }
-
-        imprimirResultadoFinal(recolector, resultado);
-    }
-
-    private static String construirRutaSalidaWat(String rutaEntrada) {
-        int punto = rutaEntrada.lastIndexOf('.');
-        if (punto > 0) {
-            return rutaEntrada.substring(0, punto) + ".wat";
-        }
-        return rutaEntrada + ".wat";
-    }
-
-    private static void guardarArchivoWat(String rutaSalida, String contenidoWat) {
-        try {
-            Path path = Paths.get(rutaSalida);
-            Files.writeString(path, contenidoWat, StandardCharsets.UTF_8);
             System.out.println();
-            System.out.println("------------------------------------------------------------");
-            System.out.println("  Archivo WebAssembly generado: " + path.toAbsolutePath());
-            System.out.println("------------------------------------------------------------");
-        } catch (IOException e) {
-            System.err.println("Error al escribir el archivo WebAssembly '" + rutaSalida + "': " + e.getMessage());
+            System.out.println( "No se generó el archivo WebAssembly (.wat).");
         }
+        imprimirResultadoFinal(recolector, resultado );
     }
 
-    private static String generarCodigoIntermedio(NodoAST raiz) {
+    private static void generarCodigoIntermedio( NodoAST raiz, RecolectorErroresTp4 recolector) {
         ByteArrayOutputStream bufferCodigo = new ByteArrayOutputStream();
         PrintStream salidaOriginal = System.out;
-        try (PrintStream salidaTemporal = new PrintStream(bufferCodigo, true, StandardCharsets.UTF_8)) {
+        try (
+            PrintStream salidaTemporal =  new PrintStream(  bufferCodigo, true,  StandardCharsets.UTF_8)
+        ) {
             System.setOut(salidaTemporal);
             raiz.generarCodigo();
+        } catch (RuntimeException e) {
+            recolector.agregarError(  "Generacion intermedia",1, "Error durante la generación de la " + "representación intermedia: " + e.getMessage());
         } finally {
             System.setOut(salidaOriginal);
         }
-        return bufferCodigo.toString(StandardCharsets.UTF_8);
+    }
+
+    private static String construirRutaSalidaWat(String rutaEntrada) {
+        Path archivo = Paths.get(rutaEntrada);
+        String nombreArchivo = archivo.getFileName().toString();
+        int punto = nombreArchivo.lastIndexOf('.');
+        if (punto > 0) {
+            nombreArchivo = nombreArchivo.substring(0, punto);
+        }
+        Path directorio =  archivo.getParent();
+        if (directorio == null) {
+            return nombreArchivo + ".wat";
+        }
+        return directorio.resolve(nombreArchivo + ".wat").toString();
+    }
+
+    private static void guardarArchivoWat( String rutaSalida, String contenidoWat) {
+        try {
+            Path path = Paths.get(rutaSalida);
+            Files.writeString( path,  contenidoWat, StandardCharsets.UTF_8);
+            System.out.println();
+            System.out.println(  "------------------------------------------------------------");
+            System.out.println( "  Archivo WebAssembly generado correctamente:");
+            System.out.println( path.toAbsolutePath());
+            System.out.println( "------------------------------------------------------------" );
+        } catch (IOException e) {
+            System.err.println();
+            System.err.println("Error al escribir el archivo WebAssembly '" + rutaSalida + "': " + e.getMessage() );
+        }
     }
 
     private static void imprimirTablaSimbolos(AnalizadorLexicoTp4 lexer) {
         if (lexer != null) {
             lexer.getTablaSimbolos().imprimirTabla();
+        } else {
+            System.out.println("No se dispone de la tabla de símbolos.");
         }
     }
 
-    private static void imprimirCodigoIntermedio(String codigo) {
-        System.out.println();
-        System.out.println("------------------------------------------------------------");
-        System.out.println("                    Código intermedio");
-        System.out.println("------------------------------------------------------------");
-        System.out.println();
-        System.out.print(codigo);
-    }
-
-    private static void imprimirErrores(RecolectorErroresTp4 recolector) {
+    private static void imprimirErrores( RecolectorErroresTp4 recolector) {
         recolector.imprimirErrores(System.out);
     }
 
-    private static void imprimirResultadoFinal(RecolectorErroresTp4 recolector, int resultado) {
+    private static void imprimirResultadoFinal( RecolectorErroresTp4 recolector, int resultado) {
+        System.out.println();
+        System.out.println( "------------------------------------------------------------");
         if (recolector.hayErrores() || resultado != 0) {
-            System.out.println("Análisis finalizado con errores.");
+            System.out.println( "        Compilación finalizada con errores." );
         } else {
-            System.out.println("Análisis finalizado correctamente.");
+            System.out.println(  "        Compilación finalizada correctamente." );
         }
+        System.out.println(  "------------------------------------------------------------");
     }
 }

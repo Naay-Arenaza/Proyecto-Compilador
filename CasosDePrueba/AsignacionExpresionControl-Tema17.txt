@@ -1,0 +1,17 @@
+asigexprcontrol
+ushortint a, b;
+ushortint function ident(ushortint x)
+BEGIN
+    RET(x);
+END;
+BEGIN
+    a := 0$us;
+    b := 2$us;
+    IF (b = (b + 1$us) < 5$us)
+    BEGIN
+        POUT(b);
+    END END_IF;
+    a := ident(b = (b + 2$us));
+    POUT(a);
+    POUT(b);
+END

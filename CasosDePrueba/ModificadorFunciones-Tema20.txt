@@ -1,0 +1,15 @@
+prog
+USHORTINT function f(USHORTINT p1, USHORTINT p2, USHORTINT p3) 
+begin 
+  RET(p1+p2+p3); 
+end;
+USHORTINT a,b,c,d;
+BEGIN
+    a:=1$us; 
+    b:=2$us; 
+    c:=f(a,b=(4$us),a+b);
+    b:=2$us;
+    d:=f(a,b=(4$us),a+b) [1$us,3$us,2$us];
+    POUT(c);
+    POUT(d); 
+END

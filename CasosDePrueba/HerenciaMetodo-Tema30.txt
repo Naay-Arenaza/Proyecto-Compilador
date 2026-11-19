@@ -1,0 +1,22 @@
+herenciamet
+class base
+BEGIN
+    ushortint id;
+    ushortint sumar(ushortint k)
+    BEGIN
+       RET(id + k);
+    END;
+END;
+class derivada
+BEGIN
+    doublef peso;
+    EXTENDS base;
+END;
+derivada d;
+ushortint r;
+BEGIN
+    d[0$us] := 1.5;
+    d[1$us] := 7$us;
+    r := d.sumar(3$us);
+    POUT(r);
+END

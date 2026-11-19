@@ -1,0 +1,11 @@
+shadowing
+ushortint a;
+ushortint function f(ushortint a)
+BEGIN
+    RET(a + 1$us);
+END;
+BEGIN
+    a := 5$us;
+    POUT(f(a));
+    POUT(a);
+END

@@ -1,0 +1,15 @@
+atributosok
+class punto
+BEGIN
+    ushortint x;
+    doublef y;
+END;
+punto p;
+BEGIN
+    p[0$us] := 4$us;
+    p[1$us] := 1.5;
+    POUT(p[0$us]);
+    POUT(p[1$us]);
+    p[0$us] := p[0$us] + 2$us;
+    POUT(p[0$us]);
+END

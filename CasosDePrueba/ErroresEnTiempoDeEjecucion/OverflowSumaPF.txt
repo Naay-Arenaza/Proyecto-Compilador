@@ -1,0 +1,8 @@
+progoverflowfloat
+DOUBLEF x, y, res;
+BEGIN
+    x := 1.0d+308;
+    y := 1.0d+308;
+    res := x + y;
+    POUT(res);
+END

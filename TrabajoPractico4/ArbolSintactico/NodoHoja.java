@@ -109,7 +109,6 @@ public class NodoHoja extends NodoAST {
     public String generarWasm() {
         String tipoLeng = obtenerTipo();
         String tipoWasm = GeneradorWasm.mapearTipo(tipoLeng);
-
         if ("CTE".equals(tipoNodo)) {
             if ("CADENA".equalsIgnoreCase(tipoLeng) || valor.startsWith("\"") || valor.startsWith("'")) {
                 String limpio = valor.substring(1, valor.length() - 1);
@@ -125,23 +124,29 @@ public class NodoHoja extends NodoAST {
             GeneradorWasm.emitirSet(aux);
             return aux;
         }
-
         if ("ID".equals(tipoNodo)) {
-            if (valorComptimeAlCrear != null) {
-                String num = GeneradorWasm.limpiarLiteralNumerico(valorComptimeAlCrear, tipoLeng);
+                if (valorComptimeAlCrear != null) {
+                    String num = GeneradorWasm.limpiarLiteralNumerico(valorComptimeAlCrear, tipoLeng);
+                    String aux = GeneradorWasm.nuevaAuxiliar(tipoWasm);
+                    GeneradorWasm.emitir(tipoWasm + ".const " + num);
+                    GeneradorWasm.emitirSet(aux);
+                    return aux;
+                }
                 String aux = GeneradorWasm.nuevaAuxiliar(tipoWasm);
-                GeneradorWasm.emitir(tipoWasm + ".const " + num);
+                if (GeneradorWasm.esAtributo(registroSimbolos)) {
+                    GeneradorWasm.emitirGetAtributo(registroSimbolos);
+                } else {
+                    String refWasm = GeneradorWasm.sanitizarNombre(registroSimbolos.getNombreCompleto());
+                    if (registroSimbolos != null && ("VARIABLE".equals(registroSimbolos.getUso()) 
+                            || "VARIABLE_COMPTIME".equals(registroSimbolos.getUso()) 
+                            || "PARAMETRO".equals(registroSimbolos.getUso()))) {
+                        GeneradorWasm.declararGlobalSiNoExiste(refWasm, tipoWasm);
+                    }
+                    GeneradorWasm.emitirGet(refWasm);
+                }
                 GeneradorWasm.emitirSet(aux);
                 return aux;
             }
-            
-            String refWasm = GeneradorWasm.sanitizarNombre(registroSimbolos.getNombreCompleto());
-            String aux = GeneradorWasm.nuevaAuxiliar(tipoWasm);
-            GeneradorWasm.emitirGet(refWasm);
-            GeneradorWasm.emitirSet(aux);
-            return aux;
-        }
-
         if ("CADENA".equalsIgnoreCase(tipoNodo) || (valor != null && (valor.startsWith("{") || valor.startsWith("\"")))) {
             String texto = valor != null ? valor : "";
             if ((texto.startsWith("{") && texto.endsWith("}")) || (texto.startsWith("\"") && texto.endsWith("\""))) {

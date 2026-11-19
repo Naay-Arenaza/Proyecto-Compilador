@@ -1,0 +1,9 @@
+progdivcero
+USHORTINT a, b, res;
+BEGIN
+    POUT({Probando division por cero...});
+    a := 20$us;
+    b := 0$us;
+    res := a / b;
+    POUT(res);
+END

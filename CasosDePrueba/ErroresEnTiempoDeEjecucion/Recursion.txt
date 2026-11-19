@@ -1,0 +1,14 @@
+progrecursion
+USHORTINT r;
+USHORTINT FUNCTION f(USHORTINT n)
+USHORTINT aux;
+BEGIN
+    POUT(n);
+    aux := f(n);
+    RET(aux);
+END;
+BEGIN
+    POUT({Probando recursion prohibida...});
+    r := f(1$us);
+    POUT(r);
+END

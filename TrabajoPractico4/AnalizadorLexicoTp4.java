@@ -130,11 +130,15 @@ public class AnalizadorLexicoTp4{
                     lectorCodigo.cerrar();
                     return 0;
                 }
-
                 if (estadoActual == 15) { // Comentario multilinea sin cerrar y EOF
                     return ejecutarAccionSemantica(15, LecturaCodigoTp4.EOF);
                 }
-                
+                if (estadoActual == 14) {
+                    registrarError("Línea " + lectorCodigo.getLineaActual() + ": Cadena de una línea sin cerrar al alcanzar fin de archivo: " + lexema);
+                    lexema.setLength(0);
+                    lectorCodigo.cerrar();
+                    return 0;
+                }
                 int accionEOF = matriz_acciones[estadoActual][24]; // Token a medio formar y EOF
                 parserID = ejecutarAccionSemantica(accionEOF, LecturaCodigoTp4.EOF);
                 if (parserID == 0) {
@@ -155,6 +159,10 @@ public class AnalizadorLexicoTp4{
                 if (estadoActual == 15) { // Comentario multilinea y Caracter invalido
                     ejecutarAccionSemantica(2, caracterLeido); 
                     continue; 
+                }
+                if (estadoActual == 14) {
+                    lexema.append(caracterLeido);
+                    continue;
                 }
                 else {
                     registrarError("Linea " + lectorCodigo.getLineaActual() + ": Caracter invalido:" + caracterLeido );

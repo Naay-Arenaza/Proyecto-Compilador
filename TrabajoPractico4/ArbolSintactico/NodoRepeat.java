@@ -16,6 +16,11 @@ public class NodoRepeat extends NodoAST {
 
     @Override
     public String generarCodigo() {
+        String lInicio = GeneradorTAC.nuevaEtiqueta();
+        System.out.println(lInicio + ":");
+        if (cuerpo != null) {
+            cuerpo.generarCodigo();
+        }
         if (condicion instanceof NodoBinario) {
             NodoBinario binario = (NodoBinario) condicion;
             if (binario.obtenerTipo() == null) {
@@ -24,15 +29,10 @@ public class NodoRepeat extends NodoAST {
                 return null;
             }
         }
-        String lInicio = GeneradorTAC.nuevaEtiqueta();
-        System.out.println(lInicio + ":");
-        if (cuerpo != null) {
-            cuerpo.generarCodigo();
-        }
         if (condicion != null) {
             String condRes = condicion.generarCodigo();
             if (condRes == null) return null;
-            System.out.println("IF " + condRes + " GOTO " + lInicio); 
+            System.out.println("IF " + condRes + " GOTO " + lInicio);
         }
         return null;
     }

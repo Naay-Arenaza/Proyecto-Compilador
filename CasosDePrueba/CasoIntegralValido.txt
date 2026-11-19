@@ -1,0 +1,47 @@
+progintegral
+USHORTINT a, b, resint, acum;
+DOUBLEF f1, resfloat;
+COMPTIME USHORTINT limite;
+
+DOUBLEF FUNCTION operar(USHORTINT x, DOUBLEF y)
+DOUBLEF temp;
+BEGIN
+    temp := TODF(x) + y;
+    RET(temp);
+END;
+
+BEGIN
+    "Tema 22: variable comptime con expresion constante"
+    limite := 4$us;
+    a := 10$us;
+    b := 2$us;
+    acum := 0$us;
+
+    "Tema 17: asignacion dentro de expresion sin anidamiento"
+    resint := a + b = (3$us + 1$us);
+    POUT(resint);
+
+    "Tema 33 (TODF) y Tema 20 (orden de evaluacion de parametros opcional)"
+    f1 := 2.5;
+    resfloat := operar(a, f1) [2$us, 1$us];
+    POUT(resfloat);
+
+    "Tema 13: repeat while con sentencia IF anidada"
+    REPEAT
+    BEGIN
+        IF (b > 2$us)
+        BEGIN
+            acum := acum + b;
+            POUT({Acumulando valor mayor a 2});
+        END
+        ELSE
+        BEGIN
+            POUT({Valor menor o igual a 2});
+        END
+        END_IF;
+        b := b - 1$us;
+    END
+    WHILE (b > 0$us);
+
+    POUT(acum);
+END

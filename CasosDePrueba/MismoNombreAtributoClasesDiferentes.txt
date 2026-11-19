@@ -1,0 +1,17 @@
+attrdiff
+class a
+BEGIN
+    ushortint x;
+END;
+class b
+BEGIN
+    ushortint x;
+END;
+a o1;
+b o2;
+BEGIN
+    o1[0$us] := 1$us;
+    o2[0$us] := 2$us;
+    POUT(o1[0$us]);
+    POUT(o2[0$us]);
+END

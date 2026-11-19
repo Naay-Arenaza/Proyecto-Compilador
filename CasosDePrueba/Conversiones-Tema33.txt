@@ -1,0 +1,11 @@
+todfok
+ushortint u;
+doublef d;
+BEGIN
+    u := 5$us;
+    d := todf(u);
+    POUT(d);
+    d := todf(u) + 1.5;
+    POUT(d);
+    POUT(todf(u) * 2.0);
+END

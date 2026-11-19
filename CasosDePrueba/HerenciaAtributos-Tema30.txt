@@ -1,0 +1,20 @@
+herenciaatr
+class base
+BEGIN
+    ushortint id;
+    ushortint clave;
+END;
+class derivada
+BEGIN
+    doublef peso;
+    EXTENDS base;
+END;
+derivada d;
+BEGIN
+    d[0$us] := 1.5;
+    d[1$us] := 7$us;
+    d[2$us] := 9$us;
+    POUT(d[0$us]);
+    POUT(d[1$us]);
+    POUT(d[2$us]);
+END

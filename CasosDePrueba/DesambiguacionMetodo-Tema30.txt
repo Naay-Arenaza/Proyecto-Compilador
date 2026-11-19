@@ -1,0 +1,25 @@
+desambiguacion
+class ma
+BEGIN
+    ushortint m(ushortint k)
+    BEGIN
+        RET(1$us + k);
+    END;
+END;
+class mb
+BEGIN
+    ushortint m(ushortint k)
+    BEGIN
+        RET(2$us + k);
+    END;
+END;
+class mc
+BEGIN
+    EXTENDS ma, mb;
+END;
+mc o;
+ushortint r;
+BEGIN
+    r := o.m(10$us);
+    POUT(r);
+END

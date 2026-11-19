@@ -13,7 +13,7 @@ public class NodoPrint extends NodoAST {
     @Override
     public String generarCodigo() {
         if (contenido == null) { return null;}
-        if (contenido instanceof NodoBinario || contenido instanceof NodoUnario) {// Validar expresiones binarias y conversiones TODF.
+        if (contenido instanceof NodoBinario || contenido instanceof NodoUnario) {
             if (contenido.obtenerTipo() == null) {
                 String error = contenido.obtenerErrorTipo();
                 registrarError( "Semántico",obtenerLinea(contenido),error != null ? error : "No se pudo determinar el tipo de la expresión de POUT.");

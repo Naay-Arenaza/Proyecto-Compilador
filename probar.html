@@ -1,28 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Ejecutor WebAssembly TP4</title>
+  <title>Ejecutor WebAssembly - TP4 Compiladores</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h3 {
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+    p {
+      color: #666;
+    }
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    input[type="file"] {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+      background: #fff;
+      cursor: pointer;
+    }
+    pre {
+      background: #1e1e1e;
+      color: #00ff66;
+      padding: 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: "Courier New", Courier, monospace;
+      min-height: 150px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
 </head>
-<body style="font-family: sans-serif; padding: 20px;">
-  <h3>Ejecutor WebAssembly TP4</h3>
-  <p>Seleccioná tu archivo <b>.wasm</b> compilado para ejecutarlo:</p>
-  <input type="file" id="selectorWasm" accept=".wasm" />
-  <br><br>
-  <pre id="salida" style="background:#111;color:#0f0;padding:14px;font-size:15px;min-height:120px;"></pre>
+<body>
+
+  <div class="card">
+    <h3>Ejecutor WebAssembly TP4</h3>
+    <p>Seleccioná el archivo <b>.wasm</b> ubicado en tu carpeta <code>SalidaTp4/</code> para ejecutarlo:</p>
+    
+    <input type="file" id="selectorWasm" accept=".wasm" />
+    
+    <br><br>
+    
+    <label for="salida"><b>Consola de Salida:</b></label>
+    <pre id="salida">Esperando archivo .wasm...</pre>
+  </div>
 
   <script>
     const out = document.getElementById("salida");
     const log = (msg) => { console.log(msg); out.textContent += msg + "\n"; };
     let memoria;
 
+    // Función para leer cadenas terminadas en null (\0) desde la memoria lineal de WebAssembly
     function leerCadena(offset) {
       const bytes = new Uint8Array(memoria.buffer);
       let fin = offset;
-      while (bytes[fin] !== 0 && fin < bytes.length) fin++;
+      while (fin < bytes.length && bytes[fin] !== 0) {
+        fin++;
+      }
       return new TextDecoder("utf-8").decode(bytes.subarray(offset, fin));
     }
 
+    // Objeto de importaciones requerido por el entorno WebAssembly de tu compilador
     const importObject = {
       env: {
         print_i32: (val) => log("[POUT i32]: " + (val >>> 0)),
@@ -36,21 +92,33 @@
       }
     };
 
+    // Evento al seleccionar el archivo .wasm
     document.getElementById("selectorWasm").addEventListener("change", async (e) => {
       const archivo = e.target.files[0];
       if (!archivo) return;
 
-      out.textContent = "Ejecutando " + archivo.name + "...\n";
+      // Limpia la consola y muestra el inicio de ejecución
+      out.textContent = ""; 
+      log("Ejecutando " + archivo.name + "...\n" + "----------------------------------------");
+
       try {
         const bytes = await archivo.arrayBuffer();
         const res = await WebAssembly.instantiate(bytes, importObject);
+        
+        // Obtiene la memoria exportada por el módulo WebAssembly
         memoria = res.instance.exports.memory;
+        
+        // Ejecuta la función principal 'main'
         res.instance.exports.main();
+        
+        log("----------------------------------------");
         log("--- Ejecución finalizada correctamente ---");
       } catch (err) {
+        log("----------------------------------------");
         log("Detenido: " + err.message);
       }
     });
   </script>
+
 </body>
 </html>

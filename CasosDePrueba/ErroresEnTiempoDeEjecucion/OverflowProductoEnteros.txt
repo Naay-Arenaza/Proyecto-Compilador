@@ -1,0 +1,9 @@
+progoverflowprod
+USHORTINT a, b, res;
+BEGIN
+    POUT({Probando overflow en producto USHORTINT...});
+    a := 20$us;
+    b := 20$us;
+    res := a * b;
+    POUT(res);
+END

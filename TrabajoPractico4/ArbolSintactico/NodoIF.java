@@ -1,5 +1,6 @@
 package TrabajoPractico4.ArbolSintactico;
 import TrabajoPractico4.GeneracionWebAssembly.*;
+
 public class NodoIF extends NodoAST {
     private NodoAST condicion;
     private NodoAST cuerpoThen;
@@ -18,27 +19,33 @@ public class NodoIF extends NodoAST {
 
     @Override
     public String generarCodigo() {
+        boolean condicionValida = true;
         if (condicion instanceof NodoBinario || condicion instanceof NodoUnario) {
             if (condicion.obtenerTipo() == null) {
                 String error = condicion.obtenerErrorTipo();
-                registrarError( "Semántico", obtenerLinea(condicion),  error != null  ? error : "La condición del IF tiene tipos incompatibles.");
-                return null;
+                registrarError("Semántico", obtenerLinea(condicion), error != null ? error : "La condición del IF tiene tipos incompatibles.");
+                condicionValida = false;
             }
         }
         String lElse = GeneradorTAC.nuevaEtiqueta();
         String lFin = GeneradorTAC.nuevaEtiqueta();
-        String condRes = condicion.generarCodigo();
-        if (condRes == null) return null;
-        System.out.println("IF_FALSE " + condRes + " GOTO "+ (cuerpoElse != null ? lElse : lFin));
+        String condRes = condicionValida ? condicion.generarCodigo() : null;
+        if (condRes != null) {
+            System.out.println("IF_FALSE " + condRes + " GOTO " + (cuerpoElse != null ? lElse : lFin));
+        }
         if (cuerpoThen != null) {
             cuerpoThen.generarCodigo();
         }
         if (cuerpoElse != null) {
-            System.out.println("GOTO " + lFin);
-            System.out.println(lElse + ":");
+            if (condRes != null) {
+                System.out.println("GOTO " + lFin);
+                System.out.println(lElse + ":");
+            }
             cuerpoElse.generarCodigo();
         }
-        System.out.println(lFin + ":");
+        if (condRes != null) {
+            System.out.println(lFin + ":");
+        }
         return null;
     }
 

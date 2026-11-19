@@ -1,0 +1,62 @@
+progerroralcance
+USHORTINT x;
+DOUBLEF x;
+
+CLASS base
+BEGIN
+    USHORTINT id;
+    "Atributo Redeclarado"
+    USHORTINT id;
+    USHORTINT sumar(ushortint k)
+    BEGIN
+       RET(id + k);
+    END;
+    "Metodo redeclarado"
+    USHORTINT sumar(ushortint k)
+    BEGIN
+       RET(id + k);
+    END;
+END;
+"Clase Redeclarada"
+CLASS base
+BEGIN
+    USHORTINT id;
+    USHORTINT sumar(ushortint k)
+    BEGIN
+       RET(id + k);
+    END;
+END;
+
+USHORTINT FUNCTION f(USHORTINT p)
+USHORTINT varlocal;
+    "F1 solo esta al alcance de las sentencias en f"
+    USHORTINT FUNCTION f1(USHORTINT p)
+    USHORTINT varlocal;
+    BEGIN
+        varlocal := p + 1$us;
+        RET(varlocal);
+    END;
+BEGIN
+    varlocal:=f1(p);
+    RET(varlocal);
+END;
+"F ya fue declarada"
+USHORTINT FUNCTION f(USHORTINT p)
+USHORTINT varlocal;
+BEGIN
+    varlocal := p + 1$us;
+    RET(varlocal);
+END;
+
+base o1;
+BEGIN
+    "Error: variable no declarada"
+    noexiste := 10$us;
+
+    "Error: acceso fuera de alcance a variable local de funcion"
+    varlocal := 5$us;
+    "F1 no esta declarada o fuera de alcance"
+    x:=f1(x);
+    "Metodo no declarado"
+    x:=o1.m2(x);
+END

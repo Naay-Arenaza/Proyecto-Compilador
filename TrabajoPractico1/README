@@ -1,0 +1,23 @@
+# Trabajo Práctico Nº 1: Analizador Léxico
+
+## 1. Objetivo
+Desarrollar un Analizador Léxico robusto capaz de reconocer tokens del lenguaje fuente (identificadores de hasta 22 caracteres truncados con warning, operadores aritméticos, comparadores, símbolos de puntuación, cadenas y palabras reservadas), omitiendo comentarios y espacios en blanco.
+
+## 2. Temas Particulares Asignados
+* **Tema 2:** Enteros cortos sin signo de 8 bits (sufijo `$us`, rango 0 a $2^8-1$, palabra reservada `USHORTINT`).
+* **Tema 8:** Punto flotante de 64 bits (sufijo `d`, exponente con letra `d`, ej. `1.2d+10`, rango extendido, palabra reservada `DOUBLEF`).
+* **Tema 9:** Cadenas de 1 línea delimitadas por llaves (`{ ... }`).
+* **Tema 16:** Comentarios multilínea delimitados por `{{` y `}}`.
+
+## 3. Decisiones de Diseño e Implementación
+* **Matriz de Transición:** Implementado mediante una matriz de estados lógica y una matriz de acciones semánticas indexada por el estado actual y el carácter de entrada ASCII.
+* **Tabla de Símbolos:** Estructura dinámica en Java que almacena de forma unificada identificadores, constantes tipadas y cadenas de caracteres, previniendo duplicados y gestionando referencias unívocas.
+* **Manejo de Errores:** Errores léxicos reportados con número de línea y descripción detallada (ej. constantes fuera de rango, identificadores inválidos), permitiendo continuar el análisis.
+
+## 4. Distribución de Archivos (Carpeta `TrabajoPractico1/`)
+* `AnalizadorLexicoTp1.java`: Núcleo autómata de estados y acciones semánticas.
+* `TablaDeSimbolosTp1.java`: Estructura dinámica de símbolos.
+* `RegistroSimboloTp1.java`: Modelo de entrada individual en la tabla.
+* `TablaPalabrasReservadasTp1.java`: Registro de palabras clave (IF, else, END_if, begin, END, POUT, RET, class, function, USHORTINT, DOUBLEF, etc.).
+* `LecturaCodigoTp1.java` / `TokenTp1.java`: Manejo de búfer de lectura por líneas y definición de estructura de tokens.
+* `MainTp1.java`: Punto de entrada de consola para probar el lexer aisladamente.

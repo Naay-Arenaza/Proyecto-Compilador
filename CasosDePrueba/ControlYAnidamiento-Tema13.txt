@@ -1,0 +1,26 @@
+ifanidado
+ushortint a, b;
+BEGIN
+    a := 1$us;
+    b := 20$us;
+    IF (a < b)
+    BEGIN
+        POUT(a);
+        IF (b > 10$us)
+        BEGIN
+            POUT(b);
+        END END_IF;
+    END
+    ELSE
+    BEGIN
+        REPEAT
+        BEGIN
+            a := a + 1$us;
+            IF (a > 3$us)
+            BEGIN
+                POUT(a);
+            END END_IF;
+        END
+        WHILE (a < 5$us);
+    END END_IF;
+END

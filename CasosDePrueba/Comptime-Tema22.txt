@@ -1,0 +1,17 @@
+comptimeok
+class punto
+BEGIN
+    ushortint x;
+    doublef y;
+END;
+punto p;
+COMPTIME USHORTINT i;
+ushortint total;
+BEGIN
+    p[0$us] := 7$us;
+    p[1$us] := 2.5;
+    i := 1$us;
+    POUT(p[i]);
+    total := i + 3$us;
+    POUT(total);
+END

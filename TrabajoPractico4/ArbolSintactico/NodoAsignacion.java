@@ -2,7 +2,6 @@ package TrabajoPractico4.ArbolSintactico;
 import TrabajoPractico4.TablaDeSimbolosTp4;
 import TrabajoPractico4.GeneracionWebAssembly.*;
 import TrabajoPractico4.RegistroSimboloTp4;
-import java.util.List;
 
 public class NodoAsignacion extends NodoAST {
     private NodoAST variable;
@@ -14,9 +13,9 @@ public class NodoAsignacion extends NodoAST {
         this.expresion = expresion;
     }
 
-    public NodoAST getVariable() { return variable;}
+    public NodoAST getVariable() { return variable; }
 
-    public NodoAST getExpresion() { return expresion;}
+    public NodoAST getExpresion() { return expresion; }
 
     private int obtenerLinea() {
         if (variable instanceof NodoHoja) {
@@ -40,58 +39,20 @@ public class NodoAsignacion extends NodoAST {
             if (error == null && tipoExpresion == null) {
                 error = expresion.obtenerErrorTipo();
             }
-            registrarError("Semántico",obtenerLinea(), error != null ? error : "No se pudo determinar el tipo de la variable o de la expresión." );
+            registrarError("Semántico", obtenerLinea(), error != null ? error : "No se pudo determinar el tipo de la variable o de la expresión.");
             return false;
         }
 
-        if (tabla.tipoCompatibleAsignacion(tipoDestino, tipoExpresion, false)) { return true; } 
-    
-        if (tabla.tiposObjetoCompatibles(tipoDestino, tipoExpresion)) { return true;}
+        if (tabla.tipoCompatibleAsignacion(tipoDestino, tipoExpresion, false)) {
+            return true;
+        }
 
-        registrarError("Semántico",obtenerLinea(),"Tipos incompatibles en la asignación: no se puede asignar " + tipoExpresion + " a " + tipoDestino + "." );
+        if (tabla.tiposObjetoCompatibles(tipoDestino, tipoExpresion)) {
+            return true;
+        }
+
+        registrarError("Semántico", obtenerLinea(), "Tipos incompatibles en la asignación: no se puede asignar " + tipoExpresion + " a " + tipoDestino + ".");
         return false;
-    }
-
-    private boolean generarAsignacionObjetoWasm() {
-        if (!(variable instanceof NodoHoja) || !(expresion instanceof NodoHoja)) {
-            return false;
-        }
-        NodoHoja destino = (NodoHoja) variable;
-        NodoHoja origen = (NodoHoja) expresion;
-        RegistroSimboloTp4 regDestino = destino.getSimboloVinculado();
-        RegistroSimboloTp4 regOrigen = origen.getSimboloVinculado();
-        if (regDestino == null || regOrigen == null) {
-            return false;
-        }
-        if (!TablaDeSimbolosTp4.USO_OBJETO.equals(regDestino.getUso()) || !TablaDeSimbolosTp4.USO_OBJETO.equals(regOrigen.getUso())) {
-            return false;
-        }
-        TablaDeSimbolosTp4 tabla = getTablaSimbolos();
-        String claseDestino = String.valueOf(regDestino.obtenerAtributo("CLASE"));
-        String claseOrigen = String.valueOf(regOrigen.obtenerAtributo("CLASE"));
-        List<RegistroSimboloTp4> atributosDestino = tabla.obtenerAtributosPosicionalesPorReferencia(claseDestino);
-        List<RegistroSimboloTp4> atributosOrigen = tabla.obtenerAtributosPosicionalesPorReferencia(claseOrigen);
-        if (atributosDestino.size() != atributosOrigen.size()) {
-            registrarError( "Semántico", obtenerLinea(), "Los objetos no tienen la misma estructura.");
-            return false;
-        }
-        for (int i = 0; i < atributosDestino.size(); i++) {
-            RegistroSimboloTp4 atrDestino = atributosDestino.get(i);
-            RegistroSimboloTp4 atrOrigen = atributosOrigen.get(i);
-            if (!atrDestino.getTipo().equalsIgnoreCase(atrOrigen.getTipo())) {
-                registrarError(  "Semántico",obtenerLinea(), "Los atributos de los objetos no son compatibles.");
-                return false;
-            }
-        }
-        String nombreDestino = regDestino.getNombreCompleto();
-        String nombreOrigen = regOrigen.getNombreCompleto();
-        for (int i = 0; i < atributosDestino.size(); i++) {
-            String refOrigen = GeneradorWasm.sanitizarNombre( nombreOrigen + "__" +  atributosOrigen.get(i).getNombreCompleto());
-            String refDestino = GeneradorWasm.sanitizarNombre( nombreDestino + "__" + atributosDestino.get(i).getNombreCompleto() );
-            GeneradorWasm.emitirGet(refOrigen);
-            GeneradorWasm.emitirSet(refDestino);
-        }
-        return true;
     }
 
     @Override
@@ -117,23 +78,28 @@ public class NodoAsignacion extends NodoAST {
         return izq;
     }
 
-
-@Override
+    @Override
     public String generarWasm() {
         if (!validarTipos()) return null;
 
         if (variable instanceof NodoHoja && expresion instanceof NodoHoja) {
-            TrabajoPractico4.RegistroSimboloTp4 regDest = ((NodoHoja) variable).getSimboloVinculado();
-            TrabajoPractico4.RegistroSimboloTp4 regOrig = ((NodoHoja) expresion).getSimboloVinculado();
-            if (regDest != null && regOrig != null && TrabajoPractico4.TablaDeSimbolosTp4.USO_OBJETO.equals(regDest.getUso()) && TrabajoPractico4.TablaDeSimbolosTp4.USO_OBJETO.equals(regOrig.getUso())) {
+            RegistroSimboloTp4 regDest = ((NodoHoja) variable).getSimboloVinculado();
+            RegistroSimboloTp4 regOrig = ((NodoHoja) expresion).getSimboloVinculado();
+            if (regDest != null && regOrig != null
+                    && TablaDeSimbolosTp4.USO_OBJETO.equals(regDest.getUso())
+                    && TablaDeSimbolosTp4.USO_OBJETO.equals(regOrig.getUso())) {
                 TablaDeSimbolosTp4 tabla = getTablaSimbolos();
-                String claseDest = regDest.obtenerAtributo("CLASE") != null ? String.valueOf(regDest.obtenerAtributo("CLASE")) : regDest.getTipo();
-                String claseOrig = regOrig.obtenerAtributo("CLASE") != null  ? String.valueOf(regOrig.obtenerAtributo("CLASE")) : regOrig.getTipo();
+                String claseDest = regDest.obtenerAtributo("CLASE") != null
+                        ? String.valueOf(regDest.obtenerAtributo("CLASE"))
+                        : regDest.getTipo();
+                String claseOrig = regOrig.obtenerAtributo("CLASE") != null
+                        ? String.valueOf(regOrig.obtenerAtributo("CLASE"))
+                        : regOrig.getTipo();
 
                 int pos = 0;
                 while (true) {
-                    TrabajoPractico4.RegistroSimboloTp4 attrDest = tabla.obtenerAtributoPosicionalPorReferencia(claseDest, pos);
-                    TrabajoPractico4.RegistroSimboloTp4 attrOrig = tabla.obtenerAtributoPosicionalPorReferencia(claseOrig, pos);
+                    RegistroSimboloTp4 attrDest = tabla.obtenerAtributoPosicionalPorReferencia(claseDest, pos);
+                    RegistroSimboloTp4 attrOrig = tabla.obtenerAtributoPosicionalPorReferencia(claseOrig, pos);
                     if (attrDest == null || attrOrig == null) break;
                     String tipoWasm = GeneradorWasm.mapearTipo(attrDest.getTipo());
                     String refDest = GeneradorWasm.sanitizarNombre(regDest.getNombreCompleto() + "__" + attrDest.getNombreCompleto());
@@ -149,21 +115,25 @@ public class NodoAsignacion extends NodoAST {
                 return objDestWasm;
             }
         }
-
         String auxDer = expresion.generarWasm();
         if (auxDer == null) return null;
-
-        String destinoWasm;
         if (variable instanceof NodoHoja) {
-            destinoWasm = GeneradorWasm.sanitizarNombre(((NodoHoja) variable).generarReferencia());
+            RegistroSimboloTp4 registroDestino = ((NodoHoja) variable).getSimboloVinculado();
+            if (GeneradorWasm.esAtributo(registroDestino)) {
+                GeneradorWasm.emitirSetAtributo(registroDestino, auxDer);
+                return auxDer;
+            }
+            String destinoWasm = GeneradorWasm.sanitizarNombre(((NodoHoja) variable).generarReferencia());
             GeneradorWasm.declararGlobalSiNoExiste(destinoWasm, GeneradorWasm.mapearTipo(variable.obtenerTipo()));
+            GeneradorWasm.emitirGet(auxDer);
+            GeneradorWasm.emitirSet(destinoWasm);
+            return auxDer;
         } else if (variable instanceof NodoAccesoArreglo) {
-            destinoWasm = ((NodoAccesoArreglo) variable).generarWasmReferencia();
-        } else {
-            return null;
+            if (!((NodoAccesoArreglo) variable).generarWasmAsignacion(auxDer)) {
+                return null;
+            }
+            return auxDer;
         }
-        GeneradorWasm.emitirGet(auxDer);
-        GeneradorWasm.emitirSet(destinoWasm);
-        return auxDer;
+        return null;
     }
 }

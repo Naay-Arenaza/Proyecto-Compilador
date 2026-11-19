@@ -1,4 +1,5 @@
 package TrabajoPractico4;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +29,8 @@ public class TablaDeSimbolosTp4 {
     private final Map<String, RegistroSimboloTp4> tabla = new LinkedHashMap<>(); 
     private final AtomicLong secuencia = new AtomicLong(0); 
     private String ambitoActual = AMBITO_GLOBAL;
+    private static final BigDecimal MIN_NEG_DOUBLE = new BigDecimal("-1.7976931348623157e+308");
+    private static final BigDecimal MAX_NEG_DOUBLE = new BigDecimal("-2.2250738585072014e-308");
 
     public void setAmbitoActual(String ambitoActual) { 
         validarTexto(ambitoActual, "ambito actual");
@@ -65,7 +68,9 @@ public class TablaDeSimbolosTp4 {
 
     public RegistroSimboloTp4 declararEnAmbitoActual(String nombre, String tipo, String uso, int linea) { return declarar(nombre, tipo, uso, ambitoActual, linea);}
 
-    public RegistroSimboloTp4 declararPrograma(String nombre, int linea) {  return declarar(nombre, "PROGRAMA", USO_PROGRAMA, AMBITO_GLOBAL, linea); }
+    public RegistroSimboloTp4 declararPrograma(String nombre, int linea) {
+        return declarar(nombre, "PROGRAMA", USO_PROGRAMA, AMBITO_GLOBAL, linea);
+    }
 
     public RegistroSimboloTp4 declararVariable(String nombre, String tipo, int linea, boolean comptime) { 
         String uso = comptime ? USO_COMPTIME : USO_VARIABLE; 
@@ -465,28 +470,17 @@ public class TablaDeSimbolosTp4 {
         return resultado;
     }
 
-    public boolean estructurasCompatibles( String nombreClaseA, String nombreClaseB) {
+   public boolean estructurasCompatibles(String nombreClaseA, String nombreClaseB) {
         RegistroSimboloTp4 claseA = buscarClaseVisible(nombreClaseA, ambitoActual);
         RegistroSimboloTp4 claseB = buscarClaseVisible(nombreClaseB, ambitoActual);
-
-        if (claseA == null || claseB == null) { return false; }
-
-        List<RegistroSimboloTp4> miembrosA = obtenerSimbolosEnAmbito( claseA.getAmbito() + ":" + claseA.getLexema() );
-        List<RegistroSimboloTp4> miembrosB = obtenerSimbolosEnAmbito( claseB.getAmbito() + ":" + claseB.getLexema());
-    
-        for (RegistroSimboloTp4 miembro : miembrosA) {
-            if (!USO_ATRIBUTO.equals(miembro.getUso()) && !USO_OBJETO.equals(miembro.getUso())) {
-                return false;
-            }
+        if (claseA == null || claseB == null) {
+            return false;
         }
-        for (RegistroSimboloTp4 miembro : miembrosB) {
-            if (!USO_ATRIBUTO.equals(miembro.getUso()) && !USO_OBJETO.equals(miembro.getUso())) {
-                return false;
-            }
+        List<RegistroSimboloTp4> atributosA = obtenerAtributosEfectivos(claseA, new LinkedHashSet<String>());
+        List<RegistroSimboloTp4> atributosB = obtenerAtributosEfectivos(claseB, new LinkedHashSet<String>());
+        if (atributosA.size() != atributosB.size()) {
+            return false;
         }
-        List<RegistroSimboloTp4> atributosA = obtenerAtributosEfectivos(  claseA, new LinkedHashSet<String>() );
-        List<RegistroSimboloTp4> atributosB =  obtenerAtributosEfectivos(claseB, new LinkedHashSet<String>());
-        if (atributosA.size() != atributosB.size()) { return false;}
         for (int i = 0; i < atributosA.size(); i++) {
             RegistroSimboloTp4 atributoA = atributosA.get(i);
             RegistroSimboloTp4 atributoB = atributosB.get(i);
@@ -608,5 +602,32 @@ public class TablaDeSimbolosTp4 {
             return segundo == null;
         }
         return segundo != null && primero.equalsIgnoreCase(segundo);
+    }
+
+    public RegistroSimboloTp4 registrarConstanteNegativa(String lexemaPositivo, int linea) {
+        if (lexemaPositivo == null) {
+            return null;
+        }
+        RegistroSimboloTp4 original = obtenerConstante(lexemaPositivo);
+        if (original == null || !"DOUBLEF".equalsIgnoreCase(original.getTipo())) {
+            return null;
+        }
+        String lexemaNegativo = "-" + lexemaPositivo;
+        RegistroSimboloTp4 existente = obtenerConstante(lexemaNegativo, "DOUBLEF");
+        if (existente != null) {
+            return existente;
+        }
+        try {
+            String expJava = lexemaNegativo.replace('d', 'e').replace('D', 'e');
+            BigDecimal valor = new BigDecimal(expJava);
+            boolean valido = (valor.compareTo(BigDecimal.ZERO) == 0)
+                    || (valor.compareTo(MIN_NEG_DOUBLE) > 0 && valor.compareTo(MAX_NEG_DOUBLE) < 0);
+            if (!valido) {
+                return null;
+            }
+            return agregarConstante(lexemaNegativo, "DOUBLEF", linea);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

@@ -1,0 +1,20 @@
+override
+class base
+BEGIN
+    ushortint m(ushortint k)
+    BEGIN
+        RET(k + 1$us);
+    END;
+END;
+class der
+BEGIN
+    ushortint m(ushortint k)
+    BEGIN
+        RET(k + 2$us);
+    END;
+    EXTENDS base;
+END;
+der d;
+BEGIN
+    POUT(d.m(10$us));
+END

@@ -1,0 +1,380 @@
+"ERRORES — redeclaración E1 · var_global — Ya declarado en el ámbito actual. Identificador: a"
+redeclvar
+ushortint a;
+ushortint a;
+BEGIN
+    a := 1$us;
+END
+
+"E2 · var_local — Ya declarado en el ámbito actual. Identificador: x}"
+redeclocal
+ushortint function f(ushortint z)
+ushortint x;
+ushortint x;
+BEGIN
+    RET(z);
+END;
+BEGIN
+    POUT(f(1$us));
+END
+
+"E3 · local_vs_param — Ya declarado en el ámbito actual. Identificador: x"
+localparam
+ushortint function f(ushortint x)
+ushortint x;
+BEGIN
+    RET(x);
+END;
+BEGIN
+    POUT(f(1$us));
+END
+
+"E4 · param_dup — Parámetro formal ya declarado en el ámbito actual: x (y además, como el duplicado no entra en la firma, Cantidad de argumentos incorrecta... se esperaban 1)"
+paramdup
+ushortint function f(ushortint x, ushortint x)
+BEGIN
+    RET(x);
+END;
+BEGIN
+    POUT(f(1$us, 2$us));
+END
+
+"E5 · func_dup — Función ya declarada en el ámbito actual: f"
+redeclfunc
+ushortint function f(ushortint a)
+BEGIN
+    RET(a);
+END;
+ushortint function f(ushortint b)
+BEGIN
+    RET(b);
+END;
+BEGIN
+    POUT(f(1$us));
+END
+
+"E6 · class_dup — Clase ya declarada en el ámbito actual: c"
+redeclclass
+class c
+BEGIN
+    ushortint x;
+END;
+class c
+BEGIN
+    ushortint y;
+END;
+BEGIN
+    POUT(0$us);
+END
+
+"E7 · attr_dup — Ya declarado en el ámbito actual. Identificador: x"
+redeclattr
+class c
+BEGIN
+    ushortint x;
+    doublef x;
+END;
+BEGIN
+    POUT(0$us);
+END
+
+"E8 · method_dup — Método ya declarado en el ámbito actual: f"
+redeclmethod
+class c
+BEGIN
+    ushortint f(ushortint a)
+    BEGIN
+        RET(a);
+    END;
+    ushortint f(ushortint b)
+    BEGIN
+        RET(b);
+    END;
+END;
+BEGIN
+    POUT(0$us);
+END
+
+"E9 · obj_dup — No se pudo declarar el objeto 'o': clase no visible o identificador duplicado"
+redeclobj
+class c
+BEGIN
+    ushortint x;
+END;
+c o;
+c o;
+BEGIN
+    POUT(0$us);
+END
+
+"E10 · var_vs_func — Ya declarado en el ámbito actual. Identificador: f"
+varvfunc
+ushortint function f(ushortint a)
+BEGIN
+    RET(a);
+END;
+ushortint f;
+BEGIN
+    POUT(0$us);
+END
+
+"E11 · var_vs_class — Ya declarado en el ámbito actual. Identificador: c"
+varvclass
+class c
+BEGIN
+    ushortint x;
+END;
+ushortint c;
+BEGIN
+    POUT(0$us);
+END
+
+"E12 · func_vs_class — Función ya declarada en el ámbito actual: c"
+funcvclass
+class c
+BEGIN
+    ushortint x;
+END;
+ushortint function c(ushortint a)
+BEGIN
+    RET(a);
+END;
+BEGIN
+    POUT(0$us);
+END
+
+"E13 · attr_vs_method — Método ya declarado en el ámbito actual: x"
+attrvmethod
+class c
+BEGIN
+    ushortint x;
+    ushortint x(ushortint a)
+    BEGIN
+        RET(a);
+    END;
+END;
+BEGIN
+    POUT(0$us);
+END
+"ERRORES — redeclaración E1 · var_global — Ya declarado en el ámbito actual. Identificador: a"
+redeclvar
+ushortint a;
+ushortint a;
+BEGIN
+    a := 1$us;
+END
+
+"E2 · var_local — Ya declarado en el ámbito actual. Identificador: x}"
+redeclocal
+ushortint function f(ushortint z)
+ushortint x;
+ushortint x;
+BEGIN
+    RET(z);
+END;
+BEGIN
+    POUT(f(1$us));
+END
+
+"E3 · local_vs_param — Ya declarado en el ámbito actual. Identificador: x"
+localparam
+ushortint function f(ushortint x)
+ushortint x;
+BEGIN
+    RET(x);
+END;
+BEGIN
+    POUT(f(1$us));
+END
+
+"E4 · param_dup — Parámetro formal ya declarado en el ámbito actual: x (y además, como el duplicado no entra en la firma, Cantidad de argumentos incorrecta... se esperaban 1)"
+paramdup
+ushortint function f(ushortint x, ushortint x)
+BEGIN
+    RET(x);
+END;
+BEGIN
+    POUT(f(1$us, 2$us));
+END
+
+"E5 · func_dup — Función ya declarada en el ámbito actual: f"
+redeclfunc
+ushortint function f(ushortint a)
+BEGIN
+    RET(a);
+END;
+ushortint function f(ushortint b)
+BEGIN
+    RET(b);
+END;
+BEGIN
+    POUT(f(1$us));
+END
+
+"E6 · class_dup — Clase ya declarada en el ámbito actual: c"
+redeclclass
+class c
+BEGIN
+    ushortint x;
+END;
+class c
+BEGIN
+    ushortint y;
+END;
+BEGIN
+    POUT(0$us);
+END
+
+"E7 · attr_dup — Ya declarado en el ámbito actual. Identificador: x"
+redeclattr
+class c
+BEGIN
+    ushortint x;
+    doublef x;
+END;
+BEGIN
+    POUT(0$us);
+END
+
+"E8 · method_dup — Método ya declarado en el ámbito actual: f"
+redeclmethod
+class c
+BEGIN
+    ushortint f(ushortint a)
+    BEGIN
+        RET(a);
+    END;
+    ushortint f(ushortint b)
+    BEGIN
+        RET(b);
+    END;
+END;
+BEGIN
+    POUT(0$us);
+END
+
+"E9 · obj_dup — No se pudo declarar el objeto 'o': clase no visible o identificador duplicado"
+redeclobj
+class c
+BEGIN
+    ushortint x;
+END;
+c o;
+c o;
+BEGIN
+    POUT(0$us);
+END
+
+"E10 · var_vs_func — Ya declarado en el ámbito actual. Identificador: f"
+varvfunc
+ushortint function f(ushortint a)
+BEGIN
+    RET(a);
+END;
+ushortint f;
+BEGIN
+    POUT(0$us);
+END
+
+"E11 · var_vs_class — Ya declarado en el ámbito actual. Identificador: c"
+varvclass
+class c
+BEGIN
+    ushortint x;
+END;
+ushortint c;
+BEGIN
+    POUT(0$us);
+END
+
+"E12 · func_vs_class — Función ya declarada en el ámbito actual: c"
+funcvclass
+class c
+BEGIN
+    ushortint x;
+END;
+ushortint function c(ushortint a)
+BEGIN
+    RET(a);
+END;
+BEGIN
+    POUT(0$us);
+END
+
+"E13 · attr_vs_method — Método ya declarado en el ámbito actual: x"
+attrvmethod
+class c
+BEGIN
+    ushortint x;
+    ushortint x(ushortint a)
+    BEGIN
+        RET(a);
+    END;
+END;
+BEGIN
+    POUT(0$us);
+END
+"G2 · local_in_main — Identificador no declarado o no utilizable como variable: local"
+localmain
+ushortint function f(ushortint a)
+ushortint local;
+BEGIN
+    local := a + 1$us;
+    RET(local);
+END;
+BEGIN
+    POUT(local);
+END
+
+"G3 · local_f_in_g — local de f usado en g — Identificador no declarado o no utilizable como variable: x"
+localfing
+ushortint function f(ushortint a)
+ushortint x;
+BEGIN
+    x := a + 1$us;
+    RET(x);
+END;
+ushortint function g(ushortint b)
+BEGIN
+    RET(x + b);
+END;
+BEGIN
+    POUT(f(1$us));
+END
+
+"G4 · other_class_attr — atributo de otra clase dentro de un método — Identificador no declarado o no utilizable como variable: x"
+otherattr
+class c
+BEGIN
+    ushortint x;
+END;
+class d
+BEGIN
+    ushortint g(ushortint a)
+    BEGIN
+        RET(x + a);
+    END;
+END;
+BEGIN
+    POUT(0$us);
+END
+
+"G5 · other_class_method — método de otra clase llamado sin objeto — La función 'f' no está declarada o no es visible en este ámbito."
+othermethod
+class c
+BEGIN
+    ushortint f(ushortint a)
+    BEGIN
+        RET(a);
+    END;
+END;
+class d
+BEGIN
+    ushortint g(ushortint a)
+    BEGIN
+        RET(f(a));
+    END;
+END;
+BEGIN
+    POUT(0$us);
+END

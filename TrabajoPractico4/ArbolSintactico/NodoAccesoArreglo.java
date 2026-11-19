@@ -13,6 +13,7 @@ public class NodoAccesoArreglo extends NodoAST {
     private List<RegistroSimboloTp4> atributosPosibles = Collections.emptyList();
     private String referenciaClase;
     private boolean indiceDinamico;
+    
     public NodoAccesoArreglo(NodoAST arreglo, NodoAST indice) {
         super("ACCESO_POSICIONAL");
         this.arreglo = arreglo;
@@ -109,12 +110,9 @@ public class NodoAccesoArreglo extends NodoAST {
             errorTipo = "El índice debe ser de tipo entero.";
             return null;
         }
-
         Object referenciaClaseObjeto = simboloObjeto.obtenerAtributo("CLASE");
         referenciaClase = referenciaClaseObjeto == null ? simboloObjeto.getTipo() : String.valueOf(referenciaClaseObjeto);
-
         Integer posicionConstante = obtenerIndiceConstante(hojaIndice, tabla);
-
         if (posicionConstante != null) {
             if (posicionConstante < 0) {
                 errorTipo = "El índice no puede ser negativo.";
@@ -128,32 +126,25 @@ public class NodoAccesoArreglo extends NodoAST {
             atributosPosibles =  Collections.singletonList(atributoResuelto);
             return atributoResuelto.getTipo();
         }
-
         if ("CTE".equals(hojaIndice.getTipoNodo())) {
             errorTipo = "No se pudo interpretar el índice posicional.";
             return null;
         }
-
         RegistroSimboloTp4 registroIndice = hojaIndice.getSimboloVinculado();
         if (registroIndice == null) {
             errorTipo = "La variable utilizada como índice " + "no está declarada o no es visible.";
             return null;
         }
-
         if (registroIndice.esComptime()) {
             errorTipo = "La variable COMPTIME utilizada como índice "  + "no tiene un valor conocido en este punto.";
             return null;
         }
-
         atributosPosibles =  tabla.obtenerAtributosPosicionalesPorReferencia( referenciaClase );
-
         if (atributosPosibles.isEmpty()) {
             errorTipo = "La clase no tiene atributos accesibles " + "por posición.";
             return null;
         }
-
         String tipoComun = atributosPosibles.get(0).getTipo();
-
         for (RegistroSimboloTp4 atributo : atributosPosibles) {
             if (atributo.getTipo() == null || !atributo.getTipo().equalsIgnoreCase(tipoComun)) {
                 errorTipo = "No se puede determinar un tipo único "  + "para el acceso posicional con índice variable.";
@@ -171,26 +162,20 @@ public class NodoAccesoArreglo extends NodoAST {
             registrarError("Semántico", obtenerLinea(), errorTipo != null  ? errorTipo : "No se pudo resolver el acceso posicional." );
             return null;
         }
-
         String objeto = ((NodoHoja) arreglo).generarReferencia();
-
         if (objeto == null) {
             return null;
         }
-
         if (!indiceDinamico) {
             if (atributoResuelto == null) {
                 return null;
             }
             return objeto + "." + atributoResuelto.getNombreCompleto();
         }
-
         String codigoIndice = indice.generarCodigo();
-
         if (codigoIndice == null) {
             return null;
         }
-
         return objeto + "[" + codigoIndice + "]";
     }
 
@@ -214,7 +199,6 @@ public class NodoAccesoArreglo extends NodoAST {
             return null;
         }
         String auxResultado =  GeneradorWasm.nuevaAuxiliar( GeneradorWasm.mapearTipo(tipo) );
-
         if (!indiceDinamico) {
             String referencia = generarWasmReferencia();
             if (referencia == null) {
@@ -224,13 +208,10 @@ public class NodoAccesoArreglo extends NodoAST {
             GeneradorWasm.emitirSet(auxResultado);
             return auxResultado;
         }
-
         String auxIndice = indice.generarWasm();
-
         if (auxIndice == null) {
             return null;
         }
-
         String tipoWasm = GeneradorWasm.mapearTipo(tipo);
         for (int i = 0; i < atributosPosibles.size(); i++) {
             GeneradorWasm.emitirGet(auxIndice);
@@ -240,15 +221,11 @@ public class NodoAccesoArreglo extends NodoAST {
             GeneradorWasm.emitirGet( obtenerReferenciaWasm(atributosPosibles.get(i) ));
             GeneradorWasm.emitir("else");
         }
-
         GeneradorWasm.emitirErrorRuntime("Error en ejecucion: Indice posicional fuera de rango.");
-
         for (int i = 0; i < atributosPosibles.size(); i++) {
             GeneradorWasm.emitir("end");
         }
-
         GeneradorWasm.emitirSet(auxResultado);
-
         return auxResultado;
     }
 
@@ -257,7 +234,6 @@ public class NodoAccesoArreglo extends NodoAST {
         if (tipo == null || auxiliarValor == null) {
             return false;
         }
-
         if (!indiceDinamico) {
             String referencia = generarWasmReferencia();
             if (referencia == null) {
@@ -267,13 +243,10 @@ public class NodoAccesoArreglo extends NodoAST {
             GeneradorWasm.emitirSet(referencia);
             return true;
         }
-
         String auxIndice = indice.generarWasm();
-
         if (auxIndice == null) {
             return false;
         }
-
         for (int i = 0; i < atributosPosibles.size(); i++) {
             GeneradorWasm.emitirGet(auxIndice);
             GeneradorWasm.emitir("i32.const " + i);

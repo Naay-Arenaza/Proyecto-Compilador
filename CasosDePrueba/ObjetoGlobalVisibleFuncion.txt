@@ -1,0 +1,14 @@
+globalobj
+class punto
+BEGIN
+    ushortint x;
+END;
+punto p;
+ushortint function f(ushortint z)
+BEGIN
+    RET(p[0$us] + z);
+END;
+BEGIN
+    p[0$us] := 8$us;
+    POUT(f(1$us));
+END

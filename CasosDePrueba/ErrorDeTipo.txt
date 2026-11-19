@@ -1,0 +1,16 @@
+progerrortipos
+USHORTINT u;
+DOUBLEF d, r;
+BEGIN
+    u := 5$us;
+    d := 3.2;
+
+    "Error: suma entre USHORTINT y DOUBLEF sin conversion explicita"
+    r := u + d;
+
+    "Error: asignacion directa entre tipos distintos"
+    u := d;
+
+    "Error: TODF aplicado sobre un DOUBLEF"
+    r := TODF(d);
+END

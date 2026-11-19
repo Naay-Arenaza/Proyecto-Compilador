@@ -1,0 +1,10 @@
+asigexpr
+ushortint a, b, c;
+BEGIN
+    a := 0$us;
+    b := 1$us;
+    c := b = (b + 2$us);
+    POUT(b);
+    POUT(c);
+    POUT(b = (b + 1$us));
+END

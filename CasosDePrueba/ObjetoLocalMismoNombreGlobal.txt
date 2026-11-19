@@ -1,0 +1,17 @@
+objshadow
+class punto
+BEGIN
+    ushortint x;
+END;
+punto p;
+ushortint function f(ushortint a)
+punto p;
+BEGIN
+    p[0$us] := a;
+    RET(p[0$us]);
+END;
+BEGIN
+    p[0$us] := 7$us;
+    POUT(f(3$us));
+    POUT(p[0$us]);
+END

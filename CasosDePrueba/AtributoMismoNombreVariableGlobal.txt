@@ -1,0 +1,13 @@
+attrglobal
+class c
+BEGIN
+    ushortint x;
+END;
+c o;
+ushortint x;
+BEGIN
+    x := 5$us;
+    o[0$us] := 7$us;
+    POUT(x);
+    POUT(o[0$us]);
+END
