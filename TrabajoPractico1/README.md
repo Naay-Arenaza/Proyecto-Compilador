@@ -44,4 +44,4 @@ La salida permite observar los tokens que reconoce el autómata y los símbolos 
 
 ## Observación sobre el Tema 16
 
-La consigna del grupo define comentarios multilínea delimitados por `{{` y `}}`. En el código del analizador se encuentra una acción identificada como comentario multilínea entre comillas dobles. Se recomienda verificar los delimitadores efectivamente reconocidos antes de considerar este tema cerrado.
+La consigna del grupo define comentarios multilínea delimitados por `{{` y `}}`. En el código del analizador se encuentra una acción identificada como comentario multilínea entre " ".
