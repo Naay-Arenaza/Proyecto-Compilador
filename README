@@ -1,91 +1,185 @@
-# Compilador - Grupo 8 (Diseño de Compiladores I)
+# Proyecto Compilador — Grupo 8
 
-Repositorio oficial del proyecto de compilador desarrollado para la materia **Diseño de Compiladores I**. El sistema traduce un lenguaje estructurado de alto nivel a código binario **WebAssembly (.wasm)** mediante un pipeline robusto que abarca análisis léxico, sintáctico, semántico, generación de Árbol Sintáctico (AST) y emisión de código de máquina virtual.
+Proyecto desarrollado para la materia **Diseño de Compiladores I – Compiladores e Intérpretes**. El repositorio reúne las entregas de los trabajos prácticos 1 a 4 y muestra la evolución del compilador: desde el reconocimiento de tokens hasta la generación de un módulo WebAssembly.
 
----
+## Resumen del proyecto
 
-## 👥 Integrantes y Datos del Grupo
-* **Grupo N°:** 8
-* **Temas Particulares Asignados:**
-  * **2:** Enteros cortos sin signo (`USHORTINT`, 8 bits, $0$ a $2^8-1$ con sufijo `$us`).
-  * **8:** Punto flotante de 64 bits (`DOUBLEF` con sufijo exponencial `d`/`D`).
-  * **9:** Cadenas de 1 línea delimitadas por llaves (`{ ... }`).
-  * **13:** Sentencia de control iterativa `repeat ... while (<condicion>)`.
-  * **16:** Comentarios multilínea delimitados por `{{ ... }}`.
-  * **17:** Asignación de expresiones dentro de expresiones utilizando `=` y paréntesis.
-  * **20:** Invocación de funciones con orden de evaluación de parámetros reales opcional (`[<lista_constantes>]`).
-  * **22:** Variables en tiempo de compilación (`comptime`).
-  * **25:** Asignación por estructura en objetos sin código.
-  * **29:** Acceso posicional a atributos de clases (`objeto[indice]`).
-  * **30:** Herencia múltiple de clases (`extends`) con desambiguamiento.
-  * **33:** Conversiones explícitas de entero a punto flotante (`todf(<expresion>)`).
-* **Código Intermedio (TP3):** Árbol Sintáctico (AST).
-* **Backend y Controles (TP4):** 
-  * Generación de código WebAssembly (`.wat` / `.wasm`).
-  * **Controles en Tiempo de Ejecución (Grupo 8):** 
-    * `a`: División por cero.
-    * `c`: Overflow en sumas de punto flotante (`DOUBLEF`).
-    * `d`: Overflow en productos de enteros (`USHORTINT`).
-    * `i`: Restricción y prohibición de recursión en funciones/métodos.
+El compilador está implementado en Java. Utiliza un analizador léxico construido con matrices de transición y acciones semánticas, un parser generado a partir de una gramática YACC/BYACC-J, una Tabla de Símbolos con información semántica y, desde el TP3, un **Árbol Sintáctico** como representación intermedia. En el TP4, el árbol se recorre para generar WebAssembly.
 
----
+**Grupo:** 8  
+**Representación intermedia:** Árbol Sintáctico (AST)  
+**Backend del TP4:** WebAssembly (`.wat` y `.wasm`)
 
-## 📁 Estructura y Distribución de Archivos
+### Temas particulares del Grupo 8
 
-El proyecto está organizado en carpetas independientes para cada etapa del desarrollo, centralizando las salidas y compilaciones:
+| Tema | Funcionalidad |
+|---|---|
+| 2 | Enteros cortos sin signo de 8 bits (`USHORTINT`, constantes con sufijo `$us`, rango 0–255). |
+| 8 | Punto flotante de 64 bits (`DOUBLEF`, exponente indicado con `d`/`D`). |
+| 9 | Cadenas de una línea delimitadas por llaves. |
+| 13 | Iteración `REPEAT ... WHILE (condición)`. |
+| 16 | Comentarios multilínea. Ver la nota de implementación más abajo. |
+| 17 | Asignaciones de expresiones dentro de expresiones mediante `=` y paréntesis. |
+| 20 | Orden opcional de evaluación de parámetros reales en invocaciones. |
+| 22 | Variables en tiempo de compilación (`COMPTIME`). |
+| 25 | Asignación entre objetos por compatibilidad estructural. |
+| 29 | Acceso posicional a atributos de objetos (`objeto[índice]`). |
+| 30 | Herencia múltiple con resolución según el orden de las clases base. |
+| 33 | Conversión explícita de entero a punto flotante (`TODF`). |
+
+En el TP4 se incorporan los controles de ejecución asignados al grupo:
+
+- **a)** División por cero para datos enteros y de punto flotante.
+- **c)** Overflow en sumas de datos de punto flotante (`DOUBLEF`).
+- **d)** Overflow en productos de enteros (`USHORTINT`).
+- **i)** Detección de recursión en invocaciones de funciones.
+
+## Recorrido general del compilador
+
+```text
+Código fuente (.txt)
+        │
+        ▼
+Análisis léxico
+  - reconoce tokens
+  - registra símbolos y constantes
+  - informa errores léxicos
+        │
+        ▼
+Análisis sintáctico (YACC / BYACC-J)
+  - valida la gramática
+  - ejecuta acciones semánticas
+        │
+        ▼
+Análisis semántico y Tabla de Símbolos
+  - tipos, usos y ámbitos
+  - visibilidad y redeclaraciones
+  - chequeos propios de los temas
+        │
+        ▼
+Árbol Sintáctico (AST)
+  - nodos para expresiones y sentencias
+  - representación intermedia dinámica
+        │
+        ▼
+Generación WebAssembly (TP4)
+  - variables auxiliares
+  - instrucciones y funciones
+  - controles en tiempo de ejecución
+        │
+        ▼
+Archivo .wat ── wat2wasm ──► Archivo .wasm
+                                  │
+                                  ▼
+                           probar.html
+```
+
+## Estructura del repositorio
 
 ```text
 Proyecto-Compilador/
-│
-├── TrabajoPractico1/         # Analizador Léxico y Tabla de Símbolos básica
-├── TrabajoPractico2/         # Parser Sintáctico (YACC + Java)
-├── TrabajoPractico3/         # Análisis Semántico y Árbol Sintáctico (AST)
-├── TrabajoPractico4/         # Backend WebAssembly, Controles y Emisión final
-│   └── GeneracionWebAssembly/# Módulos de traducción a WAT/WASM y manejo de memoria
-├── SalidaTp4/                # Carpeta centralizada de artefactos generados (.wat y .wasm)
-├── build/                    # Clases Java compiladas (.class)
-├── casos_de_prueba/          # Batería completa de tests válidos y de error
-├── ejecutarTp4.sh            # Script principal automatizado de compilación y ejecución
-├── index.html                # Utilidad web para probar y ejecutar los .wasm en navegador
-└── README.md                 # Documentación técnica del proyecto
+├── TrabajoPractico1/          # Analizador léxico inicial y Tabla de Símbolos
+├── TrabajoPractico2/          # Gramática YACC y análisis sintáctico
+├── TrabajoPractico3/          # Árbol sintáctico y análisis semántico
+├── TrabajoPractico4/          # Generación WebAssembly y controles del grupo
+│   ├── ArbolSintactico/
+│   └── GeneracionWebAssembly/
+├── CasosDePrueba/             # Programas de prueba de las funcionalidades del TP3/TP4
+│   └── ErroresEnTiempoDeEjecucion/
+├── ejecutarTp2.sh             # Genera el parser, compila y ejecuta el TP2
+├── ejecutarTp3.sh             # Genera el parser, compila y ejecuta el TP3
+├── ejecutarTp4.sh             # Genera el parser, compila y ejecuta el TP4
+├── probar.html                # Cargador y ejecutor de módulos .wasm en el navegador
+├── EjecucionG8.zip            # Paquete comprimido incluido en el repositorio
+└── .gitignore                 # Excluye clases y artefactos generados
 ```
 
-### Explicación de los Archivos Principales por Módulo
+Cada carpeta de trabajo práctico contiene su propio README con el detalle de los archivos. La carpeta `CasosDePrueba/` también cuenta con una guía para identificar qué comprueba cada entrada.
 
-#### 1. Módulo `TrabajoPractico1/` (Analizador Léxico)
-* `AnalizadorLexicoTp1.java`: Implementación del autómata mediante matriz de transición de estados y acciones semánticas. Reconoce identificadores (truncamiento a 22 caracteres con warning), constantes numéricas y cadenas particulares.
-* `TablaDeSimbolosTp1.java`: Estructura dinámica para almacenar identificadores, palabras reservadas y constantes.
+## Requisitos
 
-#### 2. Módulo `TrabajoPractico2/` (Analizador Sintáctico)
-* `gramatica.y`: Definición de la gramática libre de contexto utilizando la herramienta tipo YACC (`yacc.linux`). Define la estructura general de programas, bloques, declaraciones y sentencias ejecutables sin conflictos `shift/reduce` ni `reduce/reduce`.
-* `Parser.java` / `ParserVal.java`: Clases generadas y adaptadas para el manejo de valores y tokens entre el autómata léxico y el parser.
+Para ejecutar las etapas desde Linux se necesita:
 
-#### 3. Módulo `TrabajoPractico3/` (Árbol Sintáctico y Semántica)
-* `ArbolSintactico/`: Contiene todas las clases de nodos del AST (`NodoAST`, `NodoBinario`, `NodoAsignacion`, `NodoIF`, `NodoRepeat`, `NodoFuncion`, `NodoClase`, `NodoAccesoArreglo`, etc.).
-* `GestionAmbitoTp3.java`: Administra la visibilidad de ámbitos mediante *name mangling* (`nombre:ambito1:ambito2`).
-* `TablaDeSimbolosTp3.java`: Tabla avanzada con control de tipos, usos, atributos de herencia y manejo de variables `comptime`.
+- **JDK 11 o superior** (se utiliza `javac` y código compatible con APIs de Java 11 o posteriores).
+- **Bash** para ejecutar los scripts `.sh`.
+- Permisos de ejecución para los scripts (`chmod +x ejecutarTp2.sh ejecutarTp3.sh ejecutarTp4.sh`, si hiciera falta).
+- **WABT**, que proporciona el comando `wat2wasm`, para convertir los archivos de texto `.wat` a binarios `.wasm`.
+- Un navegador moderno con soporte WebAssembly para utilizar `probar.html`.
 
-#### 4. Módulo `TrabajoPractico4/` (WebAssembly y Controles de Ejecución)
-* `MainTp4.java`: Punto de entrada que ejecuta el pipeline completo: análisis léxico, sintáctico, armado del AST, validación semántica y generación del archivo `.wat`.
-* `GeneracionWebAssembly/GeneradorWasm.java`: Motor encargado de emitir instrucciones WebAssembly, gestionar la memoria lineal para cadenas y registrar variables globales con *name mangling*.
+El ejecutable `yacc.linux` está incluido en las carpetas de los TP2, TP3 y TP4, por lo que los scripts utilizan esa copia para generar el parser. No es necesario instalar un `yacc` del sistema para esos scripts.
+
+## Cómo ejecutar cada etapa
+
+Los comandos siguientes se ejecutan desde la **raíz del repositorio**.
+
+### TP1 — Analizador léxico
+
+```bash
+cd TrabajoPractico1
+javac *.java
+java MainTp1
+```
+
+`MainTp1` utiliza el archivo `TxtPrueba.txt` por nombre fijo y no recibe actualmente una ruta como argumento. Por eso se ejecuta desde `TrabajoPractico1/`, donde se encuentra ese archivo.
+
+### TP2 — Analizador sintáctico
+
+```bash
+./ejecutarTp2.sh TrabajoPractico2/PruebaTp2.txt
+```
+
+El script ejecuta BYACC/J sobre `TrabajoPractico2/gramatica.y`, prepara el `package` de los archivos generados, compila las clases Java y ejecuta `MainTp2` con el archivo indicado.
+
+### TP3 — Árbol sintáctico y semántica
+
+```bash
+./ejecutarTp3.sh CasosDePrueba/CasoIntegralValido.txt
+```
+
+El script genera el parser a partir de `TrabajoPractico3/gramatica.y`, compila las fuentes en `build/` y ejecuta `TrabajoPractico3.MainTp3`.
+
+### TP4 — Generación de WebAssembly
+
+```bash
+./ejecutarTp4.sh CasosDePrueba/CasoIntegralValido.txt
+```
+
+El script genera el parser, compila las fuentes de `TrabajoPractico4/`, ejecuta `MainTp4` y organiza los archivos `.wat` en `SalidaTp4/`. Si `wat2wasm` está instalado, también convierte el `.wat` correspondiente a `.wasm`. La carpeta `build/` y `SalidaTp4/` se crean durante la ejecución; no son carpetas fuente del repositorio.
+
+### Ejecutar el módulo WebAssembly en el navegador
+
+1. Ejecutá el TP4 para generar el archivo `.wasm`.
+2. Abrí `probar.html` en un navegador compatible.
+3. Seleccioná el archivo `.wasm` generado (normalmente desde `SalidaTp4/`).
+4. Consultá la consola de salida que muestra los valores impresos y los mensajes de error de ejecución.
+
+## Casos de prueba del TP4
+
+Los programas de prueba principales están en `CasosDePrueba/`. Para ejecutar un archivo individual se utiliza el script del TP4, por ejemplo:
+
+```bash
+./ejecutarTp4.sh CasosDePrueba/ErroresEnTiempoDeEjecucion/DivCero.txt
+./ejecutarTp4.sh CasosDePrueba/ErroresEnTiempoDeEjecucion/OverflowSumaPF.txt
+./ejecutarTp4.sh CasosDePrueba/ErroresEnTiempoDeEjecucion/OverflowProductoEnteros.txt
+./ejecutarTp4.sh CasosDePrueba/ErroresEnTiempoDeEjecucion/Recursion.txt
+```
+
+La descripción del resto de los archivos se encuentra en [`CasosDePrueba/README.md`](CasosDePrueba/README.md).
+
+## Archivos generados y control de versiones
+
+- `Parser.java` y `ParserVal.java` se generan a partir de `gramatica.y` mediante `yacc.linux` cuando se ejecuta el script correspondiente. En TP4 no se encuentran versionados y se vuelven a generar al ejecutar `ejecutarTp4.sh`.
+- Los archivos `.class`, `.wat` y `.wasm` están excluidos por `.gitignore`.
+- `build/` y `SalidaTp4/` son carpetas de salida creadas por los scripts.
+- El archivo fuente de la gramática (`gramatica.y`) es el que debe modificarse cuando se cambia la sintaxis; los archivos del parser son productos generados.
+
+## Observaciones sobre el estado del código
+
+- El README documenta el contenido que actualmente se encuentra en el repositorio. Los archivos de salida no se incluyen como fuentes y deben generarse localmente.
+- **Tema 16:** la consigna asigna comentarios multilínea delimitados por `{{` y `}}`. En la implementación actual de `AnalizadorLexicoTp4.java`, las acciones semánticas identifican un estado de comentario multilínea asociado a comillas dobles (`"..."`). Conviene verificar o ajustar este comportamiento antes de considerar el tema 16 completamente conforme a la delimitación de la consigna.
+- La prueba `DivCero.txt` permite comprobar el caso entero. Para documentar también el caso `DOUBLEF`, se recomienda incorporar un caso de prueba separado con un divisor de punto flotante igual a cero.
 
 ---
 
-## 🚀 Guía de Compilación y Ejecución
-
-El proyecto incluye un script Bash automatizado (`ejecutarTp4.sh`) que compila los fuentes de Java, genera el parser, analiza el archivo de prueba de entrada y deposita prolijamente los resultados (`.wat` y `.wasm`) dentro de la carpeta **`SalidaTp4/`**.
-
-### Ejecutar un caso de prueba:
-```bash
-./ejecutarTp4.sh casos_de_prueba/CasoIntegralValido.txt
-```
-
-### Ejecutar controles de error en tiempo de ejecución:
-```bash
-./ejecutarTp4.sh casos_de_prueba/ErroresEnTiempoDeEjecucion/DivCero.txt
-```
-
-### Probar el binario en el navegador:
-1. Abrí el archivo `index.html` en tu navegador web.
-2. Seleccioná el archivo `.wasm` generado dentro de la carpeta `SalidaTp4/`.
-3. Observá la consola integrada con el resultado de las ejecuciones o los mensajes de error de runtime (`[ERROR EN EJECUCIÓN]`).
+**Materia:** Compiladores e Intérpretes  
+**Grupo:** 8
