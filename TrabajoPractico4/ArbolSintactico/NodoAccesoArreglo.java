@@ -29,8 +29,6 @@ public class NodoAccesoArreglo extends NodoAST {
     @Override
     public String obtenerErrorTipo() { return errorTipo; }
 
-    public RegistroSimboloTp4 getAtributoResuelto() { return atributoResuelto; }
-
     public int getLinea() {
         if (arreglo instanceof NodoHoja) {
             return ((NodoHoja) arreglo).getLinea();
@@ -70,16 +68,6 @@ public class NodoAccesoArreglo extends NodoAST {
         } catch (NumberFormatException e) {
             return null;
         }
-    }
-
-    public boolean esIndiceDinamico() {
-        obtenerTipo();
-        return indiceDinamico;
-    }
-
-    public List<RegistroSimboloTp4> getAtributosPosibles() {
-        obtenerTipo();
-        return atributosPosibles;
     }
 
     @Override

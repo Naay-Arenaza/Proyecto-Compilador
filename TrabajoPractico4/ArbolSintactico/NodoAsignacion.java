@@ -89,11 +89,11 @@ public class NodoAsignacion extends NodoAST {
                     && TablaDeSimbolosTp4.USO_OBJETO.equals(regDest.getUso())
                     && TablaDeSimbolosTp4.USO_OBJETO.equals(regOrig.getUso())) {
                 TablaDeSimbolosTp4 tabla = getTablaSimbolos();
-                String claseDest = regDest.obtenerAtributo("CLASE") != null
-                        ? String.valueOf(regDest.obtenerAtributo("CLASE"))
+                String claseDest = regDest.obtenerAtributo(TablaDeSimbolosTp4.ATR_CLASE) != null
+                        ? String.valueOf(regDest.obtenerAtributo(TablaDeSimbolosTp4.ATR_CLASE))
                         : regDest.getTipo();
-                String claseOrig = regOrig.obtenerAtributo("CLASE") != null
-                        ? String.valueOf(regOrig.obtenerAtributo("CLASE"))
+                String claseOrig = regOrig.obtenerAtributo(TablaDeSimbolosTp4.ATR_CLASE) != null
+                        ? String.valueOf(regOrig.obtenerAtributo(TablaDeSimbolosTp4.ATR_CLASE))
                         : regOrig.getTipo();
 
                 int pos = 0;

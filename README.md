@@ -173,12 +173,6 @@ La descripción del resto de los archivos se encuentra en [`CasosDePrueba/README
 - `build/` y `SalidaTp4/` son carpetas de salida creadas por los scripts.
 - El archivo fuente de la gramática (`gramatica.y`) es el que debe modificarse cuando se cambia la sintaxis; los archivos del parser son productos generados.
 
-## Observaciones sobre el estado del código
-
-- El README documenta el contenido que actualmente se encuentra en el repositorio. Los archivos de salida no se incluyen como fuentes y deben generarse localmente.
-- **Tema 16:** la consigna asigna comentarios multilínea delimitados por `{{` y `}}`. En la implementación actual de `AnalizadorLexicoTp4.java`, las acciones semánticas identifican un estado de comentario multilínea asociado a comillas dobles (`"..."`). Conviene verificar o ajustar este comportamiento antes de considerar el tema 16 completamente conforme a la delimitación de la consigna.
-- La prueba `DivCero.txt` permite comprobar el caso entero. Para documentar también el caso `DOUBLEF`, se recomienda incorporar un caso de prueba separado con un divisor de punto flotante igual a cero.
-
 ---
 
 **Materia:** Compiladores e Intérpretes  

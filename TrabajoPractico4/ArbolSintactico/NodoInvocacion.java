@@ -11,7 +11,7 @@ public class NodoInvocacion extends NodoAST {
     private final int linea;
     private final RegistroSimboloTp4 funcionResuelta;
 
-    public NodoInvocacion(  String nombreFuncion,  NodoListaParametros parametros,  List<Integer> ordenParametros, int linea,RegistroSimboloTp4 funcionResuelta) {
+    public NodoInvocacion(String nombreFuncion, NodoListaParametros parametros, List<Integer> ordenParametros, int linea, RegistroSimboloTp4 funcionResuelta) {
         super("INVOCACION_FUNCION");
         this.nombreFuncion = nombreFuncion;
         this.parametros = parametros;
@@ -20,32 +20,28 @@ public class NodoInvocacion extends NodoAST {
         this.funcionResuelta = funcionResuelta;
     }
 
-    public String getNombreFuncion() { return nombreFuncion; }
+    public String getNombreFuncion() {return nombreFuncion;}
 
-    public NodoListaParametros getParametros() { return parametros;}
+    public NodoListaParametros getParametros() {return parametros;}
 
-    public List<Integer> getOrdenParametros() { return ordenParametros;  }
-
-    public RegistroSimboloTp4 getFuncionResuelta() {  return funcionResuelta; }
+    public List<Integer> getOrdenParametros() {return ordenParametros;}
 
     @Override
     public String obtenerErrorTipo() {
         if (funcionResuelta == null || !TablaDeSimbolosTp4.USO_FUNCION.equals(funcionResuelta.getUso())) {
-            return "La función '" + nombreFuncion  + "' no está declarada o no es visible en este ámbito.";
+            return "La función '" + nombreFuncion + "' no está declarada o no es visible en este ámbito.";
         }
         return null;
     }
 
     @Override
-    public String obtenerTipo() {
-        return obtenerErrorTipo() == null ? funcionResuelta.getTipo() : null;
-    }
+    public String obtenerTipo() {return obtenerErrorTipo() == null ? funcionResuelta.getTipo() : null;}
 
     @Override
     public String generarCodigo() {
         TablaDeSimbolosTp4 tabla = getTablaSimbolos();
         if (tabla == null) {
-            registrarError(  "Interno", linea, "No se configuró la tabla de símbolos para generar la invocación.");
+            registrarError("Interno", linea, "No se configuró la tabla de símbolos para generar la invocación.");
             return "";
         }
         RegistroSimboloTp4 funcion = funcionResuelta;
@@ -54,16 +50,16 @@ public class NodoInvocacion extends NodoAST {
             return "";
         }
         if (parametros == null) {
-            registrarError( "Sintáctico",  linea,  "La invocación de '" + nombreFuncion  + "' tiene una lista de argumentos inválida.");
+            registrarError("Sintáctico", linea, "La invocación de '" + nombreFuncion + "' tiene una lista de argumentos inválida.");
             return "";
         }
         List<NodoAST> argumentos = parametros.getParametros();
         if (!tabla.validarCantidadParametros(nombreFuncion,funcion.getAmbito(), argumentos.size())) {
-            registrarError( "Semántico", linea, "Cantidad de argumentos incorrecta al invocar '" + nombreFuncion + "'. Se recibieron "  + argumentos.size() + " y se esperaban " + funcion.getCantidadParametros() + "." );
+            registrarError("Semántico", linea, "Cantidad de argumentos incorrecta al invocar '" + nombreFuncion + "'. Se recibieron " + argumentos.size() + " y se esperaban " + funcion.getCantidadParametros() + "." );
             return "";
         }
         if (!tabla.validarOrdenParametros( ordenParametros, argumentos.size())) {
-            registrarError( "Semántico", linea, "El orden de parámetros de '" + nombreFuncion  + "' debe ser una permutación de 1 a "  + argumentos.size() + "." );
+            registrarError("Semántico", linea, "El orden de parámetros de '" + nombreFuncion + "' debe ser una permutación de 1 a " + argumentos.size() + "." );
             return "";
         }
         List<Integer> ordenCopia = tabla.obtenerOrdenDeCopia(ordenParametros, argumentos.size());
@@ -72,7 +68,7 @@ public class NodoInvocacion extends NodoAST {
             String tipoReal = argumentos.get(i).obtenerTipo();
             String tipoFormal = formales.get(i).getTipo();
             if (tipoReal == null || tipoFormal == null || (!tabla.tipoCompatibleAsignacion(  tipoFormal, tipoReal, false) && !tabla.tiposObjetoCompatibles(tipoFormal, tipoReal))) {
-                registrarError( "Semántico", linea,"Tipo incompatible para el parámetro '" + formales.get(i).getNombre() + "' de la función '" + nombreFuncion + "': se esperaba " + tipoFormal + " y se recibió " + (tipoReal == null ? "un tipo indeterminado" : tipoReal) + "." );
+                registrarError("Semántico", linea, "Tipo incompatible para el parámetro '" + formales.get(i).getNombre() + "' de la función '" + nombreFuncion + "': se esperaba " + tipoFormal + " y se recibió " + (tipoReal == null ? "un tipo indeterminado" : tipoReal) + "." );
                 return "";
             }
         }
@@ -98,17 +94,17 @@ public class NodoInvocacion extends NodoAST {
         }
         TablaDeSimbolosTp4 tabla = getTablaSimbolos();
         if (tabla == null) {
-            registrarError( "Interno",linea, "No se configuró la tabla de símbolos para generar la invocación WASM.");
+            registrarError("Interno", linea, "No se configuró la tabla de símbolos para generar la invocación WASM.");
             return null;
         }
         List<NodoAST> argumentos = parametros.getParametros();
-        if (!tabla.validarCantidadParametros( nombreFuncion, funcionResuelta.getAmbito(), argumentos.size())) {
+        if (!tabla.validarCantidadParametros(nombreFuncion, funcionResuelta.getAmbito(), argumentos.size())) {
             return null;
         }
-        if (!tabla.validarOrdenParametros( ordenParametros, argumentos.size())) {
+        if (!tabla.validarOrdenParametros(ordenParametros, argumentos.size())) {
             return null;
         }
-        List<Integer> ordenCopia =  tabla.obtenerOrdenDeCopia(ordenParametros, argumentos.size());
+        List<Integer> ordenCopia = tabla.obtenerOrdenDeCopia(ordenParametros, argumentos.size());
         String[] auxArgs = new String[argumentos.size()];
         for (Integer indice : ordenCopia) {
             auxArgs[indice] = argumentos.get(indice).generarWasm();
@@ -120,8 +116,8 @@ public class NodoInvocacion extends NodoAST {
         for (int i = 0; i < argumentos.size(); i++) {
             GeneradorWasm.emitirGet(auxArgs[i]);
         }
-        String etiquetaWasm =  "$FUNC_" + funcionResuelta.getAmbito().replace(':', '_') + "_" + funcionResuelta.getLexema();
-        String tipoRetorno =  GeneradorWasm.mapearTipo(funcionResuelta.getTipo());
+        String etiquetaWasm = "$FUNC_" + funcionResuelta.getAmbito().replace(':', '_') + "_" + funcionResuelta.getLexema();
+        String tipoRetorno = GeneradorWasm.mapearTipo(funcionResuelta.getTipo());
         String auxRetorno = GeneradorWasm.nuevaAuxiliar(tipoRetorno);
         GeneradorWasm.emitir("call " + etiquetaWasm);
         GeneradorWasm.emitirSet(auxRetorno);

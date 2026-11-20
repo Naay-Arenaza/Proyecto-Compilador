@@ -1,7 +1,6 @@
 package TrabajoPractico4.ArbolSintactico;
 import TrabajoPractico4.GeneracionWebAssembly.*;
 public class NodoUnario extends NodoAST {
-
     private NodoAST operando;
     private String errorTipo;
 
@@ -74,5 +73,3 @@ public class NodoUnario extends NodoAST {
         return auxRes;
     }
 }
-
-

@@ -76,10 +76,10 @@ public class MainTp4 {
     }
 
     private static void generarCodigoIntermedio( NodoAST raiz, RecolectorErroresTp4 recolector) {
-        ByteArrayOutputStream bufferCodigo = new ByteArrayOutputStream();
+        ByteArrayOutputStream validarArbol = new ByteArrayOutputStream();
         PrintStream salidaOriginal = System.out;
         try (
-            PrintStream salidaTemporal =  new PrintStream(  bufferCodigo, true,  StandardCharsets.UTF_8)
+            PrintStream salidaTemporal =  new PrintStream( validarArbol, true,  StandardCharsets.UTF_8)
         ) {
             System.setOut(salidaTemporal);
             raiz.generarCodigo();

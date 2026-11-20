@@ -39,8 +39,6 @@ public class RegistroSimboloTp4 {
 
     public String getLexema() {return lexema;}
 
-    public String getTipoToken() {return tipoToken; }
-
     public String getTipo() {return tipo;}
 
     public String getUso() {return uso;}
@@ -51,10 +49,6 @@ public class RegistroSimboloTp4 {
 
     public int getLinea() {return linea;}
 
-    public long getOrdenDeclaracion() {return ordenDeclaracion;}
-
-    public Map<String, Object> getAtributos() {return Collections.unmodifiableMap(atributos);} 
-  
     public List<ParametroTp4> getParametros() {return Collections.unmodifiableList(parametros);} 
 
     public void agregarAtributo(String nombre, Object valor) { 
@@ -92,13 +86,6 @@ public class RegistroSimboloTp4 {
         return true;
     }
 
-    public boolean agregarParametro(ParametroTp4 parametro) {
-        if (parametro == null) {
-            throw new IllegalArgumentException("El parametro no puede ser null.");
-        }
-        return agregarParametro(parametro.getNombre(),parametro.getTipo(),parametro.getLinea());
-    }
-
     public boolean tieneParametro(String nombre) {
         if (nombre == null) {
             return false;
@@ -116,7 +103,7 @@ public class RegistroSimboloTp4 {
     @Override
     public String toString() {
         StringBuilder texto = new StringBuilder();
-        texto.append("RegistroSimboloTp3 {");
+        texto.append("RegistroSimboloTp4 {");
         texto.append("\n  Lexema: ").append(lexema);
         texto.append("\n  Tipo de token: ").append(valorONoDefinido(tipoToken));
         texto.append("\n  Tipo: ").append(valorONoDefinido(tipo));

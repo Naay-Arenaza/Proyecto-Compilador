@@ -66,6 +66,3 @@ Desde la raíz del repositorio:
 
 El script genera el parser desde `gramatica.y`, prepara el paquete de las clases generadas, compila los fuentes de `TrabajoPractico3/` en `build/` y ejecuta `TrabajoPractico3.MainTp3`.
 
-## Salidas
-
-La ejecución muestra los errores acumulados, la Tabla de Símbolos, el árbol sintáctico y la representación textual generada por los nodos. La estructura del AST se mantiene como representación intermedia principal del grupo; la salida textual es una forma auxiliar de inspeccionar las instrucciones.

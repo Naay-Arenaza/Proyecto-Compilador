@@ -11,10 +11,6 @@ public class LecturaCodigoTp4 {
     private final RecolectorErroresTp4 recolectorErrores;
     private boolean errorLecturaRegistrado = false;
 
-    public LecturaCodigoTp4 (String rutaArchivo) throws IOException {
-        this(rutaArchivo, new RecolectorErroresTp4());
-    }
-
     public LecturaCodigoTp4 (String rutaArchivo, RecolectorErroresTp4 recolectorErrores) throws IOException {
         if (recolectorErrores == null) {
             throw new IllegalArgumentException("El recolector de errores no puede ser null.");
@@ -62,8 +58,6 @@ public class LecturaCodigoTp4 {
                 registrarErrorLectura("No se pudo cerrar el archivo: " + e.getMessage());
         }
     }
-
-    public RecolectorErroresTp4 getRecolectorErrores() { return recolectorErrores;}
 
     private void registrarErrorLectura(String descripcion) {
         if (!errorLecturaRegistrado) {

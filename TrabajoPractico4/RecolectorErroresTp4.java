@@ -19,8 +19,6 @@ public class RecolectorErroresTp4 {
 
     public synchronized boolean hayErrores() {  return !errores.isEmpty(); }
 
-    public synchronized int cantidadErrores() {  return errores.size();}
-
     public void imprimirErrores(PrintStream salida) { 
         List<ErrorTp4> copia = getErrores();
         System.out.println();

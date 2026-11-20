@@ -1,8 +1,7 @@
 package TrabajoPractico4.ArbolSintactico;
 import TrabajoPractico4.RegistroSimboloTp4;
-import java.util.Collections;
-import java.util.List;
-import TrabajoPractico4.GeneracionWebAssembly.*;;
+import TrabajoPractico4.TablaDeSimbolosTp4;
+import TrabajoPractico4.GeneracionWebAssembly.*;
 
 public class NodoHoja extends NodoAST {
     private String tipoNodo;
@@ -41,8 +40,6 @@ public class NodoHoja extends NodoAST {
     public boolean teniaValorComptimeAlCrear() {  return valorComptimeConocidoAlCrear;}
     
     public void invalidarValorComptime() { this.valorComptimeAlCrear = null;}
-
-    public List<NodoAST> getHijos() { return Collections.emptyList(); }
 
     public int getLinea() { return linea; }
 
@@ -133,17 +130,20 @@ public class NodoHoja extends NodoAST {
                     return aux;
                 }
                 String aux = GeneradorWasm.nuevaAuxiliar(tipoWasm);
-                if (GeneradorWasm.esAtributo(registroSimbolos)) {
-                    GeneradorWasm.emitirGetAtributo(registroSimbolos);
-                } else {
-                    String refWasm = GeneradorWasm.sanitizarNombre(registroSimbolos.getNombreCompleto());
-                    if (registroSimbolos != null && ("VARIABLE".equals(registroSimbolos.getUso()) 
-                            || "VARIABLE_COMPTIME".equals(registroSimbolos.getUso()) 
-                            || "PARAMETRO".equals(registroSimbolos.getUso()))) {
-                        GeneradorWasm.declararGlobalSiNoExiste(refWasm, tipoWasm);
-                    }
-                    GeneradorWasm.emitirGet(refWasm);
+                if (registroSimbolos == null){
+                    return null;
                 }
+                    if (GeneradorWasm.esAtributo(registroSimbolos)) {
+                        GeneradorWasm.emitirGetAtributo(registroSimbolos);
+                    } else {
+                        String refWasm = GeneradorWasm.sanitizarNombre(registroSimbolos.getNombreCompleto());
+                        if ((TablaDeSimbolosTp4.USO_VARIABLE.equals(registroSimbolos.getUso()) 
+                                || TablaDeSimbolosTp4.USO_COMPTIME.equals(registroSimbolos.getUso()) 
+                                || TablaDeSimbolosTp4.USO_PARAMETRO.equals(registroSimbolos.getUso()))) {
+                            GeneradorWasm.declararGlobalSiNoExiste(refWasm, tipoWasm);
+                        }
+                        GeneradorWasm.emitirGet(refWasm);
+                    }
                 GeneradorWasm.emitirSet(aux);
                 return aux;
             }

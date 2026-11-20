@@ -39,14 +39,4 @@ public class TablaPalabrasReservadasTp4 {
         }
         return this.tablaPR.getOrDefault(palabra.toLowerCase(),(short) -1);
     }
-
-    public void imprimirTabla() {
-        System.out.println("\n================ TABLA DE PALABRAS RESERVADAS ================");
-        System.out.printf("%-15s | %-10s%n", "PALABRA", "TOKEN ID");
-        System.out.println("-------------------------------------------------------------");
-        for (Map.Entry<String, Short> entrada : this.tablaPR.entrySet()) {
-            System.out.printf("%-15s | %-10d%n", entrada.getKey(), entrada.getValue());
-        }
-        System.out.println("=============================================================\n");
-    }
 }

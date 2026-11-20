@@ -12,7 +12,7 @@ public class NodoInvocacionMetodo extends NodoAST {
     private final int linea;
     private String errorTipo;
 
-    public NodoInvocacionMetodo( NodoHoja objeto, String metodo, NodoListaParametros parametros, List<Integer> ordenParametros, int linea) {
+    public NodoInvocacionMetodo(NodoHoja objeto, String metodo, NodoListaParametros parametros, List<Integer> ordenParametros, int linea) {
         super("INVOCACION_METODO");
         this.objeto = objeto;
         this.metodo = metodo;

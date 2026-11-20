@@ -3,11 +3,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public final class GestionAmbitoTp4 {
-    private enum TipoAmbito { 
-        GLOBAL,
-        CLASE,
-        FUNCION
-    }
+    private enum TipoAmbito { GLOBAL, CLASE, FUNCION }
     private final TablaDeSimbolosTp4 tabla;
     private final Deque<String> pilaAmbitos = new ArrayDeque<>(); 
     private final Deque<TipoAmbito> pilaTipos = new ArrayDeque<>(); 
@@ -39,8 +35,6 @@ public final class GestionAmbitoTp4 {
         this.nivelesSupresion = 0;
         sincronizarTabla();
     }
-
-    public RegistroSimboloTp4 declararPrograma(String nombre, int linea) {  return tabla.declararPrograma(nombre, linea);}
 
     public String entrarAmbitoClase(String nombreClase) { return entrarAmbito(nombreClase, TipoAmbito.CLASE); }
 
@@ -74,20 +68,7 @@ public final class GestionAmbitoTp4 {
         return pilaAmbitos.peek();
     }
 
-    public String getAmbitoPadre() { 
-        String ambitoActual = getAmbitoActual();
-        int posicionSeparador = ambitoActual.lastIndexOf(':');
-        if (posicionSeparador == -1) {
-            return null;
-        }
-        return ambitoActual.substring(0, posicionSeparador);
-    }
-
-    public boolean esAmbitoGlobal() { return pilaTipos.peek() == TipoAmbito.GLOBAL; }
-
     public boolean estaEnAmbitoClase() { return pilaTipos.peek() == TipoAmbito.CLASE; }
-
-    public boolean estaEnAmbitoFuncion() { return pilaTipos.peek() == TipoAmbito.FUNCION; }
 
     public RegistroSimboloTp4 declararVariable(String nombre,String tipo,int linea,boolean comptime) { 
         if (estaSuprimido()) {
@@ -152,18 +133,6 @@ public final class GestionAmbitoTp4 {
             return true;        
         }
         return tabla.agregarClaseBase(clase, claseBase);
-    }
-
-    public RegistroSimboloTp4 resolver(String nombre) {
-        return tabla.buscar( nombre, getAmbitoActual());
-    }
-
-    public RegistroSimboloTp4 resolverVariable(String nombre) {
-        return tabla.resolverVariable(nombre);
-    }
-
-    public RegistroSimboloTp4 resolverFuncion(String nombre) {
-        return tabla.resolverFuncion(nombre);
     }
 
     private void sincronizarTabla() {

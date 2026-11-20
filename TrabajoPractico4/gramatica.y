@@ -584,7 +584,7 @@ private RecolectorErroresTp4 recolectorErrores;
 public Parser(AnalizadorLexicoTp4 lexer){
     this.lexer = lexer;
     this.tablaSimbolos = lexer.getTablaSimbolos();
-    this.raizAST.setTablaSimbolos(this.tablaSimbolos);
+    NodoAST.setTablaSimbolos(this.tablaSimbolos);
     this.gestorAmbitos = new GestionAmbitoTp4(this.tablaSimbolos);
     this.recolectorErrores = lexer.getRecolectorErroresTp4();
     NodoAST.setRecolectorErrores(this.recolectorErrores);
